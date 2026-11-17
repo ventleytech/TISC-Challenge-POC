@@ -1,0 +1,38 @@
+{
+  "$id": "https://voltpulse.local/contracts/events/models/vp.models.v1.schema.json",
+  "title": "VpModelsV1",
+  "description": "Stub: model registry / reload signal from pulse-train on topic vp.models.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "occurred_at", "model"],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_id", "class_ids", "action", "artifact_uri"],
+      "properties": {
+        "model_id": { "type": "string" },
+        "class_ids": {
+          "type": "array",
+          "items": { "$ref": "../../enums/detection.json" },
+          "minItems": 1
+        },
+        "action": {
+          "type": "string",
+          "enum": ["registered", "promoted", "reload_requested", "retired"]
+        },
+        "artifact_uri": {
+          "type": "string",
+          "description": "pulse-store or registry URI — never hardcode hosts in consumers"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["onnx", "tensorrt", "ultralytics_pt"]
+        },
+        "checksum_sha256": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

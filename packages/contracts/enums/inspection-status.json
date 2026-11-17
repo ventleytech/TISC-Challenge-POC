@@ -1,0 +1,14 @@
+{
+  "$id": "https://voltpulse.local/contracts/enums/inspection-status.json",
+  "title": "VoltPulseInspectionStatus",
+  "description": "Lifecycle status for an inspection owned by pulse-api.",
+  "type": "string",
+  "enum": [
+    "planned",
+    "in_progress",
+    "processing",
+    "review",
+    "closed",
+    "cancelled"
+  ]
+}
