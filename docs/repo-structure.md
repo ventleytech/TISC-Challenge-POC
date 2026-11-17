@@ -15,6 +15,7 @@ voltpulse/
     pulse-train/         # profile: data
   packages/
     contracts/           # OpenAPI + vp.* events
+    responsibility/      # A04–A06 party / warranty / tender hints
     ui-tokens/
     shared-ts/
   infra/
