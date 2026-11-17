@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { resolveChannels } from '@voltpulse/alert-policy';
 import { hintResponsibility } from '@voltpulse/responsibility';
 import type { Settings } from './config/settings.js';
 import { computeRiskScore } from './policy/risk.js';
@@ -137,7 +138,7 @@ export function processDetectEvent(
           utility_id: asset?.utility_id,
           severity,
           sla_due_at: slaDueAt(occurredAt, severity, opts.settings),
-          channels: [...opts.settings.defaultChannels],
+          channels: resolveChannels(opts.settings.alertPolicy),
         },
       });
     }

@@ -75,9 +75,9 @@ describe('processDetectEvent', () => {
 
   it('emits alerts with sla_due_at for severities ≥ medium', () => {
     const settings = loadSettings({
-      GRID_RULES_SLA_CRITICAL_MIN: '15',
-      GRID_RULES_SLA_HIGH_MIN: '60',
-      GRID_RULES_SLA_MEDIUM_MIN: '240',
+      VP_ALERT_SLA_CRITICAL_MIN: '15',
+      VP_ALERT_SLA_HIGH_MIN: '60',
+      VP_ALERT_SLA_MEDIUM_MIN: '240',
     });
     const result = processDetectEvent(DETECT, {
       settings,
@@ -95,6 +95,8 @@ describe('processDetectEvent', () => {
       assert.ok(a.alert.sla_due_at);
       assert.ok(Date.parse(a.alert.sla_due_at) > Date.parse(DETECT.occurred_at));
       assert.ok(a.alert.channels?.includes('push'));
+      assert.ok(a.alert.channels?.includes('sms'));
+      assert.ok(!a.alert.channels?.includes('email'));
       assert.equal(a.alert.inspection_id, DETECT.inspection_id);
     }
 
@@ -102,6 +104,27 @@ describe('processDetectEvent', () => {
     const emitted = sink.emit(result);
     assert.ok(emitted.some((e) => e.topic === 'vp.findings.v1'));
     assert.ok(emitted.some((e) => e.topic === 'vp.alerts.v1'));
+  });
+
+  it('alert channels follow alert-policy enable flags', () => {
+    const settings = loadSettings({
+      VP_ALERT_DEFAULT_CHANNELS: 'push,sms,email',
+      VP_ALERT_CHANNEL_EMAIL_ENABLED: 'true',
+      VP_ALERT_CHANNEL_SMS_ENABLED: 'false',
+    });
+    const result = processDetectEvent(DETECT, {
+      settings,
+      assets: {
+        'cccccccc-cccc-4ccc-8ccc-cccccccccccc': {
+          asset_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+          criticality: 'high',
+        },
+      },
+    });
+    assert.ok(result.alerts.length >= 1);
+    for (const a of result.alerts) {
+      assert.deepEqual(a.alert.channels, ['push', 'email']);
+    }
   });
 
   it('criticality changes risk ordering (W01)', () => {

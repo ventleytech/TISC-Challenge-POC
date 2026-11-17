@@ -15,6 +15,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@voltpulse/alert-policy": "file:../../packages/alert-policy",
     "@voltpulse/responsibility": "file:../../packages/responsibility"
   },
   "devDependencies": {

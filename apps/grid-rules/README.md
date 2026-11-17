@@ -10,7 +10,7 @@ VoltPulse Stream-plane rules service. Consumes `vp.detect.*`, emits ranked `vp.f
 2. Compute **W01 risk score** = `f(severity, confidence, asset.criticality, voltage_class)` (0–100).
 3. When asset fixture carries OEM / warranty / anti-corrosion SLA → call `@voltpulse/responsibility` `hintResponsibility` and attach `party_type` / `warranty_hint` under `finding.extensions` (S9).
 4. Emit `vp.findings.v1` sorted by risk desc.
-5. Emit `vp.alerts.v1` when severity ≥ configured floor, with `sla_due_at` + channel stubs.
+5. Emit `vp.alerts.v1` when severity ≥ configured floor, with `sla_due_at` + channels from `@voltpulse/alert-policy`.
 
 ## Local run
 
@@ -32,11 +32,14 @@ Smoke prints JSON: findings (`severity`, `risk_score`, optional `extensions.part
 | `VP_TOPIC_DETECT` | `vp.detect.v1` | Input topic name |
 | `VP_TOPIC_FINDINGS` | `vp.findings.v1` | Findings emit |
 | `VP_TOPIC_ALERTS` | `vp.alerts.v1` | Alerts emit |
-| `GRID_RULES_SLA_*_MIN` | 15/60/240/1440/10080 | SLA minutes by severity |
+| `VP_ALERT_SLA_*_MIN` | package defaults | SLA minutes via `@voltpulse/alert-policy` |
+| `VP_ALERT_DEFAULT_CHANNELS` | `push,sms` | Default notify channels (enabled only) |
+| `VP_ALERT_CHANNEL_*` | see alert-policy `.env.template` | Channel enable / adapter |
+| `GRID_RULES_SLA_*_MIN` | (legacy) | Mapped to `VP_ALERT_SLA_*` when modern unset |
 | `GRID_RULES_ALERT_MIN_SEVERITY` | `medium` | Alert floor |
 | `KAFKA_BROKERS` | unset | Reserved; fixture mode ignores |
 
-No secrets. Brokers only via env when Kafka adapter lands.
+No secrets. Brokers only via env when Kafka adapter lands. SLA/channels are **not** hardcoded in grid-rules — they load from `packages/alert-policy`.
 
 ## Layout
 
