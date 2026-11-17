@@ -91,6 +91,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 |------|-------|
 | ML scratch / smoke | `local-notes/models-experiments/_scratch/**`, `…/corrosion/**` (gitignored tree) |
 | Contracts | `packages/contracts/**` |
+| Detector stubs (C04 remaining) | `packages/detector-fallbacks/**` |
 | Compose | `infra/compose/**`, root `.env.template` |
 | API | `apps/pulse-api/**` |
 | Web | `apps/pulse-web/**`, `packages/ui-tokens/**` |
@@ -110,6 +111,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
 | 8 | P0-T011 | ONNX export notes (all three Gate0 ONNX on disk) | M003/M004/T010 | ok vs pulse-* | done |
+| 9 | P0-T160 | Honest `sag` + `thermal_hotspot` stubs (C04 remaining) | contracts enum | **ok** vs T130 / perception | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010**.
 
@@ -134,5 +136,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-M004 evidence: ≥1 annotated Powerline OBB on T4 (AGPL smoke)
 - [ ] P0-T002 stubs exist for `vp.*` + OpenAPI skeleton
 - [ ] Optional: T001 / T005 scaffold with smoke cmds
+- [x] P0-T160 honest sag/thermal fallbacks under `packages/detector-fallbacks` (no accuracy claims)
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes
