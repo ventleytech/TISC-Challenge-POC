@@ -1,0 +1,29 @@
+# Optional fragment — do NOT replace infra/compose/docker-compose.yml (P0-T001 owns that).
+# Topic bootstrap sidecar for VoltPulse vp.* catalog.
+#
+# Example (stream bus + this init; data-plane consumers assume topics exist):
+#   docker compose -p voltpulse \
+#     -f infra/compose/docker-compose.yml \
+#     -f infra/kafka/compose.fragment.yml \
+#     --profile stream --profile data \
+#     run --rm pulse-kafka-topics --dry-run
+#
+# Live create needs a real Kafka image behind pulse-bus (stub alpine today).
+
+services:
+  pulse-kafka-topics:
+    profiles: [stream, data]
+    image: apache/kafka:3.8.1
+    container_name: vp-pulse-kafka-topics
+    working_dir: /work
+    volumes:
+      - ../..:/work:ro
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+      PULSE_TOPIC_CATALOG: /work/packages/contracts/events/catalog.yaml
+      PULSE_TOPIC_PARTITIONS: ${PULSE_TOPIC_PARTITIONS:-1}
+      PULSE_TOPIC_REPLICATION: ${PULSE_TOPIC_REPLICATION:-1}
+    entrypoint: ["/bin/bash", "/work/infra/kafka/create-topics.sh"]
+    depends_on:
+      - pulse-bus
+    restart: "no"
