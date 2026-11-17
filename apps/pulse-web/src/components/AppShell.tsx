@@ -4,6 +4,7 @@ const links: { to: string; label: string; end?: boolean }[] = [
   { to: "/", label: "Home", end: true },
   { to: "/inspections", label: "Inspections" },
   { to: "/assets", label: "Assets" },
+  { to: "/priority", label: "Priority" },
   { to: "/alerts", label: "Alerts" },
 ];
 

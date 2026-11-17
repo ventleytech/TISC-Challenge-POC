@@ -53,3 +53,47 @@ export type InspectionCreate = {
   schedule_kind?: ScheduleKind;
   planned_at?: string | null;
 };
+
+/** Aligns with packages/contracts/enums/severity.json */
+export const SEVERITIES = [
+  "critical",
+  "high",
+  "medium",
+  "low",
+  "info",
+] as const;
+export type Severity = (typeof SEVERITIES)[number];
+
+export const DETECTION_CLASSES = [
+  "crack",
+  "sag",
+  "corrosion",
+  "vegetation",
+  "thermal_hotspot",
+] as const;
+export type DetectionClass = (typeof DETECTION_CLASSES)[number];
+
+/** C09 board row — risk_score from W01 severity × criticality stub. */
+export type Finding = {
+  id: string;
+  utility_id: string;
+  asset_id: string;
+  class_id: DetectionClass;
+  severity: Severity;
+  criticality: Criticality;
+  risk_score: number;
+  recommendation: string;
+  occurred_at: string;
+};
+
+/** C07 alert row — SLA + ack stub (OpenAPI Alert shape + UI fields). */
+export type Alert = {
+  id: string;
+  utility_id: string;
+  finding_id: string;
+  inspection_id?: string | null;
+  severity: Severity;
+  title: string;
+  sla_due_at: string | null;
+  ack_at: string | null;
+};

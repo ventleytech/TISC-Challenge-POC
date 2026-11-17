@@ -1,13 +1,23 @@
 import type {
+  Alert,
   Asset,
   AssetKind,
   Criticality,
+  Finding,
   Inspection,
   InspectionCreate,
   InspectionStatus,
   ScheduleKind,
+  Severity,
 } from "../types/domain";
-import { DEMO_UTILITY_ID, MOCK_ASSETS, MOCK_INSPECTIONS } from "./data";
+import {
+  DEMO_UTILITY_ID,
+  MOCK_ALERTS,
+  MOCK_ASSETS,
+  MOCK_FINDINGS,
+  MOCK_INSPECTIONS,
+} from "./data";
+import { criticalityRank, severityRank } from "./risk";
 
 export type AssetFilters = {
   utilityId?: string;
@@ -26,20 +36,46 @@ type ListResult<T> = { items: T[] };
 
 const assetsDb = [...MOCK_ASSETS];
 const inspectionsDb = [...MOCK_INSPECTIONS];
+const findingsDb = [...MOCK_FINDINGS];
+const alertsDb = MOCK_ALERTS.map((a) => ({ ...a }));
 let nextSeq = 100;
 
+export type FindingFilters = {
+  utilityId?: string;
+  classId?: Finding["class_id"] | "";
+  severity?: Severity | "";
+  minRisk?: number;
+};
+
+export type AlertFilters = {
+  utilityId?: string;
+  severity?: Severity | "";
+  openOnly?: boolean;
+};
+
+/** C09 sort: risk desc → severity → criticality → occurred_at desc → id. */
+function compareFindings(a: Finding, b: Finding): number {
+  if (b.risk_score !== a.risk_score) return b.risk_score - a.risk_score;
+  const sev = severityRank(b.severity) - severityRank(a.severity);
+  if (sev !== 0) return sev;
+  const crit = criticalityRank(b.criticality) - criticalityRank(a.criticality);
+  if (crit !== 0) return crit;
+  if (a.occurred_at !== b.occurred_at) {
+    return b.occurred_at < a.occurred_at ? -1 : 1;
+  }
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+
 function liveApiEnabled(): boolean {
-  return (
-    import.meta.env.VITE_PULSE_API_BASE === "1" ||
-    Boolean(import.meta.env.VITE_PULSE_API_URL)
-  );
+  const env = import.meta.env as
+    | { VITE_PULSE_API_BASE?: string; VITE_PULSE_API_URL?: string }
+    | undefined;
+  return env?.VITE_PULSE_API_BASE === "1" || Boolean(env?.VITE_PULSE_API_URL);
 }
 
 function apiBase(): string {
-  return (
-    (import.meta.env.VITE_PULSE_API_URL as string | undefined) ??
-    "http://127.0.0.1:3000/api/v1"
-  );
+  const env = import.meta.env as { VITE_PULSE_API_URL?: string } | undefined;
+  return env?.VITE_PULSE_API_URL ?? "http://127.0.0.1:3000/api/v1";
 }
 
 async function tryFetchJson<T>(path: string): Promise<T | null> {
@@ -139,4 +175,73 @@ export function assetsForScheduleKind(kind: ScheduleKind): Asset[] {
   return assetsDb.filter(
     (a) => a.utility_id === DEMO_UTILITY_ID && a.kind === kind,
   );
+}
+
+export async function listFindings(
+  filters: FindingFilters = {},
+): Promise<ListResult<Finding>> {
+  const utilityId = filters.utilityId ?? DEMO_UTILITY_ID;
+  // Findings board is mock-only until Nest exposes /findings.
+  let items = findingsDb.filter((f) => f.utility_id === utilityId);
+
+  if (filters.classId) {
+    items = items.filter((f) => f.class_id === filters.classId);
+  }
+  if (filters.severity) {
+    items = items.filter((f) => f.severity === filters.severity);
+  }
+  if (typeof filters.minRisk === "number" && !Number.isNaN(filters.minRisk)) {
+    items = items.filter((f) => f.risk_score >= filters.minRisk!);
+  }
+
+  return { items: items.slice().sort(compareFindings) };
+}
+
+export async function listAlerts(
+  filters: AlertFilters = {},
+): Promise<ListResult<Alert>> {
+  const utilityId = filters.utilityId ?? DEMO_UTILITY_ID;
+  const severityQ = filters.severity
+    ? `&severity=${encodeURIComponent(filters.severity)}`
+    : "";
+  const live = await tryFetchJson<ListResult<Alert>>(
+    `/alerts?utility_id=${encodeURIComponent(utilityId)}${severityQ}`,
+  );
+
+  let items =
+    live?.items?.map((row) => {
+      const seed = alertsDb.find((a) => a.id === row.id);
+      return {
+        ...row,
+        title: seed?.title ?? `Alert ${row.id}`,
+        ack_at: row.ack_at ?? seed?.ack_at ?? null,
+        sla_due_at: row.sla_due_at ?? seed?.sla_due_at ?? null,
+      };
+    }) ?? alertsDb.filter((a) => a.utility_id === utilityId);
+
+  if (filters.severity) {
+    items = items.filter((a) => a.severity === filters.severity);
+  }
+  if (filters.openOnly) {
+    items = items.filter((a) => !a.ack_at);
+  }
+
+  items = items.slice().sort((a, b) => {
+    const aDue = a.sla_due_at ?? "";
+    const bDue = b.sla_due_at ?? "";
+    if (aDue !== bDue) return aDue < bDue ? -1 : 1;
+    return a.id < b.id ? -1 : 1;
+  });
+
+  return { items };
+}
+
+/** Mock acknowledge — local state only (Nest ack path not owned by this card). */
+export async function ackAlert(alertId: string): Promise<Alert | null> {
+  const row = alertsDb.find((a) => a.id === alertId);
+  if (!row) return null;
+  if (!row.ack_at) {
+    row.ack_at = new Date().toISOString();
+  }
+  return { ...row };
 }

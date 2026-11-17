@@ -18,8 +18,8 @@ export function HomePage() {
           alert.
         </p>
         <div className="hero__actions">
-          <Link className="btn btn--primary" to="/inspections">
-            Open inspections
+          <Link className="btn btn--primary" to="/priority">
+            Priority board
           </Link>
           <Link className="btn btn--ghost" to="/alerts">
             View alerts

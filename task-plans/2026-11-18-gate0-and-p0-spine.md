@@ -110,8 +110,9 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
 | 8 | P0-T060 | Schedule wizards + assets UI shells (S8/A01) | P0-T005 | **ok** vs api auth (web-only) | done |
+| 9 | P0-T170 | C09 priority board + alerts SLA/ack (mock) | P0-T060 | **ok** vs api (web-only) | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010**; schedule/assets UI via **T060** (web mock).
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010**; schedule/assets UI via **T060**; priority/alerts UI via **T170** (web mock).
 
 Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`).
 

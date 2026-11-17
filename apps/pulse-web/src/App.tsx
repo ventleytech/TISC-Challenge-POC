@@ -5,6 +5,7 @@ import { AssetDetailPage } from "./pages/AssetDetailPage";
 import { AssetsPage } from "./pages/AssetsPage";
 import { HomePage } from "./pages/HomePage";
 import { InspectionsPage } from "./pages/InspectionsPage";
+import { PriorityBoardPage } from "./pages/PriorityBoardPage";
 import { ScheduleIndexPage } from "./pages/ScheduleIndexPage";
 import { ScheduleWizardPage } from "./pages/ScheduleWizardPage";
 
@@ -21,6 +22,7 @@ export default function App() {
         />
         <Route path="assets" element={<AssetsPage />} />
         <Route path="assets/:assetId" element={<AssetDetailPage />} />
+        <Route path="priority" element={<PriorityBoardPage />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
