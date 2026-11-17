@@ -26,6 +26,16 @@
         "evidence_object_ids": {
           "type": "array",
           "items": { "type": "string" }
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Optional non-core finding enrichments (S9 responsibility hints, etc.). Additive; consumers may ignore.",
+          "additionalProperties": true,
+          "properties": {
+            "party_type": { "type": "string" },
+            "warranty_hint": { "type": "string" },
+            "tender_ref": { "type": ["string", "null"] }
+          }
         }
       }
     }
