@@ -13,7 +13,8 @@ import {
   type WorkOrderExport,
   type WorkOrderRow,
   type WorkOrderSource,
-} from './types.js';
+} from './types';
+
 
 const DETECTION_SET = new Set<string>(DETECTION_CLASSES);
 const SEVERITY_SET = new Set<string>(SEVERITIES);

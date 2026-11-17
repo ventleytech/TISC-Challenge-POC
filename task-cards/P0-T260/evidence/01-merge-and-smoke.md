@@ -53,3 +53,11 @@ No `apps/pulse-web` on integrate tip.
 ## Anti-leak
 
 Product paths clean except intentional negative asserts in tests (i18n / detector-fallbacks / perception).
+
+
+## Follow-up merge — P0-T250
+
+- Branch: `vp/P0-T250-work-order-api` @ `1db5d94`
+- Integrate tip after merge: `bb809e4cd192298f5a3e7dd9d8382aa256b39b17` (`bb809e4`)
+- Order: after T140 api + T150 work-order package lineage
+- Smoke: pulse-api jest + work-order package tests (see append below if re-run)
