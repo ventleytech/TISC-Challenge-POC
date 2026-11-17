@@ -19,6 +19,23 @@ export type PulseApiSettings = {
    * Unset → MemoryStore (tests / no-DB local).
    */
   databaseUrl: string | null;
+  /** Kafka ingest of vp.findings.v1 / vp.alerts.v1 (P0-T330). Omitted in unit fixtures. */
+  kafka?: KafkaIngestSettings;
+};
+
+export type KafkaIngestSettings = {
+  /** Consumer runs only when true AND bootstrap is non-empty. */
+  enabled: boolean;
+  bootstrap: string;
+  groupId: string;
+  clientId: string;
+  findingsTopic: string;
+  alertsTopic: string;
+  /**
+   * Fallback tenant for finding events (vp.findings.v1 carries no utility_id).
+   * Resolution order: inspection row -> this default -> reject.
+   */
+  defaultUtilityId: string | null;
 };
 
 /**
@@ -59,6 +76,15 @@ export function loadSettings(
     authEnabled,
     authPrincipals,
     databaseUrl,
+    kafka: {
+      enabled: parseBool(env.PULSE_KAFKA_CONSUMER_ENABLED, false),
+      bootstrap: env.PULSE_KAFKA_BOOTSTRAP?.trim() ?? '',
+      groupId: env.PULSE_KAFKA_GROUP_ID?.trim() || 'pulse-api',
+      clientId: env.PULSE_KAFKA_CLIENT_ID?.trim() || 'pulse-api',
+      findingsTopic: env.PULSE_KAFKA_TOPIC_FINDINGS?.trim() || 'vp.findings.v1',
+      alertsTopic: env.PULSE_KAFKA_TOPIC_ALERTS?.trim() || 'vp.alerts.v1',
+      defaultUtilityId: env.PULSE_KAFKA_DEFAULT_UTILITY_ID?.trim() || null,
+    },
   };
 }
 

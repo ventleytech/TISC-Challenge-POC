@@ -1,0 +1,227 @@
+{
+  "summary": {
+    "service": "grid-rules",
+    "source_topic": "vp.detect.v1",
+    "input_detections": 5,
+    "findings": 5,
+    "alerts": 3,
+    "top_risk": 30.94,
+    "emitted": [
+      {
+        "topic": "vp.findings.v1",
+        "id": "14b6852e-12d9-4621-be72-d1f6bf898f08",
+        "severity": "low",
+        "risk_score": 30.94,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "c15dcefd-f801-41c1-89d6-3e4b42e1c601",
+        "severity": "low",
+        "risk_score": 30.54,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "4f2c0ec0-606b-4613-8708-3c72e033b769",
+        "severity": "low",
+        "risk_score": 28.39,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "0b02d208-a81b-4209-bd47-3dc15eeec862",
+        "severity": "info",
+        "risk_score": 11.25,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "b28e6537-0781-49b3-9cee-391aabc78014",
+        "severity": "info",
+        "risk_score": 11.07,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "d0bbf007-0309-48d5-b270-15e2c6043ec5",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:50:51.000Z"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "4599677e-3204-4365-bfac-f27c517cf2f8",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:50:51.000Z"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "c6ffaa1e-8abf-4b4e-bce6-16b40a1e7f35",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:50:51.000Z"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "event_id": "08a140df-900b-4e60-b4fe-a3ae663de1f1",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "14b6852e-12d9-4621-be72-d1f6bf898f08",
+        "class_id": "corrosion",
+        "severity": "low",
+        "risk_score": 30.94,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "564fec5e-568b-4a79-a99a-81227ecd8029"
+        ],
+        "evidence_object_ids": [],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    },
+    {
+      "event_id": "c4fda26d-4157-4669-a02b-e2600df2e3f6",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "c15dcefd-f801-41c1-89d6-3e4b42e1c601",
+        "class_id": "corrosion",
+        "severity": "low",
+        "risk_score": 30.54,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "e7d2f397-bab1-45e7-a11c-d2d8e93d4a23"
+        ],
+        "evidence_object_ids": [],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    },
+    {
+      "event_id": "65dc31b2-fe90-4777-84d6-422856de824e",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "4f2c0ec0-606b-4613-8708-3c72e033b769",
+        "class_id": "corrosion",
+        "severity": "low",
+        "risk_score": 28.39,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "5920d8b3-fc80-4f85-975e-d41aae6a3434"
+        ],
+        "evidence_object_ids": [],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    },
+    {
+      "event_id": "3d003d07-8cc7-478f-9a34-496203edfc22",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "0b02d208-a81b-4209-bd47-3dc15eeec862",
+        "class_id": "corrosion",
+        "severity": "info",
+        "risk_score": 11.25,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "be870705-db68-4d58-8523-137359a0ff36"
+        ],
+        "evidence_object_ids": [],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    },
+    {
+      "event_id": "a90126b8-c9b1-4631-93ad-eb788e3b2aab",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "b28e6537-0781-49b3-9cee-391aabc78014",
+        "class_id": "corrosion",
+        "severity": "info",
+        "risk_score": 11.07,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "abfd59f1-ebae-4d22-82e2-c127a748a748"
+        ],
+        "evidence_object_ids": [],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "event_id": "41e15701-2dc9-4035-af63-262a08534575",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "alert": {
+        "alert_id": "d0bbf007-0309-48d5-b270-15e2c6043ec5",
+        "finding_id": "14b6852e-12d9-4621-be72-d1f6bf898f08",
+        "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "utility_id": "11111111-1111-4111-8111-111111111111",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:50:51.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    },
+    {
+      "event_id": "be04ab75-8180-48be-9853-e8934b02549d",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "alert": {
+        "alert_id": "4599677e-3204-4365-bfac-f27c517cf2f8",
+        "finding_id": "c15dcefd-f801-41c1-89d6-3e4b42e1c601",
+        "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "utility_id": "11111111-1111-4111-8111-111111111111",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:50:51.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    },
+    {
+      "event_id": "cadce990-b28e-4ece-b878-9739ebbd538d",
+      "occurred_at": "2026-11-17T23:50:51Z",
+      "alert": {
+        "alert_id": "c6ffaa1e-8abf-4b4e-bce6-16b40a1e7f35",
+        "finding_id": "4f2c0ec0-606b-4613-8708-3c72e033b769",
+        "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "utility_id": "11111111-1111-4111-8111-111111111111",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:50:51.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    }
+  ]
+}

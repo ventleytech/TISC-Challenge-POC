@@ -23,6 +23,13 @@ Real IdP not yet. Without `PULSE_DATABASE_URL`, inspections/assets/alerts fall b
 | `PULSE_OPENAPI_PATH` | `packages/contracts/openapi/openapi.yaml` | Optional override |
 | `PULSE_AUTH_ENABLED` | `true` | Fail closed on `/api/v1` when on |
 | `PULSE_AUTH_STUB_KEYS` | _(empty)_ | `key:role:utility_id;…` principal map |
+| `PULSE_KAFKA_CONSUMER_ENABLED` | `false` | Consume `vp.findings.v1` / `vp.alerts.v1` into the store (P0-T330) |
+| `PULSE_KAFKA_BOOTSTRAP` | _(empty)_ | Brokers; host `localhost:9094`, in-compose `pulse-bus:9092` |
+| `PULSE_KAFKA_GROUP_ID` | `pulse-api` | Consumer group |
+| `PULSE_KAFKA_TOPIC_FINDINGS` / `_ALERTS` | `vp.findings.v1` / `vp.alerts.v1` | Topic overrides |
+| `PULSE_KAFKA_DEFAULT_UTILITY_ID` | _(unset)_ | Fallback tenant: finding events carry no `utility_id` (inspection row wins) |
+
+Kafka ingest is idempotent on `finding_id` / `alert_id`; malformed or unattributable messages are logged and skipped, store errors retry. Smoke: `scripts/s2-kafka-ingest.sh`.
 
 Roles: `platform_admin` · `utility_admin` · `energy_supervisor` · `energy_operator` · `viewer`.
 

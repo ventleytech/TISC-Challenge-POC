@@ -1,0 +1,11 @@
+11/17/2026, 11:50:54 PM     LOG [PostgresStore] Postgres pool ready
+11/17/2026, 11:50:54 PM     LOG [DomainModule] Using PostgresStore (PULSE_DATABASE_URL)
+11/17/2026, 11:50:55 PM     LOG [KafkaConsumerService] Kafka consumer up: localhost:9094 group=pulse-api-smoke-1794959444 topics=vp.findings.v1,vp.alerts.v1
+11/17/2026, 11:50:55 PM     LOG [IngestService] finding 14b6852e-12d9-4621-be72-d1f6bf898f08 ingested (corrosion/low)
+11/17/2026, 11:50:55 PM     LOG [IngestService] finding c15dcefd-f801-41c1-89d6-3e4b42e1c601 ingested (corrosion/low)
+11/17/2026, 11:50:55 PM     LOG [IngestService] finding 4f2c0ec0-606b-4613-8708-3c72e033b769 ingested (corrosion/low)
+11/17/2026, 11:50:55 PM     LOG [IngestService] finding 0b02d208-a81b-4209-bd47-3dc15eeec862 ingested (corrosion/info)
+11/17/2026, 11:50:55 PM     LOG [IngestService] finding b28e6537-0781-49b3-9cee-391aabc78014 ingested (corrosion/info)
+11/17/2026, 11:50:56 PM     LOG [IngestService] alert d0bbf007-0309-48d5-b270-15e2c6043ec5 ingested (low)
+11/17/2026, 11:50:56 PM     LOG [IngestService] alert 4599677e-3204-4365-bfac-f27c517cf2f8 ingested (low)
+11/17/2026, 11:50:56 PM     LOG [IngestService] alert c6ffaa1e-8abf-4b4e-bce6-16b40a1e7f35 ingested (low)

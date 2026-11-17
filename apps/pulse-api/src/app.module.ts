@@ -7,6 +7,7 @@ import { InspectionsModule } from './inspections/inspections.module';
 import { AssetsModule } from './assets/assets.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { FindingsModule } from './findings/findings.module';
+import { IngestModule } from './ingest/ingest.module';
 import { UtilitiesModule } from './utilities/utilities.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
 
@@ -21,6 +22,7 @@ import { WorkOrdersModule } from './work-orders/work-orders.module';
     AssetsModule,
     FindingsModule,
     AlertsModule,
+    IngestModule,
     WorkOrdersModule,
   ],
 })
