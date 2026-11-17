@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "channels": {
+    "push": { "enabled": true, "adapter": "mock" },
+    "sms": { "enabled": true, "adapter": "mock" },
+    "email": { "enabled": false, "adapter": "mock" }
+  },
+  "defaultChannels": ["push", "sms"],
+  "slaMinutes": {
+    "critical": 15,
+    "high": 60,
+    "medium": 240,
+    "low": 1440,
+    "info": 10080
+  }
+}
