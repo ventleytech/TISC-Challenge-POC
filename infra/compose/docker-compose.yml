@@ -1,0 +1,149 @@
+# VoltPulse Compose skeleton — project name voltpulse
+# Profiles: sense | media | stream | data | obs | store
+# Stub images only; real service images land in later cards.
+
+name: voltpulse
+
+services:
+  grid-perception:
+    profiles: [sense]
+    image: alpine:3.20
+    container_name: vp-grid-perception
+    command: ["sleep", "infinity"]
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+      PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC}
+    restart: "no"
+
+  pulse-gateway:
+    profiles: [media]
+    image: alpine:3.20
+    container_name: vp-pulse-gateway
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_GATEWAY_RTSP_PORT:-8554}:8554"
+    environment:
+      PULSE_GATEWAY_RTSP_PORT: ${PULSE_GATEWAY_RTSP_PORT:-8554}
+    restart: "no"
+
+  pulse-bus:
+    profiles: [stream]
+    image: alpine:3.20
+    container_name: vp-pulse-bus
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_KAFKA_PORT:-9092}:9092"
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+    restart: "no"
+
+  grid-rules:
+    profiles: [stream]
+    image: alpine:3.20
+    container_name: vp-grid-rules
+    command: ["sleep", "infinity"]
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+      PULSE_FINDINGS_TOPIC: ${PULSE_FINDINGS_TOPIC}
+      PULSE_ALERTS_TOPIC: ${PULSE_ALERTS_TOPIC}
+    depends_on:
+      - pulse-bus
+    restart: "no"
+
+  pulse-postgres:
+    profiles: [data]
+    image: postgres:16-alpine
+    container_name: vp-pulse-postgres
+    environment:
+      POSTGRES_USER: ${PULSE_PG_USER}
+      POSTGRES_PASSWORD: ${PULSE_PG_PASSWORD}
+      POSTGRES_DB: ${PULSE_PG_DB}
+    ports:
+      - "${PULSE_PG_PORT:-5432}:5432"
+    volumes:
+      - pulse_pg_data:/var/lib/postgresql/data
+    restart: "no"
+
+  pulse-api:
+    profiles: [data]
+    image: alpine:3.20
+    container_name: vp-pulse-api
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_API_PORT:-3000}:3000"
+    environment:
+      PULSE_API_PORT: ${PULSE_API_PORT:-3000}
+      PULSE_DATABASE_URL: ${PULSE_DATABASE_URL}
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+    depends_on:
+      - pulse-postgres
+    restart: "no"
+
+  pulse-web:
+    profiles: [data]
+    image: alpine:3.20
+    container_name: vp-pulse-web
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_WEB_PORT:-5173}:5173"
+    environment:
+      PULSE_WEB_PORT: ${PULSE_WEB_PORT:-5173}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL}
+    restart: "no"
+
+  pulse-notify:
+    profiles: [data]
+    image: alpine:3.20
+    container_name: vp-pulse-notify
+    command: ["sleep", "infinity"]
+    environment:
+      PULSE_NOTIFY_ADAPTER: ${PULSE_NOTIFY_ADAPTER:-log}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL}
+    restart: "no"
+
+  pulse-train:
+    profiles: [data]
+    image: alpine:3.20
+    container_name: vp-pulse-train
+    command: ["sleep", "infinity"]
+    environment:
+      PULSE_MODELS_TOPIC: ${PULSE_MODELS_TOPIC}
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT}
+    restart: "no"
+
+  pulse-prometheus:
+    profiles: [obs]
+    image: alpine:3.20
+    container_name: vp-pulse-prometheus
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_PROM_PORT:-9090}:9090"
+    restart: "no"
+
+  pulse-grafana:
+    profiles: [obs]
+    image: alpine:3.20
+    container_name: vp-pulse-grafana
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_GRAFANA_PORT:-3001}:3000"
+    restart: "no"
+
+  pulse-store:
+    profiles: [store]
+    image: alpine:3.20
+    container_name: vp-pulse-store
+    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_STORE_API_PORT:-9000}:9000"
+      - "${PULSE_STORE_CONSOLE_PORT:-9001}:9001"
+    environment:
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT}
+      PULSE_STORE_BUCKET: ${PULSE_STORE_BUCKET}
+      # Credentials from env only — never commit real .env
+      MINIO_ROOT_USER: ${PULSE_STORE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${PULSE_STORE_SECRET_KEY}
+    restart: "no"
+
+volumes:
+  pulse_pg_data:
