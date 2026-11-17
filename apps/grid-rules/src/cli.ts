@@ -2,6 +2,7 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadDetectFixture } from './bus/fixture-source.js';
+import { KafkaSink, kafkaSinkEnabled } from './bus/kafka-sink.js';
 import { MemorySink } from './bus/memory-sink.js';
 import { loadSettings } from './config/settings.js';
 import { processDetectEvent } from './rules-engine.js';
@@ -68,12 +69,27 @@ async function main(): Promise<void> {
   const sink = new MemorySink(settings);
   const emitted = sink.emit(result);
 
+  let kafkaPublished = 0;
+  if (kafkaSinkEnabled(settings)) {
+    const kafka = await KafkaSink.connect(settings);
+    try {
+      kafkaPublished = await kafka.publish(emitted);
+    } finally {
+      await kafka.disconnect();
+    }
+  } else if (settings.kafkaProducer.enabled) {
+    console.error(
+      '[grid-rules] GRID_RULES_KAFKA_PRODUCER_ENABLED=true but KAFKA_BROKERS unset — kafka publish skipped',
+    );
+  }
+
   const summary = {
     service: settings.serviceName,
     source_topic: settings.topics.detect,
     input_detections: detect.detections.length,
     findings: result.findings.length,
     alerts: result.alerts.length,
+    kafka_published: kafkaPublished,
     top_risk: result.findings[0]?.finding.risk_score ?? null,
     emitted: emitted.map((e) => ({
       topic: e.topic,

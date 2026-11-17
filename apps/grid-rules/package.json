@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@voltpulse/alert-policy": "file:../../packages/alert-policy",
-    "@voltpulse/responsibility": "file:../../packages/responsibility"
+    "@voltpulse/responsibility": "file:../../packages/responsibility",
+    "kafkajs": "^2.2.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",
