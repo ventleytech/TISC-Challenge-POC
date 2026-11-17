@@ -1,0 +1,40 @@
+{
+  "$id": "https://voltpulse.local/contracts/events/labels/vp.labels.v1.schema.json",
+  "title": "VpLabelsV1",
+  "description": "Stub: operator label event on topic vp.labels.v1 (retrain loop input)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "occurred_at", "label"],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "label": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label_id", "class_id", "finding_id", "labeler_role"],
+      "properties": {
+        "label_id": { "type": "string", "format": "uuid" },
+        "finding_id": { "type": "string", "format": "uuid" },
+        "inspection_id": { "type": "string", "format": "uuid" },
+        "class_id": { "$ref": "../../enums/detection.json" },
+        "accepted": { "type": "boolean" },
+        "corrected_class_id": {
+          "oneOf": [
+            { "$ref": "../../enums/detection.json" },
+            { "type": "null" }
+          ]
+        },
+        "labeler_role": {
+          "type": "string",
+          "enum": [
+            "energy_operator",
+            "energy_supervisor",
+            "utility_admin",
+            "platform_admin"
+          ]
+        },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

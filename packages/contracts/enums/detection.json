@@ -1,0 +1,13 @@
+{
+  "$id": "https://voltpulse.local/contracts/enums/detection.json",
+  "title": "VoltPulseDetectionId",
+  "description": "P0 defect class identifiers for perception and findings.",
+  "type": "string",
+  "enum": [
+    "crack",
+    "sag",
+    "corrosion",
+    "vegetation",
+    "thermal_hotspot"
+  ]
+}

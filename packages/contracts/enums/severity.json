@@ -1,0 +1,13 @@
+{
+  "$id": "https://voltpulse.local/contracts/enums/severity.json",
+  "title": "VoltPulseSeverity",
+  "description": "Alert / finding severity ladder.",
+  "type": "string",
+  "enum": [
+    "critical",
+    "high",
+    "medium",
+    "low",
+    "info"
+  ]
+}
