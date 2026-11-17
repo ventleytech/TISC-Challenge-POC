@@ -36,10 +36,40 @@ export type InspectionCreate = {
   planned_at?: string | null;
 };
 
+export type Utility = {
+  id: string;
+  name: string;
+  created_at: string;
+};
+
+export type UtilityCreate = {
+  name: string;
+  /** Optional stub API key for first utility_admin; generated if omitted. */
+  admin_api_key?: string;
+};
+
+export type Site = {
+  id: string;
+  utility_id: string;
+  name: string;
+};
+
+export type SiteSeed = {
+  name: string;
+};
+
+export type UtilityMembership = {
+  id: string;
+  utility_id: string;
+  role: 'utility_admin';
+  key_id: string;
+};
+
 export type Asset = {
   id: string;
   utility_id: string;
   name: string;
+  site_id?: string | null;
   criticality?: Criticality;
   voltage_class?: string | null;
 };
@@ -47,8 +77,21 @@ export type Asset = {
 export type AssetCreate = {
   utility_id: string;
   name: string;
+  site_id?: string | null;
   criticality?: Criticality;
   voltage_class?: string | null;
+};
+
+export type AssetSeed = {
+  name: string;
+  site_id?: string | null;
+  criticality?: Criticality;
+  voltage_class?: string | null;
+};
+
+export type UtilitySeed = {
+  sites?: SiteSeed[];
+  assets?: AssetSeed[];
 };
 
 export type Alert = {

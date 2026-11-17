@@ -1,13 +1,24 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { PULSE_API_SETTINGS } from '../config/settings.module';
 import type { PulseApiSettings } from '../config/settings';
 import type { AuthPrincipal } from './principal';
 
 @Injectable()
 export class AuthService {
+  /** Env stub keys + runtime onboarded principals (M01). */
+  private readonly principals: Map<string, AuthPrincipal>;
+
   constructor(
     @Inject(PULSE_API_SETTINGS) private readonly settings: PulseApiSettings,
-  ) {}
+  ) {
+    this.principals = new Map(settings.authPrincipals);
+  }
 
   get enabled(): boolean {
     return this.settings.authEnabled;
@@ -17,7 +28,22 @@ export class AuthService {
     if (!credential) {
       return null;
     }
-    return this.settings.authPrincipals.get(credential) ?? null;
+    return this.principals.get(credential) ?? null;
+  }
+
+  /**
+   * Register a stub credential at runtime (utility onboarding).
+   * Throws if key already mapped.
+   */
+  registerPrincipal(credential: string, principal: AuthPrincipal): void {
+    const key = credential.trim();
+    if (!key) {
+      throw new BadRequestException('stub credential required');
+    }
+    if (this.principals.has(key)) {
+      throw new ConflictException(`stub credential already registered: ${key}`);
+    }
+    this.principals.set(key, { ...principal, keyId: key });
   }
 
   /**

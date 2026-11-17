@@ -168,4 +168,62 @@ describe('pulse-api (e2e)', () => {
       .set('X-API-Key', 'dev-operator')
       .expect(200);
   });
+
+  it('M01 utility onboarding + seed', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/utilities')
+      .send({ name: 'Denied Co' })
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/utilities')
+      .set('X-API-Key', 'dev-operator')
+      .send({ name: 'Denied Co' })
+      .expect(403);
+
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/utilities')
+      .set('X-API-Key', 'dev-platform')
+      .send({ name: 'North Utility', admin_api_key: 'ua-north' })
+      .expect(201);
+
+    expect(created.body.id).toBeTruthy();
+    expect(created.body.admin).toEqual({
+      api_key: 'ua-north',
+      role: 'utility_admin',
+    });
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/utilities/${created.body.id}`)
+      .set('X-API-Key', 'ua-north')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.name).toBe('North Utility');
+      });
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/utilities/${created.body.id}`)
+      .set('X-API-Key', 'dev-operator')
+      .expect(403);
+
+    const seeded = await request(app.getHttpServer())
+      .post(`/api/v1/utilities/${created.body.id}/seed`)
+      .set('X-API-Key', 'ua-north')
+      .send({
+        sites: [{ name: 'Feeder-1 Yard' }],
+        assets: [{ name: 'Pole-01', criticality: 'medium' }],
+      })
+      .expect(201);
+
+    expect(seeded.body.site_ids).toHaveLength(1);
+    expect(seeded.body.asset_ids).toHaveLength(1);
+
+    const assets = await request(app.getHttpServer())
+      .get(`/api/v1/assets?utility_id=${created.body.id}`)
+      .set('X-API-Key', 'ua-north')
+      .expect(200);
+
+    expect(assets.body.items).toHaveLength(1);
+    expect(assets.body.items[0].name).toBe('Pole-01');
+  });
 });

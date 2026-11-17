@@ -6,6 +6,7 @@ import { HealthModule } from './health/health.module';
 import { InspectionsModule } from './inspections/inspections.module';
 import { AssetsModule } from './assets/assets.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { UtilitiesModule } from './utilities/utilities.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AlertsModule } from './alerts/alerts.module';
     AuthModule,
     DomainModule,
     HealthModule,
+    UtilitiesModule,
     InspectionsModule,
     AssetsModule,
     AlertsModule,

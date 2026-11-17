@@ -111,8 +111,9 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 7 | P0-T004 | `pulse-api` in-memory `/api/v1` stubs | P0-T003 | serialize vs api writers | done |
 | 8 | P0-T050 | C10 Auth + Energy roles stub (`pulse-api`) | P0-T004 | serialize vs api writers | done |
 | 9 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
+| 10 | P0-T140 | M01 utility onboarding stub (`pulse-api`) | P0-T050 | serialize vs api writers | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T004 → T050**; after Gate 0.1 → **T010**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T004 → T050 → T140**; after Gate 0.1 → **T010**.
 
 Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`).
 
