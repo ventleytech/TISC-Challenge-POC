@@ -1,6 +1,6 @@
 # VoltPulse Compose skeleton — project name voltpulse
 # Profiles: sense | media | stream | data | obs | store
-# Most profiles: stub images. Profile store: real MinIO + mc bucket init (T110).
+# Stub images except: store → MinIO (T110); stream/data bus → Apache Kafka KRaft (T210).
 
 name: voltpulse
 
@@ -26,15 +26,74 @@ services:
       PULSE_GATEWAY_RTSP_PORT: ${PULSE_GATEWAY_RTSP_PORT:-8554}
     restart: "no"
 
+  # Apache Kafka (KRaft combined broker+controller). Profiles stream + data share the bus.
   pulse-bus:
-    profiles: [stream]
-    image: alpine:3.20
+    profiles: [stream, data]
+    image: apache/kafka:4.1.0
     container_name: vp-pulse-bus
-    command: ["sleep", "infinity"]
+    hostname: pulse-bus
     ports:
+      # In-compose clients use pulse-bus:9092; host clients use localhost:${PULSE_KAFKA_HOST_PORT}
       - "${PULSE_KAFKA_PORT:-9092}:9092"
+      - "${PULSE_KAFKA_HOST_PORT:-9094}:9094"
     environment:
+      CLUSTER_ID: ${PULSE_KAFKA_CLUSTER_ID}
+      KAFKA_NODE_ID: ${PULSE_KAFKA_NODE_ID:-1}
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://pulse-bus:9092,PLAINTEXT_HOST://localhost:${PULSE_KAFKA_HOST_PORT:-9094}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${PULSE_KAFKA_NODE_ID:-1}@pulse-bus:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Surface VoltPulse bootstrap for dependent services / docs
       PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+    volumes:
+      - pulse_kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    restart: "no"
+
+  # Optional one-shot: create vp.* topics from contracts catalog (infra/kafka/create-topics.sh).
+  pulse-kafka-topics:
+    profiles: [stream, data]
+    image: apache/kafka:4.1.0
+    container_name: vp-pulse-kafka-topics
+    working_dir: /work
+    volumes:
+      - ../..:/work:ro
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+      PULSE_TOPIC_CATALOG: /work/packages/contracts/events/catalog.yaml
+      PULSE_TOPIC_PARTITIONS: ${PULSE_TOPIC_PARTITIONS:-1}
+      PULSE_TOPIC_REPLICATION: ${PULSE_TOPIC_REPLICATION:-1}
+      PATH: /opt/kafka/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -eu
+        echo "waiting for pulse-bus…"
+        i=0
+        until /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server "$$PULSE_KAFKA_BOOTSTRAP" >/dev/null 2>&1; do
+          i=$$((i+1))
+          if [ "$$i" -gt 30 ]; then
+            echo "pulse-bus not ready after retries" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        exec /bin/bash /work/infra/kafka/create-topics.sh
+    depends_on:
+      pulse-bus:
+        condition: service_healthy
     restart: "no"
 
   grid-rules:
@@ -47,7 +106,8 @@ services:
       PULSE_FINDINGS_TOPIC: ${PULSE_FINDINGS_TOPIC}
       PULSE_ALERTS_TOPIC: ${PULSE_ALERTS_TOPIC}
     depends_on:
-      - pulse-bus
+      pulse-bus:
+        condition: service_healthy
     restart: "no"
 
   pulse-postgres:
@@ -195,3 +255,4 @@ services:
 volumes:
   pulse_pg_data:
   pulse_store_data:
+  pulse_kafka_data:
