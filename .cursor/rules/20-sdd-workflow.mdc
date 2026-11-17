@@ -1,0 +1,34 @@
+---
+description: Spec-driven development loop — plan, cards, evidence, formal docs
+alwaysApply: true
+---
+
+# SDD Workflow
+
+```
+plan → task-plan → task-cards → implement → evidence → review → test → deploy
+```
+
+## Artifacts
+
+| Stage | Path | Content |
+|-------|------|---------|
+| Plan | `task-plans/<slug>.md` | Goal, design notes, ordered tasks, deps, status |
+| Card | `task-cards/<ID>/CARD.md` | Objective, inputs, allowed paths, AC, validation, evidence |
+| Evidence | `task-cards/<ID>/evidence/` | Commands, short outputs, links (big media gitignored) |
+| Formal | `docs/**` | Architecture, ADRs, API, runbooks, slim product |
+| Local | `local-notes/**` | Chatty discussion — **gitignored** |
+
+## Rules
+
+1. **No card before plan** for multi-step features (single tiny fix may skip plan).
+2. Card lists **allowed paths** — do not edit outside without updating card.
+3. Card lists **input docs** — load those, not entire `local-notes/`.
+4. Mark card `in_progress` when starting; `done` only with evidence.
+5. Parallel cards must not share writable paths (see `40-parallel-worktrees.mdc`).
+6. After done: promote durable decisions into `docs/` or ADR — leave brainstorming in local-notes.
+
+## Templates
+
+- `task-plans/_TEMPLATE.md`
+- `task-cards/_TEMPLATE/CARD.md`

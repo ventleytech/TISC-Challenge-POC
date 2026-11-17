@@ -1,0 +1,82 @@
+# --- Local discussion (never track) ---
+local-notes/
+local/
+
+# --- Secrets / env ---
+.env
+.env.*
+!.env.template
+!**/.env.template
+*.pem
+*.key
+credentials.json
+**/secrets/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+.playwright-mcp/
+
+# --- Dependencies / build ---
+node_modules/
+dist/
+build/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+.gradle/
+*.apk
+*.aab
+
+# --- Models / heavy artifacts ---
+*.pt
+*.pth
+*.onnx
+*.engine
+*.trt
+*.pkl
+*.pkl.bak
+models/**/weights/
+models/**/*.bin
+datasets/**/raw/
+*.mp4
+*.mkv
+*.avi
+
+# --- Evidence blobs (keep small text; ignore media/logs) ---
+task-cards/**/evidence/**/*.mp4
+task-cards/**/evidence/**/*.png
+task-cards/**/evidence/**/*.jpg
+task-cards/**/evidence/**/*.jpeg
+task-cards/**/evidence/**/*.webp
+task-cards/**/evidence/**/*.log
+task-cards/**/evidence/**/*.zip
+evidence/**/*.mp4
+evidence/**/*.png
+evidence/**/*.jpg
+evidence/**/*.log
+evidence/**/*.zip
+!task-cards/**/evidence/**/*.md
+!evidence/**/*.md
+
+# --- Graphify / tooling caches ---
+graphify-out/
+.graphify/
+raw/
+
+# --- Challenge / proprietary dumps (do not ship) ---
+T-Netra*.pdf
+*Technical*.pdf
+Smart-City-POC/
+**/proprietary/
+
+# --- Runtime / compose leftovers ---
+*.log
+tmp/
+.tmp/
+artifacts/runs/

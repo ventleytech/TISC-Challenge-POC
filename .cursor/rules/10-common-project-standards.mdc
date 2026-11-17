@@ -1,0 +1,46 @@
+---
+description: VoltPulse common engineering standards — naming, config, errors, DoD
+alwaysApply: true
+---
+
+# Common Project Standards
+
+## Naming (VoltPulse)
+
+| Construct | Convention | Example |
+|-----------|------------|---------|
+| Apps / services | `pulse-*` or `grid-*` | `pulse-api`, `grid-perception` |
+| Kafka topics | `vp.<domain>.*` | `vp.detect.v1` |
+| Files TS/TSX | PascalCase components; kebab services | `FindingCard.tsx`, `alerts.service.ts` |
+| Types / classes | PascalCase | `InspectionService` |
+| Functions / vars | camelCase | `getFindingById` |
+| DB columns | snake_case | `utility_id` |
+| Env keys | SCREAMING_SNAKE | `PULSE_API_PORT` |
+
+Detection enum: `crack | sag | corrosion | vegetation | thermal_hotspot`.  
+Inspection status: `planned | in_progress | processing | review | closed | cancelled`.
+
+## Config discipline
+
+- Never hardcode hosts, ports, secrets, queue names, SLA timeouts, feature flags.
+- Feature code reads `config` / settings objects — not raw `process.env` / `os.environ` sprinkled in business logic.
+- Templates: `.env.template` tracked; real `.env` ignored.
+
+## Errors
+
+- Empty catch banned.
+- API boundaries: typed DTOs; no raw ORM models out.
+- Prefer minimal mutation responses (`{ id }`) unless contract says otherwise.
+
+## Definition of done (any card)
+
+- [ ] Acceptance criteria met
+- [ ] Tests or smoke commands for changed behavior
+- [ ] Evidence under card `evidence/`
+- [ ] Anti-leak checklist clean for touched surfaces
+- [ ] Formal `docs/` updated **only if** contract/arch/product decision changed
+- [ ] No secrets in diff
+
+## Right size
+
+Implement card scope only. Extra abstractions need a new card or ADR.

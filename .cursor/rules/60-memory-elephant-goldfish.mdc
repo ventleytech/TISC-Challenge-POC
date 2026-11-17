@@ -1,0 +1,29 @@
+---
+description: Elephant vs goldfish memory — pin formal docs vs local-notes
+alwaysApply: true
+---
+
+# Memory: elephant / goldfish
+
+## Elephant (pin — tracked)
+
+Keep short and durable:
+
+- `AGENTS.md` — entrypoint + loop
+- `docs/architecture.md`, `docs/anti-leak.md`, ADRs
+- Active `task-plans/` + current card
+- Slim product: requirements / feature catalog / submission text
+
+Agents re-read these; do not rely on chat history for frozen decisions.
+
+## Goldfish (local — gitignored)
+
+- Long Q&A, assumptions dumps → `local-notes/`
+- Draft decks, scratch, meeting notes
+- Failed experiments narrative
+
+## Promotion rule
+
+When a local-note decision becomes binding: write slim formal slice under `docs/` or ADR. Leave the long discussion in `local-notes/`.
+
+Never commit goldfish folders. Never paste proprietary dumps into elephant docs.

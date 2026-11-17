@@ -1,0 +1,44 @@
+---
+description: VoltPulse central rule index — precedence, non-negotiables, how agents load rules
+alwaysApply: true
+---
+
+# Central Rule Index (VoltPulse)
+
+## Rule files
+
+| File | Scope | Always |
+|------|-------|--------|
+| `10-common-project-standards.mdc` | All code | Yes |
+| `20-sdd-workflow.mdc` | Plans, cards, evidence, docs updates | Yes |
+| `30-anti-leak.mdc` | Branding, naming, IP boundary | Yes |
+| `40-parallel-worktrees.mdc` | Subagents, worktrees, split work | Yes |
+| `50-pr-review.mdc` | PR / branch review | On review asks |
+| `60-memory-elephant-goldfish.mdc` | What pins vs local-notes | Yes |
+| `70-tooling-rtk-caveman.mdc` | rtk / caveman / graphify | Yes |
+| `caveman.mdc` | Terse agent prose | Yes |
+| `graphify.mdc` | If present after `graphify cursor install` | Yes |
+
+## Precedence (high → low)
+
+1. **Anti-leak / security** — no proprietary paste, no secrets, VoltPulse brand only
+2. **Architecture freeze** — planes/services/contracts in `docs/`; features phase, arch does not redesign
+3. **Correctness + contracts** — OpenAPI / `vp.*` events / acceptance criteria
+4. **Evidence + tests** — card done needs proof
+5. **Maintainability** — modularity, DRY within VoltPulse names
+6. **Style** — naming, formatting
+
+## Non-negotiables
+
+- No hardcoded secrets / hosts / role IDs — config/env only.
+- No silent `catch` — rethrow, typed error, or log + typed response.
+- No proprietary code/contracts/topics/UI chrome copy.
+- Right-sized delivery — match card acceptance; no underbuild/overbuild.
+- Formal docs only in `docs/`; discussion in `local-notes/` (gitignored).
+
+## How to load context
+
+1. Read this index + `AGENTS.md`.
+2. Load card’s listed docs only — not whole repo.
+3. Load matching domain rules when code exists under `apps/*`.
+4. Never dump `local-notes/` into commits or PRs.

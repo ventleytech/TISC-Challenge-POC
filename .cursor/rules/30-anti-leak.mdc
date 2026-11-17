@@ -1,0 +1,42 @@
+---
+description: Anti-leak / distinctness — VoltPulse brand, no proprietary paste
+alwaysApply: true
+---
+
+# Anti-leak (VoltPulse)
+
+**Manager must see VoltPulse — not a renamed clone.**
+
+## OK
+
+- Same *conceptual* open stack (Kafka, Flink, Nest, DeepStream, MediaMTX-class)
+- Patterns: ingest → perception → bus → rules → API → UI
+- Fresh code + VoltPulse contracts
+
+## Forbidden
+
+- Internal product names (Trinetra / T-Netra / etc.) in README, UI, PPT, submission, code comments meant for public
+- Copy proprietary source, contracts, topic catalogs, UI chrome, diagram boxes
+- Secrets, internal endpoints, customer corridors, internal weight filenames
+- “Copy folder then rename”
+
+## Must differ
+
+| Area | VoltPulse |
+|------|-----------|
+| Topics | `vp.*` |
+| Compose project | `voltpulse` |
+| Profiles | `sense` `media` `stream` `data` `obs` `store` |
+| Services | `pulse-gateway`, `grid-perception`, `grid-rules`, `pulse-api`, `pulse-web`, `pulse-notify`, `pulse-train`, `pulse-store` |
+| Planes | Sense / Media / Stream / Data |
+| API | `/api/v1/inspections`, `/assets`, `/alerts` — own OpenAPI |
+
+## Pre-share / PR gate
+
+- [ ] No internal brand strings in public surfaces
+- [ ] No proprietary tree paths in commits
+- [ ] No `.env` secrets
+- [ ] Topics/OpenAPI grep-clean of internal prefixes
+- [ ] Architecture wording is VoltPulse planes
+
+Authority: `docs/anti-leak.md`.

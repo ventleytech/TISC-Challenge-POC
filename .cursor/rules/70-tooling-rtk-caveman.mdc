@@ -1,0 +1,31 @@
+---
+description: Token-efficient tooling — caveman, rtk, graphify pointers
+alwaysApply: true
+---
+
+# Tooling (rtk / caveman / graphify)
+
+## caveman
+
+User skill/rules often at `~/.cursor/skills/caveman` and `~/.cursor/rules/caveman.mdc`.  
+Agent replies: terse, technical substance kept. Code/commits/PR bodies stay normal English.
+
+## rtk
+
+If `rtk` on PATH (`~/.local/bin/rtk`): wrap verbose commands — `rtk git …`, `rtk ls …`, `rtk find …`.  
+Check: `rtk gain`. See `~/.cursor/rules/rtk.mdc`.
+
+## graphify
+
+CLI may already be installed (`graphify`). Project setup:
+
+```bash
+./scripts/graphify-init.sh
+# or: uv tool install graphifyy && graphify cursor install && graphify update .
+```
+
+Output under `graphify-out/` (gitignored). Prefer graph queries for structural questions when graph exists. Skill: `.cursor/skills/graphify/SKILL.md`.
+
+## ponytail
+
+Optional Cursor/Codex ruleset helper. **Not required** for VoltPulse. See `.cursor/skills/ponytail/SKILL.md` — install only if user asks.

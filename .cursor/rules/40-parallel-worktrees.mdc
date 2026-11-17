@@ -1,0 +1,36 @@
+---
+description: Parallel subagents and git worktrees — hygiene and split rules
+alwaysApply: true
+---
+
+# Parallel work / worktrees
+
+## When to split
+
+- Independent cards with **disjoint allowed paths**
+- Different apps (`pulse-api` vs `pulse-web` vs `grid-perception`)
+- Docs-only vs code-only cards
+
+Do **not** parallelize cards that touch same migration, same Compose file, or same contract schema without a sequencing note.
+
+## Worktree hygiene
+
+1. One card ↔ one branch ↔ one worktree (preferred).
+2. Branch name: `vp/<card-id>-short-slug`.
+3. Never commit `local-notes/`, `.env`, weights, graphify-out blobs.
+4. Before start: `git status` clean or stash; sync base branch.
+5. After done: evidence on card; PR from that branch only.
+6. Delete worktree/branch after merge when asked.
+
+## Subagent brief (minimum)
+
+- Card path + ID
+- Allowed paths
+- Input docs list
+- AC checklist
+- Anti-leak reminder
+- “Do not expand scope”
+
+## Merge order
+
+Contracts / shared packages first → services that consume them → UI → docs/runbooks.

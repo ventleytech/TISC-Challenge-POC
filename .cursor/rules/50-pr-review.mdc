@@ -1,0 +1,29 @@
+---
+description: VoltPulse PR review checklist — blockers, anti-leak, architecture freeze
+alwaysApply: false
+---
+
+# PR review
+
+Use skill `.cursor/skills/pr-review/SKILL.md` for low-token reviews.
+
+## Blockers
+
+| Area | Check |
+|------|-------|
+| Anti-leak | No internal brands, proprietary paths, secrets |
+| Arch freeze | No silent redesign of planes/services/topics |
+| Config | No hardcoded env in feature code |
+| Contracts | OpenAPI / `vp.*` updated when API/events change |
+| Tests | Behavior change has test or recorded smoke |
+| Evidence | Card evidence present if PR closes a card |
+| Scope | Diff matches card allowed paths |
+
+## Architecture freeze
+
+Features may land behind flags. Changing Compose plane boundaries, topic prefixes, or Nest ownership of state needs an **ADR** first.
+
+## Output
+
+`path:line: severity: problem. Fix.`  
+Severities: blocker / major / minor. Default: blockers + majors only.
