@@ -2,13 +2,13 @@
 
 VoltPulse NestJS data-plane API. Owns authoritative state (inspections, assets, alerts, findings).
 
-## This card (P0-T003)
+## Status
 
 - `GET /health` — liveness
-- `GET /api/openapi.yaml` — mounts `packages/contracts/openapi/openapi.yaml`
-- `GET /api/docs` — Swagger UI over that contract (stubs for `/api/v1/inspections|assets|alerts`)
+- `GET /api/openapi.yaml` + `GET /api/docs` — contracts OpenAPI / Swagger
+- In-memory stubs: `GET/POST /api/v1/inspections|assets|alerts` (+ get by id)
 
-No domain CRUD yet.
+Postgres / auth (C10) not yet.
 
 ## Config
 
