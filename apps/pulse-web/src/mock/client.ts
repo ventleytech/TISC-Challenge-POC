@@ -3,10 +3,12 @@ import type {
   Asset,
   AssetKind,
   Criticality,
+  EvidenceObject,
   Finding,
   Inspection,
   InspectionCreate,
   InspectionStatus,
+  OpsMetric,
   ScheduleKind,
   Severity,
 } from "../types/domain";
@@ -14,8 +16,10 @@ import {
   DEMO_UTILITY_ID,
   MOCK_ALERTS,
   MOCK_ASSETS,
+  MOCK_EVIDENCE,
   MOCK_FINDINGS,
   MOCK_INSPECTIONS,
+  MOCK_OPS_METRICS,
 } from "./data";
 import { criticalityRank, severityRank } from "./risk";
 
@@ -32,14 +36,6 @@ export type InspectionFilters = {
   scheduleKind?: ScheduleKind | "";
 };
 
-type ListResult<T> = { items: T[] };
-
-const assetsDb = [...MOCK_ASSETS];
-const inspectionsDb = [...MOCK_INSPECTIONS];
-const findingsDb = [...MOCK_FINDINGS];
-const alertsDb = MOCK_ALERTS.map((a) => ({ ...a }));
-let nextSeq = 100;
-
 export type FindingFilters = {
   utilityId?: string;
   classId?: Finding["class_id"] | "";
@@ -52,6 +48,14 @@ export type AlertFilters = {
   severity?: Severity | "";
   openOnly?: boolean;
 };
+
+type ListResult<T> = { items: T[] };
+
+const assetsDb = [...MOCK_ASSETS];
+const inspectionsDb = [...MOCK_INSPECTIONS];
+const findingsDb = [...MOCK_FINDINGS];
+const alertsDb = MOCK_ALERTS.map((a) => ({ ...a }));
+let nextSeq = 100;
 
 /** C09 sort: risk desc → severity → criticality → occurred_at desc → id. */
 function compareFindings(a: Finding, b: Finding): number {
@@ -114,7 +118,6 @@ export async function listAssets(
 export async function getAsset(assetId: string): Promise<Asset | null> {
   const live = await tryFetchJson<Asset>(`/assets/${encodeURIComponent(assetId)}`);
   if (live) {
-    // Live API stub may omit kind — UI default until Nest extends A01.
     const partial = live as Partial<Asset> & Asset;
     return { ...partial, kind: partial.kind ?? "tower" };
   }
@@ -167,6 +170,9 @@ export async function createInspection(
     asset_ids: body.asset_ids ?? [],
     schedule_kind: body.schedule_kind ?? null,
     planned_at: body.planned_at ?? null,
+    assignee: "Scheduler",
+    finding_count: 0,
+    sla_hours_left: 72,
   });
   return { id };
 }
@@ -181,7 +187,6 @@ export async function listFindings(
   filters: FindingFilters = {},
 ): Promise<ListResult<Finding>> {
   const utilityId = filters.utilityId ?? DEMO_UTILITY_ID;
-  // Findings board is mock-only until Nest exposes /findings.
   let items = findingsDb.filter((f) => f.utility_id === utilityId);
 
   if (filters.classId) {
@@ -236,7 +241,7 @@ export async function listAlerts(
   return { items };
 }
 
-/** Mock acknowledge — local state only (Nest ack path not owned by this card). */
+/** Mock acknowledge — local state only. */
 export async function ackAlert(alertId: string): Promise<Alert | null> {
   const row = alertsDb.find((a) => a.id === alertId);
   if (!row) return null;
@@ -244,4 +249,34 @@ export async function ackAlert(alertId: string): Promise<Alert | null> {
     row.ack_at = new Date().toISOString();
   }
   return { ...row };
+}
+
+export type EvidenceFilters = {
+  inspectionId?: string | "";
+  kind?: EvidenceObject["kind"] | "";
+  retention?: EvidenceObject["retention"] | "";
+};
+
+export async function listEvidence(
+  filters: EvidenceFilters = {},
+): Promise<ListResult<EvidenceObject>> {
+  let items = [...MOCK_EVIDENCE];
+  if (filters.inspectionId) {
+    items = items.filter((e) => e.inspection_id === filters.inspectionId);
+  }
+  if (filters.kind) {
+    items = items.filter((e) => e.kind === filters.kind);
+  }
+  if (filters.retention) {
+    items = items.filter((e) => e.retention === filters.retention);
+  }
+  return { items };
+}
+
+export async function listOpsMetrics(): Promise<ListResult<OpsMetric>> {
+  return { items: [...MOCK_OPS_METRICS] };
+}
+
+export function assetName(assetId: string): string {
+  return assetsDb.find((a) => a.id === assetId)?.name ?? assetId;
 }

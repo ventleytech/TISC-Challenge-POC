@@ -26,6 +26,8 @@ export function ScheduleWizardPage() {
   const [step, setStep] = useState(0);
   const [assetId, setAssetId] = useState(() => candidates[0]?.id ?? "");
   const [plannedAt, setPlannedAt] = useState("");
+  const [notes, setNotes] = useState("");
+  const [payload, setPayload] = useState<"rgb" | "rgb_ir">("rgb_ir");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -59,21 +61,23 @@ export function ScheduleWizardPage() {
   }
 
   return (
-    <section className="catalog">
+    <section className="catalog catalog--wide">
       <p className="catalog__eyebrow">
         <Link to="/inspections/schedule">Schedule</Link> / {kind}
       </p>
       <h1 className="catalog__title">{kind} wizard</h1>
       <p className="catalog__summary">
-        Thin shell — three steps, mock create. No GIS.
+        Three-step shell with payload + notes for demo density. Mock create —
+        T060 flow preserved.
       </p>
 
-      <ol className="wizard-steps" aria-label="Wizard steps">
+      <ol className="wizard-steps wizard-steps--rich" aria-label="Wizard steps">
         {steps.map((label, i) => (
           <li
             key={label}
             className={`wizard-steps__item${i === step ? " is-active" : ""}${i < step ? " is-done" : ""}`}
           >
+            <span className="wizard-steps__n">{i + 1}</span>
             {label}
           </li>
         ))}
@@ -83,7 +87,7 @@ export function ScheduleWizardPage() {
 
       {step === 0 ? (
         <form
-          className="wizard-panel"
+          className="wizard-panel wizard-panel--rich"
           onSubmit={(e) => {
             e.preventDefault();
             if (!assetId) {
@@ -100,7 +104,7 @@ export function ScheduleWizardPage() {
               <p className="catalog__empty">No mock assets for this kind.</p>
             ) : (
               candidates.map((a) => (
-                <label key={a.id} className="wizard-option">
+                <label key={a.id} className="wizard-option wizard-option--rich">
                   <input
                     type="radio"
                     name="asset"
@@ -109,9 +113,10 @@ export function ScheduleWizardPage() {
                     onChange={() => setAssetId(a.id)}
                   />
                   <span>
-                    {a.name}
+                    <strong>{a.name}</strong>
                     <span className="wizard-option__meta">
                       {a.criticality ?? "—"} · {a.voltage_class ?? "—"}
+                      {a.circuit ? ` · ${a.circuit}` : ""}
                     </span>
                   </span>
                 </label>
@@ -127,7 +132,7 @@ export function ScheduleWizardPage() {
       ) : null}
 
       {step === 1 ? (
-        <form className="wizard-panel" onSubmit={onConfirm}>
+        <form className="wizard-panel wizard-panel--rich" onSubmit={onConfirm}>
           <label className="filters__field">
             <span className="filters__label">Planned at</span>
             <input
@@ -135,6 +140,29 @@ export function ScheduleWizardPage() {
               type="datetime-local"
               value={plannedAt}
               onChange={(e) => setPlannedAt(e.target.value)}
+            />
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Payload</span>
+            <select
+              className="filters__select"
+              value={payload}
+              onChange={(e) =>
+                setPayload(e.target.value as "rgb" | "rgb_ir")
+              }
+            >
+              <option value="rgb">RGB only</option>
+              <option value="rgb_ir">RGB + IR</option>
+            </select>
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Crew notes</span>
+            <textarea
+              className="filters__input filters__textarea"
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Outage window, access, weather…"
             />
           </label>
           <div className="wizard-actions">
@@ -157,9 +185,12 @@ export function ScheduleWizardPage() {
       ) : null}
 
       {step === 2 && createdId ? (
-        <div className="wizard-panel">
+        <div className="wizard-panel wizard-panel--rich wizard-panel--done">
           <p className="catalog__summary">
-            Created planned inspection <strong>{createdId}</strong> for {kind}.
+            Created planned inspection <strong className="mono">{createdId}</strong>{" "}
+            for {kind}
+            {payload === "rgb_ir" ? " · RGB+IR" : " · RGB"}
+            {notes ? ` · notes captured` : ""}.
           </p>
           <div className="wizard-actions">
             <button

@@ -36,6 +36,9 @@ export type Asset = {
   criticality?: Criticality;
   voltage_class?: string | null;
   parent_id?: string | null;
+  oem?: string | null;
+  install_year?: number | null;
+  circuit?: string | null;
 };
 
 export type Inspection = {
@@ -45,6 +48,9 @@ export type Inspection = {
   asset_ids: string[];
   schedule_kind?: ScheduleKind | null;
   planned_at?: string | null;
+  assignee?: string | null;
+  finding_count?: number;
+  sla_hours_left?: number | null;
 };
 
 export type InspectionCreate = {
@@ -96,4 +102,22 @@ export type Alert = {
   title: string;
   sla_due_at: string | null;
   ack_at: string | null;
+};
+
+export type EvidenceObject = {
+  id: string;
+  inspection_id: string;
+  label: string;
+  kind: "rgb_frame" | "ir_frame" | "clip" | "report";
+  retention: "hot" | "warm" | "expire" | "legal_hold";
+  bytes_label: string;
+  captured_at: string;
+};
+
+export type OpsMetric = {
+  id: string;
+  label: string;
+  value: string;
+  hint: string;
+  tone: "volt" | "steel" | "warn" | "ok";
 };

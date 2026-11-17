@@ -1,41 +1,66 @@
 /**
- * VoltPulse Energy theme tokens — T1 cool steel / volt accent.
+ * VoltPulse Energy theme tokens — industrial steel / volt accent.
  * Import from apps (e.g. pulse-web). No proprietary chrome.
  */
 :root {
   /* Surfaces */
-  --vp-bg: #e8eef2;
-  --vp-bg-elevated: #f4f7f9;
-  --vp-bg-deep: #0f2a33;
-  --vp-bg-mist: #c5d4dc;
+  --vp-bg: #dfe8ee;
+  --vp-bg-elevated: #f2f6f8;
+  --vp-bg-panel: #eef3f6;
+  --vp-bg-deep: #0a1f28;
+  --vp-bg-rail: #0c2430;
+  --vp-bg-mist: #b7c9d4;
+  --vp-bg-mesh: rgba(15, 42, 51, 0.045);
 
   /* Ink */
-  --vp-ink: #0c1c22;
-  --vp-ink-muted: #3d5560;
-  --vp-ink-on-deep: #e8eef2;
+  --vp-ink: #07151b;
+  --vp-ink-muted: #3a5360;
+  --vp-ink-faint: #6a8490;
+  --vp-ink-on-deep: #e4eef2;
+  --vp-ink-on-deep-muted: #8eabb8;
 
-  /* Brand accent — volt (not purple) */
-  --vp-volt: #c4f04d;
+  /* Brand accent — volt + steel (not purple) */
+  --vp-volt: #c8f24a;
   --vp-volt-deep: #8fb820;
+  --vp-volt-glow: rgba(200, 242, 74, 0.35);
   --vp-steel: #1a6b7a;
   --vp-steel-bright: #2a9aad;
+  --vp-steel-mid: #245d6a;
+  --vp-copper: #c47a3a;
+
+  /* Severity / SLA */
+  --vp-sev-critical: #c0392b;
+  --vp-sev-high: #d35400;
+  --vp-sev-medium: #b8860b;
+  --vp-sev-low: #2d7a4f;
+  --vp-sev-info: #3d5560;
+  --vp-sla-ok: #2d7a4f;
+  --vp-sla-warn: #b8860b;
+  --vp-sla-breach: #c0392b;
 
   /* Borders / lines */
-  --vp-line: rgba(15, 42, 51, 0.14);
-  --vp-line-strong: rgba(15, 42, 51, 0.28);
+  --vp-line: rgba(15, 42, 51, 0.12);
+  --vp-line-strong: rgba(15, 42, 51, 0.26);
+  --vp-line-on-deep: rgba(228, 238, 242, 0.12);
 
   /* Type */
   --vp-font-display: "Syne", "Avenir Next", "Segoe UI", sans-serif;
   --vp-font-body: "Figtree", "Avenir Next", "Segoe UI", sans-serif;
+  --vp-font-mono: "IBM Plex Mono", "ui-monospace", "Cascadia Code", monospace;
 
-  /* Space / motion */
+  /* Space / motion / elevation */
   --vp-space-1: 0.25rem;
   --vp-space-2: 0.5rem;
   --vp-space-3: 1rem;
   --vp-space-4: 1.5rem;
   --vp-space-5: 2.5rem;
   --vp-space-6: 4rem;
-  --vp-radius: 2px;
+  --vp-radius: 3px;
+  --vp-radius-lg: 8px;
+  --vp-shadow-soft: 0 12px 40px rgba(7, 21, 27, 0.08);
+  --vp-shadow-rail: 8px 0 32px rgba(7, 21, 27, 0.28);
   --vp-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --vp-dur: 480ms;
+  --vp-dur-fast: 180ms;
+  --vp-rail-w: 15.5rem;
 }
