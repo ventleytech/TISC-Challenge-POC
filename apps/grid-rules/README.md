@@ -8,9 +8,8 @@ VoltPulse Stream-plane rules service. Consumes `vp.detect.*`, emits ranked `vp.f
 
 1. Map each detection → **severity** (class + confidence).
 2. Compute **W01 risk score** = `f(severity, confidence, asset.criticality, voltage_class)` (0–100).
-3. When asset fixture carries OEM / warranty / anti-corrosion SLA → call `@voltpulse/responsibility` `hintResponsibility` and attach `party_type` / `warranty_hint` under `finding.extensions` (S9).
-4. Emit `vp.findings.v1` sorted by risk desc.
-5. Emit `vp.alerts.v1` when severity ≥ configured floor, with `sla_due_at` + channel stubs.
+3. Emit `vp.findings.v1` sorted by risk desc.
+4. Emit `vp.alerts.v1` when severity ≥ configured floor, with `sla_due_at` + channel stubs.
 
 ## Local run
 
@@ -22,7 +21,7 @@ npm run smoke
 npm start -- --fixture fixtures/synthetic-detect.v1.json --assets fixtures/assets.json
 ```
 
-Smoke prints JSON: findings (`severity`, `risk_score`, optional `extensions.party_type` / `warranty_hint`) + alerts (`sla_due_at`). Default `fixtures/assets.json` includes synthetic OEM/warranty for S9.
+Smoke prints JSON: findings (`severity`, `risk_score`) + alerts (`sla_due_at`).
 
 ## Config (env)
 

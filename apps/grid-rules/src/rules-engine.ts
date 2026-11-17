@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { hintResponsibility } from '@voltpulse/responsibility';
 import type { Settings } from './config/settings.js';
 import { computeRiskScore } from './policy/risk.js';
 import { severityAtLeast, severityFromDetection } from './policy/severity.js';
@@ -7,8 +6,6 @@ import { slaDueAt } from './policy/sla.js';
 import type {
   AssetContext,
   Criticality,
-  FindingPayload,
-  FindingResponsibilityExtensions,
   RulesEmit,
   Severity,
   VpDetectV1,
@@ -29,44 +26,6 @@ function resolveAsset(
   if (!assetId || !assets) return undefined;
   if (assets instanceof Map) return assets.get(assetId);
   return assets[assetId];
-}
-
-/** True when synthetic/asset fixture carries OEM or warranty/SLA dates (S9 gate). */
-export function assetHasOemOrWarranty(asset: AssetContext | undefined): boolean {
-  if (!asset) return false;
-  const hasOem = asset.oem != null && String(asset.oem).trim() !== '';
-  const hasWarranty =
-    asset.warranty_end != null && String(asset.warranty_end).trim() !== '';
-  const hasSla =
-    asset.anti_corrosion_sla_end != null &&
-    String(asset.anti_corrosion_sla_end).trim() !== '';
-  return hasOem || hasWarranty || hasSla;
-}
-
-function responsibilityExtensions(
-  classId: FindingPayload['class_id'],
-  asset: AssetContext,
-  asOf: string,
-): FindingResponsibilityExtensions {
-  const hint = hintResponsibility({
-    class_id: classId,
-    asset: {
-      oem: asset.oem,
-      install_date: asset.install_date,
-      warranty_end: asset.warranty_end,
-      anti_corrosion_sla_end: asset.anti_corrosion_sla_end,
-      tender_ref: asset.tender_ref,
-    },
-    asOf,
-  });
-  const ext: FindingResponsibilityExtensions = {
-    party_type: hint.party_type,
-    warranty_hint: hint.warranty_hint,
-  };
-  if (hint.tender_ref != null && hint.tender_ref !== '') {
-    ext.tender_ref = hint.tender_ref;
-  }
-  return ext;
 }
 
 /**
@@ -101,29 +60,19 @@ export function processDetectEvent(
         ? [d.evidence_object_id]
         : [];
 
-    const finding: FindingPayload = {
-      finding_id,
-      class_id: d.class_id,
-      severity,
-      risk_score,
-      asset_id: detect.asset_id ?? null,
-      source_detection_ids: [d.detection_id],
-      evidence_object_ids: evidence,
-    };
-
-    if (assetHasOemOrWarranty(asset) && asset) {
-      finding.extensions = responsibilityExtensions(
-        d.class_id,
-        asset,
-        occurredAt,
-      );
-    }
-
     findings.push({
       event_id: id(),
       occurred_at: occurredAt,
       inspection_id: detect.inspection_id,
-      finding,
+      finding: {
+        finding_id,
+        class_id: d.class_id,
+        severity,
+        risk_score,
+        asset_id: detect.asset_id ?? null,
+        source_detection_ids: [d.detection_id],
+        evidence_object_ids: evidence,
+      },
     });
 
     if (severityAtLeast(severity, minAlert)) {

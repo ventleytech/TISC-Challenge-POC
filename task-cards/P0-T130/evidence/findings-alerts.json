@@ -1,0 +1,192 @@
+{
+  "summary": {
+    "service": "grid-rules",
+    "source_topic": "vp.detect.v1",
+    "input_detections": 5,
+    "findings": 5,
+    "alerts": 3,
+    "top_risk": 30.94,
+    "emitted": [
+      {
+        "topic": "vp.findings.v1",
+        "id": "212fc363-b417-43df-b21f-2cc034a5f86d",
+        "severity": "low",
+        "risk_score": 30.94
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "30e89492-dd14-41ee-b448-bf8656ba725d",
+        "severity": "low",
+        "risk_score": 30.54
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "ddf1d7a8-61a2-4feb-8138-8193376f08ea",
+        "severity": "low",
+        "risk_score": 28.39
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "1a47e1d1-fae9-4699-ad98-ce2cf1739e77",
+        "severity": "info",
+        "risk_score": 11.25
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "8f2b2492-7220-4f84-a805-33a3f8fe8e8c",
+        "severity": "info",
+        "risk_score": 11.07
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "ecf21766-d2b2-4cec-962d-00d967bb2e26",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:04:49.000Z"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "12944105-1bf5-426d-b7f9-930988f354ab",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:04:49.000Z"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "f32904df-a133-4b85-9b04-28d7b375d531",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:04:49.000Z"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "event_id": "d69c159b-93d3-4eae-877e-97f696a6e85d",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "212fc363-b417-43df-b21f-2cc034a5f86d",
+        "class_id": "corrosion",
+        "severity": "low",
+        "risk_score": 30.94,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "2f807faf-8aa8-4299-814a-354ba13b022b"
+        ],
+        "evidence_object_ids": []
+      }
+    },
+    {
+      "event_id": "bd6f9884-e752-4d06-91f1-d1eda56386d8",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "30e89492-dd14-41ee-b448-bf8656ba725d",
+        "class_id": "corrosion",
+        "severity": "low",
+        "risk_score": 30.54,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "5ff85f5c-fc7f-45e7-bba5-8b4c924a3918"
+        ],
+        "evidence_object_ids": []
+      }
+    },
+    {
+      "event_id": "41c733ca-e891-4c2a-b68b-a2f34c003346",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "ddf1d7a8-61a2-4feb-8138-8193376f08ea",
+        "class_id": "corrosion",
+        "severity": "low",
+        "risk_score": 28.39,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "28764fe6-432d-4a9c-aa04-7904bd30036f"
+        ],
+        "evidence_object_ids": []
+      }
+    },
+    {
+      "event_id": "5c6b776b-ee79-47ef-b018-2e01f57092c5",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "1a47e1d1-fae9-4699-ad98-ce2cf1739e77",
+        "class_id": "corrosion",
+        "severity": "info",
+        "risk_score": 11.25,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "10e7ea9e-5280-4ac0-be8b-d212972d61e6"
+        ],
+        "evidence_object_ids": []
+      }
+    },
+    {
+      "event_id": "169b0747-e703-4717-b746-6f039eac2b2d",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "finding": {
+        "finding_id": "8f2b2492-7220-4f84-a805-33a3f8fe8e8c",
+        "class_id": "corrosion",
+        "severity": "info",
+        "risk_score": 11.07,
+        "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "source_detection_ids": [
+          "2ec165f0-82f4-48ee-8420-c8142d150c44"
+        ],
+        "evidence_object_ids": []
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "event_id": "ff516aae-1016-48f0-9f2c-349dfdf6d2ec",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "alert": {
+        "alert_id": "ecf21766-d2b2-4cec-962d-00d967bb2e26",
+        "finding_id": "212fc363-b417-43df-b21f-2cc034a5f86d",
+        "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "utility_id": "11111111-1111-4111-8111-111111111111",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:04:49.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    },
+    {
+      "event_id": "cd902b8d-228b-49d9-81db-196348fdb6db",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "alert": {
+        "alert_id": "12944105-1bf5-426d-b7f9-930988f354ab",
+        "finding_id": "30e89492-dd14-41ee-b448-bf8656ba725d",
+        "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "utility_id": "11111111-1111-4111-8111-111111111111",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:04:49.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    },
+    {
+      "event_id": "68a9fabb-fe90-4280-b521-bf8fc81d29dc",
+      "occurred_at": "2026-11-17T23:04:49Z",
+      "alert": {
+        "alert_id": "f32904df-a133-4b85-9b04-28d7b375d531",
+        "finding_id": "ddf1d7a8-61a2-4feb-8138-8193376f08ea",
+        "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "utility_id": "11111111-1111-4111-8111-111111111111",
+        "severity": "low",
+        "sla_due_at": "2026-11-18T23:04:49.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    }
+  ]
+}

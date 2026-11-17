@@ -38,29 +38,21 @@ async function main(): Promise<void> {
   const detect = await loadDetectFixture(fixturePath);
 
   let assets: Record<string, AssetContext> | undefined;
-  const { readFile, access } = await import('node:fs/promises');
-  const { constants } = await import('node:fs');
   if (assetsPath) {
+    const { readFile } = await import('node:fs/promises');
     const raw = await readFile(resolve(root, assetsPath), 'utf8');
     assets = JSON.parse(raw) as Record<string, AssetContext>;
   } else {
-    const defaultAssets = resolve(root, 'fixtures/assets.json');
-    try {
-      await access(defaultAssets, constants.R_OK);
-      const raw = await readFile(defaultAssets, 'utf8');
-      assets = JSON.parse(raw) as Record<string, AssetContext>;
-    } catch {
-      // Fallback demo asset (no OEM/warranty → no S9 extensions)
-      if (detect.asset_id) {
-        assets = {
-          [detect.asset_id]: {
-            asset_id: detect.asset_id,
-            criticality: 'high',
-            voltage_class: '132kV HV',
-            utility_id: '11111111-1111-4111-8111-111111111111',
-          },
-        };
-      }
+    // Default demo asset matching fixture asset_id when present
+    if (detect.asset_id) {
+      assets = {
+        [detect.asset_id]: {
+          asset_id: detect.asset_id,
+          criticality: 'high',
+          voltage_class: '132kV HV',
+          utility_id: '11111111-1111-4111-8111-111111111111',
+        },
+      };
     }
   }
 
@@ -87,14 +79,6 @@ async function main(): Promise<void> {
           : e.payload.alert.severity,
       risk_score:
         'finding' in e.payload ? e.payload.finding.risk_score : undefined,
-      party_type:
-        'finding' in e.payload
-          ? e.payload.finding.extensions?.party_type
-          : undefined,
-      warranty_hint:
-        'finding' in e.payload
-          ? e.payload.finding.extensions?.warranty_hint
-          : undefined,
       sla_due_at:
         'alert' in e.payload ? e.payload.alert.sla_due_at : undefined,
     })),
