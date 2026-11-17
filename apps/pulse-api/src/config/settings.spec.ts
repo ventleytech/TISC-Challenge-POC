@@ -39,6 +39,12 @@ describe('loadSettings', () => {
     );
     expect(settings.authPrincipals.get('dev-op')?.utilityId).toBe(util);
   });
+
+  it('reads PULSE_DATABASE_URL when set', () => {
+    const url = 'postgres://voltpulse:change-me-local-only@127.0.0.1:5432/voltpulse';
+    expect(loadSettings({ PULSE_DATABASE_URL: url }).databaseUrl).toBe(url);
+    expect(loadSettings({}).databaseUrl).toBeNull();
+  });
 });
 
 describe('parseStubKeys', () => {

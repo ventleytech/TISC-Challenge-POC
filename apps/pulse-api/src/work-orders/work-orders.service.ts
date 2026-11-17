@@ -12,7 +12,7 @@ import {
   type WorkOrderExport,
   type WorkOrderSource,
 } from '@voltpulse/work-order';
-import { MemoryStore } from '../domain/memory.store';
+import { DomainStore } from '../domain/domain.store';
 import type { Asset } from '../domain/types';
 import type {
   AssetOverrideBody,
@@ -22,9 +22,9 @@ import type {
 
 @Injectable()
 export class WorkOrdersService {
-  constructor(private readonly store: MemoryStore) {}
+  constructor(private readonly store: DomainStore) {}
 
-  exportFromBody(body: WorkOrderExportBody): WorkOrderExport {
+  async exportFromBody(body: WorkOrderExportBody): Promise<WorkOrderExport> {
     if (!body?.utility_id) {
       throw new BadRequestException('utility_id is required');
     }
@@ -32,9 +32,10 @@ export class WorkOrdersService {
       throw new BadRequestException('items array is required');
     }
 
-    const sources: WorkOrderSource[] = body.items.map((item, index) =>
-      this.toSource(body.utility_id, item, index),
-    );
+    const sources: WorkOrderSource[] = [];
+    for (let index = 0; index < body.items.length; index += 1) {
+      sources.push(await this.toSource(body.utility_id, body.items[index], index));
+    }
 
     const options: BuildWorkOrderOptions = {};
     if (body.exported_at != null && String(body.exported_at).length > 0) {
@@ -52,11 +53,11 @@ export class WorkOrdersService {
     }
   }
 
-  private toSource(
+  private async toSource(
     utilityId: string,
     item: WorkOrderExportItemBody,
     index: number,
-  ): WorkOrderSource {
+  ): Promise<WorkOrderSource> {
     if (!item?.finding?.finding_id) {
       throw new BadRequestException(
         `items[${index}].finding.finding_id is required`,
@@ -89,16 +90,16 @@ export class WorkOrdersService {
       tender_ref: item.party_hint.tender_ref ?? null,
     };
 
-    const asset = this.resolveAsset(utilityId, finding, item, index);
+    const asset = await this.resolveAsset(utilityId, finding, item, index);
     return { finding, asset, partyHint };
   }
 
-  private resolveAsset(
+  private async resolveAsset(
     utilityId: string,
     finding: FindingInput,
     item: WorkOrderExportItemBody,
     index: number,
-  ): AssetInput | null {
+  ): Promise<AssetInput | null> {
     const lookupId =
       (item.asset_id && String(item.asset_id)) ||
       (finding.asset_id && String(finding.asset_id)) ||
@@ -107,7 +108,7 @@ export class WorkOrdersService {
 
     let fromStore: Asset | undefined;
     if (lookupId) {
-      fromStore = this.store.assets.get(lookupId);
+      fromStore = await this.store.getAsset(lookupId);
       if (!fromStore && !item.asset) {
         throw new NotFoundException(
           `items[${index}]: asset ${lookupId} not found`,

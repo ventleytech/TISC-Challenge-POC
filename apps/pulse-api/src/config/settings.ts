@@ -14,6 +14,11 @@ export type PulseApiSettings = {
   authEnabled: boolean;
   /** Map of API key / bearer token → principal (dev stub). */
   authPrincipals: Map<string, AuthPrincipal>;
+  /**
+   * Postgres connection URL for inspections/assets/alerts.
+   * Unset → MemoryStore (tests / no-DB local).
+   */
+  databaseUrl: string | null;
 };
 
 /**
@@ -43,6 +48,9 @@ export function loadSettings(
   const authEnabled = parseBool(env.PULSE_AUTH_ENABLED, true);
   const authPrincipals = parseStubKeys(env.PULSE_AUTH_STUB_KEYS ?? '');
 
+  const databaseUrlRaw = env.PULSE_DATABASE_URL?.trim() ?? '';
+  const databaseUrl = databaseUrlRaw.length > 0 ? databaseUrlRaw : null;
+
   return {
     port,
     openapiPath: env.PULSE_OPENAPI_PATH ?? defaultOpenApi,
@@ -50,6 +58,7 @@ export function loadSettings(
     swaggerPath: '/api/docs',
     authEnabled,
     authPrincipals,
+    databaseUrl,
   };
 }
 

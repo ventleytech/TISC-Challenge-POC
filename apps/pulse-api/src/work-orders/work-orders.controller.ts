@@ -24,13 +24,13 @@ export class WorkOrdersController {
    */
   @Post('export')
   @HttpCode(200)
-  export(
+  async export(
     @Body() body: WorkOrderExportBody,
     @Query('format') formatQuery?: string,
     @Res({ passthrough: true }) res?: Response,
-  ): unknown {
+  ): Promise<unknown> {
     const format = normalizeFormat(formatQuery);
-    const result = this.workOrders.exportFromBody(body);
+    const result = await this.workOrders.exportFromBody(body);
 
     if (format === 'csv') {
       res?.setHeader('Content-Type', 'text/csv; charset=utf-8');

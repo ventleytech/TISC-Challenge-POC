@@ -14,6 +14,7 @@ function build() {
     swaggerPath: '/api/docs',
     authEnabled: true,
     authPrincipals: new Map(),
+    databaseUrl: null,
   };
   const auth = new AuthService(settings);
   const controller = new UtilitiesController(store, auth);
@@ -39,7 +40,7 @@ describe('UtilitiesController', () => {
     });
   });
 
-  it('seeds sites and assets for utility', () => {
+  it('seeds sites and assets for utility', async () => {
     const { controller, store } = build();
     const { id } = controller.create({ name: 'Beta Power' });
     const admin: AuthPrincipal = {
@@ -47,7 +48,7 @@ describe('UtilitiesController', () => {
       role: 'utility_admin',
       utilityId: id,
     };
-    const seeded = controller.seed(
+    const seeded = await controller.seed(
       id,
       {
         sites: [{ name: 'Substation North' }],
@@ -58,10 +59,10 @@ describe('UtilitiesController', () => {
     expect(seeded.site_ids).toHaveLength(1);
     expect(seeded.asset_ids).toHaveLength(1);
     expect(store.sites.get(seeded.site_ids[0])?.utility_id).toBe(id);
-    expect(store.assets.get(seeded.asset_ids[0])?.name).toBe('Tower-1');
+    expect((await store.getAsset(seeded.asset_ids[0]))?.name).toBe('Tower-1');
   });
 
-  it('rejects empty seed and foreign utility seed', () => {
+  it('rejects empty seed and foreign utility seed', async () => {
     const { controller } = build();
     const { id } = controller.create({ name: 'Gamma' });
     const foreign: AuthPrincipal = {
@@ -69,14 +70,16 @@ describe('UtilitiesController', () => {
       role: 'utility_admin',
       utilityId: '00000000-0000-4000-8000-000000000099',
     };
-    expect(() => controller.seed(id, {}, foreign)).toThrow(ForbiddenException);
+    await expect(controller.seed(id, {}, foreign)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
     const owner: AuthPrincipal = {
       keyId: 'own',
       role: 'utility_admin',
       utilityId: id,
     };
-    expect(() => controller.seed(id, { sites: [] }, owner)).toThrow(
-      BadRequestException,
-    );
+    await expect(
+      controller.seed(id, { sites: [] }, owner),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

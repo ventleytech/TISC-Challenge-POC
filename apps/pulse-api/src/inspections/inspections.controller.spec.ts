@@ -12,6 +12,7 @@ function disabledAuth(): AuthService {
     swaggerPath: '/api/docs',
     authEnabled: false,
     authPrincipals: new Map(),
+    databaseUrl: null,
   };
   return new AuthService(settings);
 }
@@ -25,23 +26,25 @@ describe('InspectionsController', () => {
     controller = new InspectionsController(store, disabledAuth());
   });
 
-  it('creates and lists by utility_id', () => {
+  it('creates and lists by utility_id', async () => {
     const utilityId = '00000000-0000-4000-8000-000000000001';
-    const { id } = controller.create({ utility_id: utilityId });
+    const { id } = await controller.create({ utility_id: utilityId });
     expect(id).toBeTruthy();
-    const listed = controller.list(utilityId);
+    const listed = await controller.list(utilityId);
     expect(listed.items).toHaveLength(1);
     expect(listed.items[0].status).toBe('planned');
-    expect(controller.getOne(id).id).toBe(id);
+    expect((await controller.getOne(id)).id).toBe(id);
   });
 
-  it('requires utility_id on list', () => {
-    expect(() => controller.list(undefined)).toThrow(BadRequestException);
+  it('requires utility_id on list', async () => {
+    await expect(controller.list(undefined)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
-  it('404s unknown id', () => {
-    expect(() =>
+  it('404s unknown id', async () => {
+    await expect(
       controller.getOne('00000000-0000-4000-8000-000000000099'),
-    ).toThrow(NotFoundException);
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

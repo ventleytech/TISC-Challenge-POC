@@ -18,7 +18,7 @@ export type PartyHintBody = {
   tender_ref?: string | null;
 };
 
-/** Optional inline asset fields (merged over MemoryStore hydration). */
+/** Optional inline asset fields (merged over DomainStore hydration). */
 export type AssetOverrideBody = {
   id?: string;
   name?: string;
