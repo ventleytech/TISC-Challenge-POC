@@ -28,6 +28,11 @@ export type Settings = {
   defaultChannels: AlertChannel[];
   defaultCriticality: 'critical' | 'high' | 'medium' | 'low';
   kafkaBrokers: string | null;
+  /** Kafka producer on only when flag true AND brokers set; else file/stdout bus only. */
+  kafkaProducer: {
+    enabled: boolean;
+    clientId: string;
+  };
 };
 
 /** Map legacy GRID_RULES_SLA_* into VP_ALERT_SLA_* when modern keys unset. */
@@ -70,6 +75,10 @@ export function loadSettings(
     alertMinSeverity: env.GRID_RULES_ALERT_MIN_SEVERITY ?? 'medium',
     defaultChannels: resolveChannels(alertPolicy),
     defaultCriticality: 'medium',
-    kafkaBrokers: env.KAFKA_BROKERS ?? null,
+    kafkaBrokers: env.KAFKA_BROKERS?.trim() || null,
+    kafkaProducer: {
+      enabled: env.GRID_RULES_KAFKA_PRODUCER_ENABLED === 'true',
+      clientId: env.GRID_RULES_KAFKA_CLIENT_ID ?? 'grid-rules',
+    },
   };
 }

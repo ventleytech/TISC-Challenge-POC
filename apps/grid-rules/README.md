@@ -2,7 +2,7 @@
 
 VoltPulse Stream-plane rules service. Consumes `vp.detect.*`, emits ranked `vp.findings.*` and SLA-bearing `vp.alerts.*`.
 
-**P0 posture:** mock-friendly TypeScript engine + fixture bus (no Kafka/Flink required). Emit shapes match `packages/contracts`. Flink packaging can wrap the same policy later.
+**P0 posture:** mock-friendly TypeScript engine + fixture bus (Kafka/Flink optional; producer off unless enabled). Emit shapes match `packages/contracts`. Flink packaging can wrap the same policy later.
 
 ## What it does
 
@@ -37,9 +37,19 @@ Smoke prints JSON: findings (`severity`, `risk_score`, optional `extensions.part
 | `VP_ALERT_CHANNEL_*` | see alert-policy `.env.template` | Channel enable / adapter |
 | `GRID_RULES_SLA_*_MIN` | (legacy) | Mapped to `VP_ALERT_SLA_*` when modern unset |
 | `GRID_RULES_ALERT_MIN_SEVERITY` | `medium` | Alert floor |
-| `KAFKA_BROKERS` | unset | Reserved; fixture mode ignores |
+| `GRID_RULES_KAFKA_PRODUCER_ENABLED` | `false` | Publish findings/alerts to Kafka (also needs `KAFKA_BROKERS`) |
+| `KAFKA_BROKERS` | unset | Comma-separated bootstrap list; unset → Kafka publish is a no-op |
+| `GRID_RULES_KAFKA_CLIENT_ID` | `grid-rules` | Producer client id |
 
-No secrets. Brokers only via env when Kafka adapter lands. SLA/channels are **not** hardcoded in grid-rules — they load from `packages/alert-policy`.
+No secrets. Brokers only via env. SLA/channels are **not** hardcoded in grid-rules — they load from `packages/alert-policy`.
+
+## Kafka producer (optional)
+
+`src/bus/kafka-sink.ts` publishes the same records the stdout/memory bus emits to `VP_TOPIC_FINDINGS` / `VP_TOPIC_ALERTS` (JSON value, key = `inspection_id`, falling back to `finding_id`). Enabled only when `GRID_RULES_KAFKA_PRODUCER_ENABLED=true` **and** `KAFKA_BROKERS` is set; otherwise nothing connects and file/stdout behavior is unchanged.
+
+```bash
+GRID_RULES_KAFKA_PRODUCER_ENABLED=true KAFKA_BROKERS=localhost:9094 npm run smoke
+```
 
 ## Layout
 
