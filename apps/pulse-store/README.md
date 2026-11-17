@@ -16,7 +16,13 @@ VoltPulse object-store helper (E01–E04): MinIO-oriented config from env, inspe
 | `PULSE_STORE_HOT_DAYS` | Age &lt; N → hot (default 30) |
 | `PULSE_STORE_WARM_DAYS` | Age &lt; N → warm; else expire (default 365) |
 
-Compose profile `store` / service `pulse-store` is owned by T001 (placeholder). This package is the app-level client. M07 thin = env policy only.
+Compose profile `store` runs **MinIO** as service `pulse-store` (T110). This package is the app-level client:
+
+1. Bring up store: `docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env --profile store up -d`
+2. Point client: `PULSE_STORE_BACKEND=minio` + `PULSE_STORE_ENDPOINT=http://pulse-store:9000` (same network) or `http://127.0.0.1:9000` (host + published ports)
+3. Credentials / bucket: same `PULSE_STORE_ACCESS_KEY` / `SECRET_KEY` / `BUCKET` as `.env.template`
+
+M07 thin = env policy only.
 
 ## Evidence keys
 

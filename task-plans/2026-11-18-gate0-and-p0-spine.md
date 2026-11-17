@@ -110,8 +110,9 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T007 | `pulse-store` MinIO config + evidence IDs (E01/E02) | T001 preferred | **ok** (app-only; no compose rewrite) | done |
 | 8 | P0-T070 | Retention hot/warm/expire + legal hold (E03/E04 + M07 thin) | P0-T007 | **ok** (store-only) | done |
+| 9 | P0-T110 | Compose `store` → real MinIO + buckets env | T001, T007 | **no** (compose store owner) | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T007 → T070**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T007 → T070 → T110**.
 
 Merge order (morning): **contracts → compose → api → store → web**; perception only after Gate 0.1 evidence.
 

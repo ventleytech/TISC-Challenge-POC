@@ -1,6 +1,6 @@
 # VoltPulse Compose skeleton — project name voltpulse
 # Profiles: sense | media | stream | data | obs | store
-# Stub images only; real service images land in later cards.
+# Most profiles: stub images. Profile store: real MinIO + mc bucket init (T110).
 
 name: voltpulse
 
@@ -129,21 +129,69 @@ services:
       - "${PULSE_GRAFANA_PORT:-3001}:3000"
     restart: "no"
 
+  # MinIO object store (architecture: pulse-store). App client: apps/pulse-store.
   pulse-store:
     profiles: [store]
-    image: alpine:3.20
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     container_name: vp-pulse-store
-    command: ["sleep", "infinity"]
+    command: ["server", "/data", "--address", ":9000", "--console-address", ":9001"]
     ports:
       - "${PULSE_STORE_API_PORT:-9000}:9000"
       - "${PULSE_STORE_CONSOLE_PORT:-9001}:9001"
     environment:
-      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT}
-      PULSE_STORE_BUCKET: ${PULSE_STORE_BUCKET}
       # Credentials from env only — never commit real .env
       MINIO_ROOT_USER: ${PULSE_STORE_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${PULSE_STORE_SECRET_KEY}
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT}
+      PULSE_STORE_BUCKET: ${PULSE_STORE_BUCKET}
+      PULSE_STORE_BUCKETS: ${PULSE_STORE_BUCKETS}
+      PULSE_STORE_REGION: ${PULSE_STORE_REGION}
+    volumes:
+      - pulse_store_data:/data
+    # No image healthcheck: official minio binary image lacks curl/mc; buckets init retries instead.
+    restart: "no"
+
+  # One-shot bucket create from PULSE_STORE_BUCKETS (comma-separated).
+  pulse-store-buckets:
+    profiles: [store]
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    container_name: vp-pulse-store-buckets
+    depends_on:
+      pulse-store:
+        condition: service_started
+    environment:
+      PULSE_STORE_ACCESS_KEY: ${PULSE_STORE_ACCESS_KEY}
+      PULSE_STORE_SECRET_KEY: ${PULSE_STORE_SECRET_KEY}
+      PULSE_STORE_BUCKETS: ${PULSE_STORE_BUCKETS}
+      PULSE_STORE_REGION: ${PULSE_STORE_REGION:-us-east-1}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        echo "waiting for pulse-store MinIO…"
+        i=0
+        until mc alias set vp http://pulse-store:9000 "$$PULSE_STORE_ACCESS_KEY" "$$PULSE_STORE_SECRET_KEY" 2>/dev/null; do
+          i=$$((i+1))
+          if [ "$$i" -gt 30 ]; then
+            echo "MinIO not ready after retries" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        old_ifs=$$IFS
+        IFS=,
+        for b in $$PULSE_STORE_BUCKETS; do
+          IFS=$$old_ifs
+          b=$$(echo "$$b" | tr -d '[:space:]')
+          [ -n "$$b" ] || continue
+          mc mb --ignore-existing "vp/$$b"
+          echo "bucket ready: $$b (region=$$PULSE_STORE_REGION)"
+          IFS=,
+        done
+        IFS=$$old_ifs
+        echo "pulse-store-buckets done"
     restart: "no"
 
 volumes:
   pulse_pg_data:
+  pulse_store_data:
