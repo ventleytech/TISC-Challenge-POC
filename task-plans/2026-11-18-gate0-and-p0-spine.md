@@ -115,10 +115,13 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 10 | P0-T130 | S2 file-bus smoke: detect → rules → evidence JSON | P0-T010, P0-T020 | ok vs pulse-api/web/store | done |
 | 11 | P0-T160 | Honest `sag` + `thermal_hotspot` stubs (C04 remaining) | contracts enum | **ok** vs T130 / perception | done |
 | 12 | P0-T240 | Wire perception fallbacks for `sag` / `thermal_hotspot` | T160, T130 | ok vs pulse-web | done |
+| 13 | P0-T060 | Schedule wizards + assets UI shells (S8/A01) | P0-T005 | **ok** vs api auth (web-only) | done |
+| 14 | P0-T170 | C09 priority board + alerts SLA/ack (mock) | P0-T060 | **ok** vs api (web-only) | done |
+| 15 | P0-T230 | Wow pulse-web redesign (brand + density) | P0-T170 | no (web) | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**; web via **T060 → T170 → T230**.
 
-Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`); rules + S2 glue (`P0-T020`, `P0-T130`).
+Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`); rules + S2 glue (`P0-T020`, `P0-T130`); prefer T230 tip for `apps/pulse-web`.
 
 ## Risks
 
@@ -142,5 +145,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-T010 / P0-T020 / P0-T130: detect → rules file-bus smoke with evidence
 - [x] P0-T160 honest sag/thermal fallbacks under `packages/detector-fallbacks` (no accuracy claims)
 - [x] P0-T240 perception emits honest empty/low-conf `vp.detect.v1` + reason for sag/thermal
+- [x] P0-T230 wow pulse-web on main (`apps/pulse-web`, `packages/ui-tokens`)
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes
