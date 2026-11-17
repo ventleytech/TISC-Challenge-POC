@@ -37,6 +37,33 @@
           "evidence_object_id": {
             "type": ["string", "null"],
             "description": "pulse-store content-addressed / inspection-scoped id"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Optional honesty note (e.g. Demo Day fallback / low-conf sentinel)"
+          }
+        }
+      }
+    },
+    "fallback_reasons": {
+      "type": "array",
+      "description": "Honest Demo Day notes when a requested class_id used detector-fallbacks (may accompany empty detections)",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["class_id", "reason"],
+        "properties": {
+          "class_id": {
+            "$ref": "../../enums/detection.json"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "const": "fallback"
           }
         }
       }

@@ -114,7 +114,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 9 | P0-T020 | `grid-rules` findings/alerts + W01 risk (fixture bus) | P0-T002 | ok vs pulse-* / perception | done |
 | 10 | P0-T130 | S2 file-bus smoke: detect → rules → evidence JSON | P0-T010, P0-T020 | ok vs pulse-api/web/store | done |
 | 11 | P0-T160 | Honest `sag` + `thermal_hotspot` stubs (C04 remaining) | contracts enum | **ok** vs T130 / perception | done |
-| 12 | P0-T240 | Wire perception fallbacks for `sag` / `thermal_hotspot` | T160, T130 | ok vs pulse-web | in_progress |
+| 12 | P0-T240 | Wire perception fallbacks for `sag` / `thermal_hotspot` | T160, T130 | ok vs pulse-web | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**.
 
@@ -141,6 +141,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [ ] Optional: T001 / T005 scaffold with smoke cmds
 - [x] P0-T010 / P0-T020 / P0-T130: detect → rules file-bus smoke with evidence
 - [x] P0-T160 honest sag/thermal fallbacks under `packages/detector-fallbacks` (no accuracy claims)
-- [ ] P0-T240 perception emits honest empty/low-conf `vp.detect.v1` + reason for sag/thermal
+- [x] P0-T240 perception emits honest empty/low-conf `vp.detect.v1` + reason for sag/thermal
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes

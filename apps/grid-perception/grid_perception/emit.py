@@ -38,6 +38,7 @@ def build_detect_event(
     inspection_id: str | None = None,
     asset_id: str | None = None,
     source: str = "upload",
+    fallback_reasons: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Assemble a vp.detect.v1 object. bbox is xyxy pixels."""
     if source not in ("live", "upload", "thermal_media"):
@@ -63,6 +64,9 @@ def build_detect_event(
             det["bbox"] = [float(x) for x in bbox]
         if item.get("evidence_object_id") is not None:
             det["evidence_object_id"] = item["evidence_object_id"]
+        reason = item.get("reason")
+        if reason:
+            det["reason"] = str(reason)
         detections.append(det)
 
     event: dict[str, Any] = {
@@ -73,6 +77,21 @@ def build_detect_event(
         "source": source,
         "detections": detections,
     }
+    if fallback_reasons:
+        cleaned: list[dict[str, str]] = []
+        for row in fallback_reasons:
+            cid = str(row["class_id"])
+            if cid not in VALID_CLASS_IDS:
+                raise ValueError(f"bad fallback class_id: {cid}")
+            reason = str(row["reason"]).strip()
+            if not reason:
+                raise ValueError("fallback reason must be non-empty")
+            entry: dict[str, str] = {"class_id": cid, "reason": reason}
+            status = row.get("status")
+            if status:
+                entry["status"] = str(status)
+            cleaned.append(entry)
+        event["fallback_reasons"] = cleaned
     return event
 
 
@@ -94,3 +113,13 @@ def assert_detect_shape(event: dict[str, Any]) -> None:
             raise AssertionError(f"bad confidence: {conf}")
         if "bbox" in det and len(det["bbox"]) != 4:
             raise AssertionError("bbox must have 4 numbers")
+        if "reason" in det and (not isinstance(det["reason"], str) or not det["reason"]):
+            raise AssertionError("detection reason must be non-empty string")
+    if "fallback_reasons" in event:
+        if not isinstance(event["fallback_reasons"], list):
+            raise AssertionError("fallback_reasons must be a list")
+        for row in event["fallback_reasons"]:
+            if row.get("class_id") not in VALID_CLASS_IDS:
+                raise AssertionError(f"bad fallback class_id: {row.get('class_id')}")
+            if not isinstance(row.get("reason"), str) or not row["reason"]:
+                raise AssertionError("fallback reason must be non-empty string")

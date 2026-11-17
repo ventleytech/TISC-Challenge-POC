@@ -42,8 +42,12 @@ Compose `sense` profile still uses alpine sleep stub. Real image + CUDA base = f
 | `corrosion` | `GP_WEIGHTS_CORROSION` | M002 |
 | `crack` | `GP_WEIGHTS_CRACK` | M003 |
 | `vegetation` | `GP_WEIGHTS_VEGETATION` | M004 (AGPL smoke) |
+| `sag` | *(fallback package)* | Demo Day honest stub — empty / optional ≤0.01 sentinel + `fallback_reasons` |
+| `thermal_hotspot` | *(fallback package)* | Demo Day honest stub — empty / optional ≤0.01 sentinel + `fallback_reasons` |
 
 Missing weight file → detector skipped with stderr warning (not a hard fail if ≥1 detector runs).
+
+Requesting `sag` or `thermal_hotspot` always routes to `packages/detector-fallbacks` (no fake accuracy). Event includes `fallback_reasons[].reason`. Optional plumbing: `--fallback-sentinel` or `GP_FALLBACK_SENTINEL=1`.
 
 ## Anti-leak
 
