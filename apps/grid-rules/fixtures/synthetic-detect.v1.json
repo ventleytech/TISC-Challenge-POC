@@ -1,0 +1,30 @@
+{
+  "event_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "occurred_at": "2026-11-18T00:00:00.000Z",
+  "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  "source": "upload",
+  "detections": [
+    {
+      "detection_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "class_id": "corrosion",
+      "confidence": 0.91,
+      "bbox": [0.12, 0.2, 0.4, 0.55],
+      "evidence_object_id": "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/corrosion-01"
+    },
+    {
+      "detection_id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      "class_id": "vegetation",
+      "confidence": 0.62,
+      "bbox": [0.5, 0.1, 0.9, 0.7],
+      "evidence_object_id": "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/veg-01"
+    },
+    {
+      "detection_id": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+      "class_id": "thermal_hotspot",
+      "confidence": 0.96,
+      "bbox": [0.3, 0.3, 0.45, 0.48],
+      "evidence_object_id": "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/thermal-01"
+    }
+  ]
+}
