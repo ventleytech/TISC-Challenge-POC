@@ -6,6 +6,7 @@ import { HealthModule } from './health/health.module';
 import { InspectionsModule } from './inspections/inspections.module';
 import { AssetsModule } from './assets/assets.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { FindingsModule } from './findings/findings.module';
 import { UtilitiesModule } from './utilities/utilities.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
 
@@ -18,6 +19,7 @@ import { WorkOrdersModule } from './work-orders/work-orders.module';
     UtilitiesModule,
     InspectionsModule,
     AssetsModule,
+    FindingsModule,
     AlertsModule,
     WorkOrdersModule,
   ],

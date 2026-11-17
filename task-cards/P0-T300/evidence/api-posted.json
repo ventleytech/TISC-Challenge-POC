@@ -1,0 +1,41 @@
+{
+  "findings": [
+    {
+      "id": "3cff6d04-893d-4c7d-b854-b6bdc54eef19",
+      "http": 201
+    },
+    {
+      "id": "1438607f-10b3-4dff-84aa-8804893e12ab",
+      "http": 201
+    },
+    {
+      "id": "d04885ca-7c17-4c67-b994-f72fc6204f9b",
+      "http": 201
+    },
+    {
+      "id": "b59e6fc0-c1b0-41d4-a9d4-c88fd82d66c6",
+      "http": 201
+    },
+    {
+      "id": "b8029216-fcaf-4b8b-bce7-17efc0a8cad7",
+      "http": 201
+    }
+  ],
+  "alerts": [
+    {
+      "id": "2ea58c73-a507-4199-abfb-256e57486811",
+      "http": 201,
+      "finding_id": "3cff6d04-893d-4c7d-b854-b6bdc54eef19"
+    },
+    {
+      "id": "93b9d375-bc3b-4076-bca5-99ea9c42a0e5",
+      "http": 201,
+      "finding_id": "1438607f-10b3-4dff-84aa-8804893e12ab"
+    },
+    {
+      "id": "e9e18489-2559-4edf-aace-91e6332a4e0e",
+      "http": 201,
+      "finding_id": "d04885ca-7c17-4c67-b994-f72fc6204f9b"
+    }
+  ]
+}

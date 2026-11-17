@@ -94,6 +94,41 @@ export type UtilitySeed = {
   assets?: AssetSeed[];
 };
 
+export const DETECTION_CLASSES = [
+  'crack',
+  'sag',
+  'corrosion',
+  'vegetation',
+  'thermal_hotspot',
+] as const;
+
+export type DetectionClass = (typeof DETECTION_CLASSES)[number];
+
+export type Finding = {
+  id: string;
+  utility_id: string;
+  class_id: DetectionClass;
+  severity: Severity;
+  risk_score: number;
+  inspection_id?: string | null;
+  asset_id?: string | null;
+  source_detection_ids?: string[];
+  evidence_object_ids?: string[];
+};
+
+export type FindingCreate = {
+  utility_id: string;
+  class_id: DetectionClass;
+  severity: Severity;
+  risk_score: number;
+  /** Prefer rules `finding_id` so alerts can reference the same id. */
+  id?: string;
+  inspection_id?: string | null;
+  asset_id?: string | null;
+  source_detection_ids?: string[];
+  evidence_object_ids?: string[];
+};
+
 export type Alert = {
   id: string;
   finding_id: string;

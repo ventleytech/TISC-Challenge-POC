@@ -1,0 +1,64 @@
+{
+  "event_id": "7f87e093-5afd-49d8-ab76-e980a5649e00",
+  "occurred_at": "2026-11-17T23:34:01Z",
+  "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  "source": "upload",
+  "detections": [
+    {
+      "detection_id": "26c1e51a-ee82-42c0-9682-09ab5d9e02a4",
+      "class_id": "corrosion",
+      "confidence": 0.7138081789016724,
+      "bbox": [
+        297.69873046875,
+        339.6944885253906,
+        337.1265869140625,
+        381.3320617675781
+      ]
+    },
+    {
+      "detection_id": "84e55949-b377-489d-80ce-919f4e9734e4",
+      "class_id": "corrosion",
+      "confidence": 0.29573893547058105,
+      "bbox": [
+        458.3266906738281,
+        554.8982543945312,
+        472.4203796386719,
+        573.9371948242188
+      ]
+    },
+    {
+      "detection_id": "4ccd743e-8a09-46ea-a23f-bddaf7d1862d",
+      "class_id": "corrosion",
+      "confidence": 0.6939865946769714,
+      "bbox": [
+        171.30767822265625,
+        313.4844970703125,
+        258.96795654296875,
+        419.7457275390625
+      ]
+    },
+    {
+      "detection_id": "da2aa46f-fb44-4248-9957-6345ec501310",
+      "class_id": "corrosion",
+      "confidence": 0.5876360535621643,
+      "bbox": [
+        285.3038330078125,
+        345.3193664550781,
+        366.0208740234375,
+        427.5766296386719
+      ]
+    },
+    {
+      "detection_id": "56255426-a282-460a-8064-1811da0ca118",
+      "class_id": "corrosion",
+      "confidence": 0.2776682376861572,
+      "bbox": [
+        0.0,
+        448.39263916015625,
+        85.88567352294922,
+        544.1171875
+      ]
+    }
+  ]
+}

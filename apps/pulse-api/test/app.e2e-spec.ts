@@ -141,25 +141,54 @@ describe('pulse-api (e2e)', () => {
       .expect(200);
   });
 
-  it('asset + alert stubs with auth', async () => {
+  it('asset + finding + alert stubs with auth', async () => {
     const asset = await request(app.getHttpServer())
       .post('/api/v1/assets')
       .set('Authorization', 'Bearer dev-operator')
       .send({ utility_id: UTILITY, name: 'Tower-A1', criticality: 'high' })
       .expect(201);
 
+    const findingId = '00000000-0000-4000-8000-0000000000aa';
+    const finding = await request(app.getHttpServer())
+      .post('/api/v1/findings')
+      .set('Authorization', 'Bearer dev-operator')
+      .send({
+        id: findingId,
+        utility_id: UTILITY,
+        class_id: 'corrosion',
+        severity: 'high',
+        risk_score: 42.5,
+        asset_id: asset.body.id,
+      })
+      .expect(201);
+    expect(finding.body.id).toBe(findingId);
+
     const alert = await request(app.getHttpServer())
       .post('/api/v1/alerts')
       .set('Authorization', 'Bearer dev-operator')
       .send({
         utility_id: UTILITY,
-        finding_id: '00000000-0000-4000-8000-0000000000aa',
+        finding_id: findingId,
         severity: 'high',
       })
       .expect(201);
 
     await request(app.getHttpServer())
       .get(`/api/v1/assets/${asset.body.id}`)
+      .set('X-API-Key', 'dev-operator')
+      .expect(200);
+
+    const listed = await request(app.getHttpServer())
+      .get('/api/v1/findings')
+      .query({ utility_id: UTILITY })
+      .set('X-API-Key', 'dev-operator')
+      .expect(200);
+    expect(listed.body.items.some((f: { id: string }) => f.id === findingId)).toBe(
+      true,
+    );
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/findings/${findingId}`)
       .set('X-API-Key', 'dev-operator')
       .expect(200);
 
