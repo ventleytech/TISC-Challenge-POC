@@ -6,6 +6,7 @@ import { mountOpenApi } from './openapi/mount-openapi';
 async function bootstrap() {
   const settings = loadSettings();
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
   mountOpenApi(app, settings);
   await app.listen(settings.port);
 }
