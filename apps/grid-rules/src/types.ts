@@ -41,6 +41,13 @@ export type VpDetectV1 = {
   detections: DetectionItem[];
 };
 
+/** S9 / A04–A06 hints nested under finding.extensions (contract-additive). */
+export type FindingResponsibilityExtensions = {
+  party_type: string;
+  warranty_hint: string;
+  tender_ref?: string | null;
+};
+
 export type FindingPayload = {
   finding_id: string;
   class_id: DetectionClass;
@@ -49,6 +56,8 @@ export type FindingPayload = {
   asset_id?: string | null;
   source_detection_ids?: string[];
   evidence_object_ids?: string[];
+  /** Optional bag — party_type / warranty_hint when OEM/warranty on asset. */
+  extensions?: FindingResponsibilityExtensions & Record<string, unknown>;
 };
 
 export type VpFindingsV1 = {
@@ -74,12 +83,18 @@ export type VpAlertsV1 = {
   alert: AlertPayload;
 };
 
-/** Optional asset context for W01 (severity × criticality × confidence). */
+/** Optional asset context for W01 (severity × criticality × confidence) + S9. */
 export type AssetContext = {
   asset_id: string;
   criticality: Criticality;
   voltage_class?: string | null;
   utility_id?: string;
+  /** A02 OEM / warranty fields — when present, rules attach S9 hints. */
+  oem?: string | null;
+  install_date?: string | null;
+  warranty_end?: string | null;
+  anti_corrosion_sla_end?: string | null;
+  tender_ref?: string | null;
 };
 
 export type RulesEmit = {

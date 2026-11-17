@@ -16,6 +16,7 @@ voltpulse/
     pulse-store/         # profile: store (object-store client / evidence IDs)
   packages/
     contracts/           # OpenAPI + vp.* events
+    responsibility/      # A04–A06 party / warranty / tender hints
     ui-tokens/
     shared-ts/
   infra/
