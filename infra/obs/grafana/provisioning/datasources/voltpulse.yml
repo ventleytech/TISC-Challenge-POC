@@ -1,0 +1,13 @@
+# VoltPulse Grafana datasource stub — profile obs
+apiVersion: 1
+
+datasources:
+  - name: VoltPulse Prometheus
+    type: prometheus
+    access: proxy
+    uid: voltpulse-prometheus
+    url: http://pulse-prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s

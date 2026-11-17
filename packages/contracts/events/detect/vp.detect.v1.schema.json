@@ -1,0 +1,72 @@
+{
+  "$id": "https://voltpulse.local/contracts/events/detect/vp.detect.v1.schema.json",
+  "title": "VpDetectV1",
+  "description": "Stub: detection batch from grid-perception on topic vp.detect.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "occurred_at", "inspection_id", "detections"],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "inspection_id": { "type": "string", "format": "uuid" },
+    "asset_id": { "type": ["string", "null"], "format": "uuid" },
+    "source": {
+      "type": "string",
+      "enum": ["live", "upload", "thermal_media"],
+      "description": "Ingest path into shared inference contract"
+    },
+    "detections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["detection_id", "class_id", "confidence"],
+        "properties": {
+          "detection_id": { "type": "string", "format": "uuid" },
+          "class_id": {
+            "$ref": "../../enums/detection.json"
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "bbox": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 4,
+            "maxItems": 4,
+            "description": "xyxy normalized or pixel — implementer notes TBD"
+          },
+          "evidence_object_id": {
+            "type": ["string", "null"],
+            "description": "pulse-store content-addressed / inspection-scoped id"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Optional honesty note (e.g. Demo Day fallback / low-conf sentinel)"
+          }
+        }
+      }
+    },
+    "fallback_reasons": {
+      "type": "array",
+      "description": "Honest Demo Day notes when a requested class_id used detector-fallbacks (may accompany empty detections)",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["class_id", "reason"],
+        "properties": {
+          "class_id": {
+            "$ref": "../../enums/detection.json"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "const": "fallback"
+          }
+        }
+      }
+    }
+  }
+}

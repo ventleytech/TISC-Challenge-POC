@@ -1,0 +1,383 @@
+openapi: 3.0.3
+info:
+  title: VoltPulse API
+  version: 0.0.1
+  description: |
+    Stub OpenAPI for pulse-api. Paths are contract anchors for Nest mount.
+    Canonical surfaces: /api/v1/inspections, /api/v1/assets, /api/v1/alerts.
+    Fresh VoltPulse surface — not a proprietary catalog paste.
+servers:
+  - url: /api/v1
+    description: Versioned API prefix (compose/env supplies host)
+
+tags:
+  - name: inspections
+  - name: assets
+  - name: alerts
+
+paths:
+  /inspections:
+    get:
+      tags: [inspections]
+      operationId: listInspections
+      summary: List inspections (scoped by utility_id)
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InspectionStatus'
+      responses:
+        '200':
+          description: Inspection list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Inspection'
+    post:
+      tags: [inspections]
+      operationId: createInspection
+      summary: Create inspection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InspectionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /inspections/{inspectionId}:
+    get:
+      tags: [inspections]
+      operationId: getInspection
+      summary: Get inspection by id
+      parameters:
+        - $ref: '#/components/parameters/InspectionId'
+      responses:
+        '200':
+          description: Inspection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inspection'
+        '404':
+          description: Not found
+
+  /assets:
+    get:
+      tags: [assets]
+      operationId: listAssets
+      summary: List assets
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+      responses:
+        '200':
+          description: Asset list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+    post:
+      tags: [assets]
+      operationId: createAsset
+      summary: Create asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /assets/{assetId}:
+    get:
+      tags: [assets]
+      operationId: getAsset
+      summary: Get asset by id
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          description: Not found
+
+  /alerts:
+    get:
+      tags: [alerts]
+      operationId: listAlerts
+      summary: List alerts
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/Severity'
+      responses:
+        '200':
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Alert'
+    post:
+      tags: [alerts]
+      operationId: createAlert
+      summary: Create / ingest alert (Nest persist path)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /alerts/{alertId}:
+    get:
+      tags: [alerts]
+      operationId: getAlert
+      summary: Get alert by id
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Not found
+
+components:
+  parameters:
+    UtilityId:
+      name: utility_id
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+    InspectionId:
+      name: inspectionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AlertId:
+      name: alertId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    DetectionId:
+      type: string
+      enum:
+        - crack
+        - sag
+        - corrosion
+        - vegetation
+        - thermal_hotspot
+
+    InspectionStatus:
+      type: string
+      enum:
+        - planned
+        - in_progress
+        - processing
+        - review
+        - closed
+        - cancelled
+
+    Severity:
+      type: string
+      enum:
+        - critical
+        - high
+        - medium
+        - low
+        - info
+
+    Inspection:
+      type: object
+      required: [id, utility_id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/InspectionStatus'
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        planned_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    InspectionCreate:
+      type: object
+      required: [utility_id]
+      properties:
+        utility_id:
+          type: string
+          format: uuid
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        planned_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Asset:
+      type: object
+      required: [id, utility_id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        criticality:
+          type: string
+          enum: [critical, high, medium, low]
+        voltage_class:
+          type: string
+          nullable: true
+
+    AssetCreate:
+      type: object
+      required: [utility_id, name]
+      properties:
+        utility_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        criticality:
+          type: string
+          enum: [critical, high, medium, low]
+        voltage_class:
+          type: string
+          nullable: true
+
+    Alert:
+      type: object
+      required: [id, severity, finding_id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        finding_id:
+          type: string
+          format: uuid
+        inspection_id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        severity:
+          $ref: '#/components/schemas/Severity'
+        sla_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        ack_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AlertCreate:
+      type: object
+      required: [severity, finding_id, utility_id]
+      properties:
+        finding_id:
+          type: string
+          format: uuid
+        inspection_id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        severity:
+          $ref: '#/components/schemas/Severity'
+        sla_due_at:
+          type: string
+          format: date-time
+          nullable: true

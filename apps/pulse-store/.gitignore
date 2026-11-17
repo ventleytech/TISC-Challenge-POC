@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.pulse-store-data/
+*.log
+.env

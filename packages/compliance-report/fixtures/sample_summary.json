@@ -1,0 +1,18 @@
+{
+  "inspection_id": "00000000-0000-4000-8000-000000000120",
+  "utility_id": "util-demo-01",
+  "status": "review",
+  "generated_at": "2026-11-18T04:00:00Z",
+  "title": "Demo Day compliance summary",
+  "risk": {
+    "score": 0.82,
+    "level": "high"
+  },
+  "findings_counts": {
+    "crack": 2,
+    "sag": 0,
+    "corrosion": 5,
+    "vegetation": 1,
+    "thermal_hotspot": 0
+  }
+}

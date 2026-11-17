@@ -15,6 +15,7 @@ voltpulse/
     pulse-train/         # profile: data
   packages/
     contracts/           # OpenAPI + vp.* events
+    work-order/          # A07 finding+asset+party → CSV/JSON
     ui-tokens/
     shared-ts/
   infra/

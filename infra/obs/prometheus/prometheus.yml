@@ -1,0 +1,39 @@
+# VoltPulse Prometheus stub — profile obs
+# shortcut: static targets only; replace with service discovery when multi-host
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: vp_pulse_api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["pulse-api:3000"]
+        labels:
+          plane: data
+          service: pulse-api
+
+  - job_name: vp_pulse_notify
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["pulse-notify:3010"]
+        labels:
+          plane: data
+          service: pulse-notify
+
+  - job_name: vp_grid_perception
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["grid-perception:9100"]
+        labels:
+          plane: sense
+          service: grid-perception
+
+  - job_name: vp_grid_rules
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["grid-rules:9101"]
+        labels:
+          plane: stream
+          service: grid-rules

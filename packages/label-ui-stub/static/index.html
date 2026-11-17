@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoltPulse — O04 label stub</title>
+    <style>
+      :root {
+        --bg: #0f1c24;
+        --panel: #162a35;
+        --ink: #e8f0f4;
+        --muted: #9bb0bc;
+        --accent: #3d9b8f;
+        --danger: #c45c4a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(1200px 600px at 10% -10%, #1e3a48, var(--bg));
+        padding: 2rem 1.25rem 3rem;
+      }
+      h1 {
+        font-family: "IBM Plex Serif", Georgia, serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.35rem;
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+      }
+      p.lead {
+        color: var(--muted);
+        margin: 0 0 1.5rem;
+        max-width: 36rem;
+      }
+      form {
+        max-width: 28rem;
+        display: grid;
+        gap: 0.75rem;
+        background: color-mix(in srgb, var(--panel) 88%, transparent);
+        padding: 1.25rem;
+        border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+      }
+      label {
+        display: grid;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        padding: 0.45rem 0.55rem;
+        border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+        background: #0c151b;
+        color: var(--ink);
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        color: #04120f;
+        border-color: transparent;
+        font-weight: 600;
+      }
+      button.fp {
+        background: var(--danger);
+        color: #fff;
+      }
+      pre {
+        max-width: 40rem;
+        margin-top: 1.25rem;
+        padding: 0.75rem;
+        background: #0c151b;
+        overflow: auto;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+      }
+      .brand {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand">VoltPulse</div>
+    <h1>O04 label stub</h1>
+    <p class="lead">
+      Post TP/FP labels as <code>vp.labels.v1</code> to <code>pulse-train</code>
+      <code>POST /internal/consume</code>. Not the product UI.
+    </p>
+    <form id="label-form">
+      <label>
+        Train base URL
+        <input id="baseUrl" name="baseUrl" value="http://127.0.0.1:3020" required />
+      </label>
+      <label>
+        Finding ID
+        <input id="findingId" name="findingId" placeholder="uuid" required />
+      </label>
+      <label>
+        Class
+        <select id="classId" name="classId">
+          <option value="corrosion">corrosion</option>
+          <option value="crack">crack</option>
+          <option value="vegetation">vegetation</option>
+          <option value="sag">sag</option>
+          <option value="thermal_hotspot">thermal_hotspot</option>
+        </select>
+      </label>
+      <label>
+        Labeler role
+        <select id="labelerRole" name="labelerRole">
+          <option value="energy_operator">energy_operator</option>
+          <option value="energy_supervisor">energy_supervisor</option>
+          <option value="utility_admin">utility_admin</option>
+          <option value="platform_admin">platform_admin</option>
+        </select>
+      </label>
+      <label>
+        Corrected class (FP only)
+        <select id="correctedClassId" name="correctedClassId">
+          <option value="">—</option>
+          <option value="corrosion">corrosion</option>
+          <option value="crack">crack</option>
+          <option value="vegetation">vegetation</option>
+          <option value="sag">sag</option>
+          <option value="thermal_hotspot">thermal_hotspot</option>
+        </select>
+      </label>
+      <div class="row">
+        <button type="submit" data-accepted="true">Mark TP</button>
+        <button type="submit" class="fp" data-accepted="false">Mark FP</button>
+      </div>
+    </form>
+    <pre id="out">Ready.</pre>
+    <script>
+      function uuid() {
+        if (crypto.randomUUID) return crypto.randomUUID();
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      }
+
+      const form = document.getElementById("label-form");
+      const out = document.getElementById("out");
+      let pendingAccepted = true;
+
+      form.querySelectorAll("button[type=submit]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          pendingAccepted = btn.dataset.accepted === "true";
+        });
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const base = document.getElementById("baseUrl").value.replace(/\/$/, "");
+        const findingId = document.getElementById("findingId").value.trim();
+        const classId = document.getElementById("classId").value;
+        const labelerRole = document.getElementById("labelerRole").value;
+        const corrected = document.getElementById("correctedClassId").value;
+        const body = {
+          event_id: uuid(),
+          occurred_at: new Date().toISOString(),
+          label: {
+            label_id: uuid(),
+            finding_id: findingId,
+            class_id: classId,
+            accepted: pendingAccepted,
+            labeler_role: labelerRole,
+          },
+        };
+        if (!pendingAccepted && corrected) {
+          body.label.corrected_class_id = corrected;
+        }
+        out.textContent = "POST " + base + "/internal/consume\n" + JSON.stringify(body, null, 2);
+        try {
+          const res = await fetch(base + "/internal/consume", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const json = await res.json();
+          out.textContent += "\n\n← " + res.status + "\n" + JSON.stringify(json, null, 2);
+        } catch (err) {
+          out.textContent += "\n\nError: " + (err && err.message ? err.message : String(err));
+        }
+      });
+    </script>
+  </body>
+</html>
