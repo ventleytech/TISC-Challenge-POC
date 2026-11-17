@@ -15,28 +15,39 @@ Bootstrap **VoltPulse** Kafka topics (`vp.*`) from `packages/contracts/events/ca
 ./infra/kafka/create-topics.sh --dry-run
 
 # Live create (needs kafka-topics on PATH + reachable broker)
-PULSE_KAFKA_BOOTSTRAP=localhost:9092 ./infra/kafka/create-topics.sh
+PULSE_KAFKA_BOOTSTRAP=localhost:9094 ./infra/kafka/create-topics.sh
 ```
 
 Catalog path defaults to repo `packages/contracts/events/catalog.yaml` (P0-T002). Override with `--catalog` or `PULSE_TOPIC_CATALOG`.
 
 Script **refuses** any topic name that does not start with `vp.`.
 
-## Compose fragment
+Catalog parse: `python3`+PyYAML when available; **awk fallback** for Apache Kafka admin containers (no Python).
 
-`compose.fragment.yml` adds `pulse-kafka-topics` under profiles **`stream`** and **`data`**. It does **not** rewrite `infra/compose/docker-compose.yml` (owned by P0-T001).
+## Against Compose Kafka (P0-T210)
 
-`pulse-bus` lives under profile `stream`. Data-plane services (`pulse-api`, etc.) consume the same `vp.*` topics once created.
+Main compose (`infra/compose/docker-compose.yml`) runs:
+
+- `pulse-bus` — Apache Kafka 4.1.0 KRaft under profiles **`stream`** and **`data`**
+- `pulse-kafka-topics` — one-shot wrapper around this script (waits for healthy bus)
 
 ```bash
-docker compose -p voltpulse \
-  -f infra/compose/docker-compose.yml \
-  -f infra/kafka/compose.fragment.yml \
-  --profile stream --profile data \
-  config >/dev/null
+cp -n .env.template .env
+docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env \
+  --profile stream --profile data config >/dev/null
+
+# Create topics (starts bus if needed when using up; or run one-shot):
+docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env \
+  --profile stream up -d pulse-bus
+docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env \
+  --profile stream run --rm pulse-kafka-topics
 ```
 
-Live topic create against stub alpine `pulse-bus` will fail until a real Kafka image lands — use `--dry-run` / `--list` for validation today.
+Host bootstrap (after bus is up): use `PULSE_KAFKA_BOOTSTRAP=localhost:${PULSE_KAFKA_HOST_PORT:-9094}` so metadata returns the `PLAINTEXT_HOST` listener.
+
+## Compose fragment
+
+`compose.fragment.yml` is a **legacy overlay** for pre-T210 alpine `pulse-bus`. Prefer the services already in `infra/compose/docker-compose.yml`. Do **not** stack the fragment on top of T210 main compose (duplicate `pulse-kafka-topics`).
 
 ## Topics (catalog stub)
 

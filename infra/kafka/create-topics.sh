@@ -36,8 +36,8 @@ Environment:
   PULSE_TOPIC_PARTITIONS  Default partitions
   PULSE_TOPIC_REPLICATION Default replication factor
 
-Requires: python3 + PyYAML (for catalog parse). For live create: kafka-topics.sh
-or kafka-topics on PATH (Apache Kafka / Bitnami image tools).
+Requires: python3 + PyYAML **or** awk (catalog parse). For live create:
+kafka-topics.sh / kafka-topics on PATH (Apache Kafka image tools).
 EOF
 }
 
@@ -60,8 +60,9 @@ if [[ ! -f "$CATALOG" ]]; then
   exit 1
 fi
 
-TOPIC_LIST="$(
-python3 - "$CATALOG" <<'PY'
+# Prefer python3+PyYAML; fall back to awk for Kafka admin images (no python).
+parse_topics_python() {
+  python3 - "$CATALOG" <<'PY'
 import sys
 from pathlib import Path
 
@@ -87,7 +88,38 @@ for entry in topics:
 
 print("\n".join(names))
 PY
-)" || exit $?
+}
+
+parse_topics_awk() {
+  # Catalog shape: topics: → list items with `name: vp.*` (VoltPulse stub YAML).
+  awk '
+    /^topics:[[:space:]]*$/ { in_topics=1; next }
+    in_topics && /^[^[:space:]#]/ { in_topics=0 }
+    in_topics && /^[[:space:]]*-[[:space:]]+name:[[:space:]]*/ {
+      name=$0
+      sub(/^[[:space:]]*-[[:space:]]+name:[[:space:]]*/, "", name)
+      gsub(/[[:space:]]+$/, "", name)
+      if (name == "") next
+      if (name !~ /^vp\./) {
+        print "error: refusing non-VoltPulse topic (must start with vp.): " name > "/dev/stderr"
+        exit 1
+      }
+      print name
+    }
+  ' "$CATALOG"
+}
+
+TOPIC_LIST=""
+if command -v python3 >/dev/null 2>&1; then
+  if TOPIC_LIST="$(parse_topics_python)"; then
+    :
+  else
+    echo "warning: python catalog parse failed; trying awk fallback" >&2
+    TOPIC_LIST="$(parse_topics_awk)" || exit $?
+  fi
+else
+  TOPIC_LIST="$(parse_topics_awk)" || exit $?
+fi
 
 mapfile -t TOPICS <<< "$TOPIC_LIST"
 
