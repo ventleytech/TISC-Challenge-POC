@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| Status | `ready` |
+| Status | `done` |
 | Plan | `task-plans/2026-11-18-gate0-and-p0-spine.md` |
 | Parallel | `ok` vs `P0-T*` after M001; serialize vs other M* on same GPU |
 | Branch | `vp/P0-M002-corrosion` |
@@ -33,14 +33,14 @@ Do **not** edit `apps/**`, `packages/**`, or claim `grid-perception` integration
 
 ## Acceptance criteria
 
-- [ ] Dep `P0-M001` done (CUDA + ultralytics proven)
-- [ ] Weights fetched via documented one-liner / `scripts/download.sh` under corrosion folder (prefer HF `Decizez/yolov-corrosion-detection`, MIT)
-- [ ] `yolo predict` (or equiv) on 3–10 public/synthetic rusty stills — **no customer corridor media**
-- [ ] ≥1 image with box/mask confidence above chosen threshold
-- [ ] Annotated output path recorded (blob may be gitignored)
-- [ ] License + attribution URL in evidence
-- [ ] `NOTES.md` updated: imgsz, conf thr, FPS note on T4, fail cases
-- [ ] Evidence markdown with cmds + 5–20 lines stdout
+- [x] Dep `P0-M001` done (CUDA + ultralytics proven)
+- [x] Weights fetched via documented one-liner / `scripts/download.sh` under corrosion folder (prefer HF `Decizez/yolov-corrosion-detection`, MIT)
+- [x] `yolo predict` (or equiv) on 3–10 public/synthetic rusty stills — **no customer corridor media**
+- [x] ≥1 image with box/mask confidence above chosen threshold
+- [x] Annotated output path recorded (blob may be gitignored)
+- [x] License + attribution URL in evidence
+- [x] `NOTES.md` updated: imgsz, conf thr, FPS note on T4, fail cases
+- [x] Evidence markdown with cmds + 5–20 lines stdout
 
 ## Validation
 
@@ -53,16 +53,20 @@ yolo predict model=<path-or-id> source=<sample-dir> device=0
 ls <annotated-out>  # at least one annotated image
 ```
 
+Logged: 3/8 detections; best conf 0.71; annotated under `local-notes/models-experiments/corrosion/runs/g0-smoke/`.
+
 ## Evidence
 
 Write `./evidence/g0-corrosion-smoke.md` (+ optional annotated image path note). Do not mark `done` without verification skill.
 
+Logged: `./evidence/g0-corrosion-smoke.md`.
+
 ## Anti-leak
 
-- [ ] VoltPulse detector id `corrosion` in any public wording
-- [ ] No proprietary model filenames / internal brand strings in tracked notes
-- [ ] Do not copy proprietary DeepStream configs into tracked tree
-- [ ] Weights / large blobs untracked
+- [x] VoltPulse detector id `corrosion` in any public wording
+- [x] No proprietary model filenames / internal brand strings in tracked notes
+- [x] Do not copy proprietary DeepStream configs into tracked tree
+- [x] Weights / large blobs untracked
 
 ## Notes
 

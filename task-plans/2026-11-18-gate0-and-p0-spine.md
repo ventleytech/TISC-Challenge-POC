@@ -101,7 +101,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | # | Card ID | Title | Deps | Parallel | Status |
 |---|---------|-------|------|----------|--------|
 | 1 | P0-M001 | ML host baseline (CUDA torch + ultralytics) | — | no (GPU host) | done |
-| 2 | P0-M002 | Corrosion local smoke / first detection proof | P0-M001 | ok vs T* after M001 | ready |
+| 2 | P0-M002 | Corrosion local smoke / first detection proof | P0-M001 | ok vs T* after M001 | done |
 | 3 | P0-T002 | `packages/contracts` `vp.*` + OpenAPI stubs | — | **ok** vs M* | ready |
 | 4 | P0-T001 | Compose profiles skeleton (`voltpulse`) | — | **ok** vs M* / T002 | ready |
 | 5 | P0-T005 | `pulse-web` shell + VoltPulse brand | — | **ok** | ready |
@@ -124,8 +124,8 @@ Merge order (morning): **contracts → compose → api → web**; perception onl
 
 ## Done when
 
-- [ ] P0-M001 evidence: CUDA import + ultralytics version
-- [ ] P0-M002 evidence: ≥1 annotated corrosion detection on T4
+- [x] P0-M001 evidence: CUDA import + ultralytics version
+- [x] P0-M002 evidence: ≥1 annotated corrosion detection on T4
 - [ ] P0-T002 stubs exist for `vp.*` + OpenAPI skeleton
 - [ ] Optional: T001 / T005 scaffold with smoke cmds
 - [ ] No secrets / internal brands in tracked diffs
