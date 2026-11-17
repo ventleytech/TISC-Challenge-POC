@@ -13,10 +13,9 @@ voltpulse/
     pulse-api/           # profile: data
     pulse-web/           # profile: data
     pulse-train/         # profile: data
-    pulse-store/         # profile: store (object-store client / evidence IDs)
   packages/
     contracts/           # OpenAPI + vp.* events
-    responsibility/      # A04–A06 party / warranty / tender hints
+    work-order/          # A07 finding+asset+party → CSV/JSON
     ui-tokens/
     shared-ts/
   infra/
