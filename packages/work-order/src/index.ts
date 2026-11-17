@@ -5,7 +5,7 @@ export {
   exportWorkOrders,
   toCsv,
   toJson,
-} from './export.js';
+} from './export';
 export {
   DETECTION_CLASSES,
   PARTY_TYPES,
@@ -22,4 +22,4 @@ export {
   type WorkOrderExport,
   type WorkOrderRow,
   type WorkOrderSource,
-} from './types.js';
+} from './types';
