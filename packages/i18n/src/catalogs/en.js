@@ -1,0 +1,22 @@
+/** @type {Readonly<Record<string, string>>} */
+export const en = Object.freeze({
+  "app.name": "VoltPulse",
+  "app.tagline": "Energy inspection operating system",
+  "nav.inspections": "Inspections",
+  "nav.assets": "Assets",
+  "nav.alerts": "Alerts",
+  "nav.findings": "Findings",
+  "status.planned": "Planned",
+  "status.in_progress": "In progress",
+  "status.processing": "Processing",
+  "status.review": "Review",
+  "status.closed": "Closed",
+  "status.cancelled": "Cancelled",
+  "detection.crack": "Crack",
+  "detection.sag": "Sag",
+  "detection.corrosion": "Corrosion",
+  "detection.vegetation": "Vegetation",
+  "detection.thermal_hotspot": "Thermal hotspot",
+  "sync.offline": "Offline — changes queued",
+  "sync.synced": "Synced",
+});
