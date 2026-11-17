@@ -13,36 +13,31 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthPrincipal } from '../auth/principal';
 import { Roles } from '../auth/roles.decorator';
 import { WRITE_ROLES } from '../auth/roles';
-import { MemoryStore } from '../domain/memory.store';
+import { DomainStore } from '../domain/domain.store';
 import { SEVERITIES, type Alert, type AlertCreate } from '../domain/types';
 
 @Controller('alerts')
 export class AlertsController {
   constructor(
-    private readonly store: MemoryStore,
+    private readonly store: DomainStore,
     private readonly auth: AuthService,
   ) {}
 
   @Get()
-  list(
+  async list(
     @Query('utility_id') utilityId?: string,
     @Query('severity') severity?: string,
-  ): { items: Alert[] } {
+  ): Promise<{ items: Alert[] }> {
     if (!utilityId) {
       throw new BadRequestException('utility_id query param is required');
     }
-    let items = [...this.store.alerts.values()].filter(
-      (a) => a.utility_id === utilityId,
-    );
-    if (severity) {
-      items = items.filter((a) => a.severity === severity);
-    }
+    const items = await this.store.listAlerts({ utilityId, severity });
     return { items };
   }
 
   @Post()
   @Roles(...WRITE_ROLES)
-  create(@Body() body: AlertCreate): { id: string } {
+  async create(@Body() body: AlertCreate): Promise<{ id: string }> {
     if (!body?.utility_id || !body?.finding_id || !body?.severity) {
       throw new BadRequestException(
         'utility_id, finding_id, and severity are required',
@@ -61,16 +56,16 @@ export class AlertsController {
       sla_due_at: body.sla_due_at ?? null,
       ack_at: null,
     };
-    this.store.alerts.set(id, row);
+    await this.store.createAlert(row);
     return { id };
   }
 
   @Get(':alertId')
-  getOne(
+  async getOne(
     @Param('alertId') alertId: string,
     @CurrentUser() user?: AuthPrincipal,
-  ): Alert {
-    const row = this.store.alerts.get(alertId);
+  ): Promise<Alert> {
+    const row = await this.store.getAlert(alertId);
     if (!row) {
       throw new NotFoundException(`alert ${alertId} not found`);
     }

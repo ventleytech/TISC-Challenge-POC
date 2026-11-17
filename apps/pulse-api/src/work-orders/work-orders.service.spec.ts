@@ -11,9 +11,9 @@ describe('WorkOrdersService', () => {
     service = new WorkOrdersService(store);
   });
 
-  it('exports JSON rows via @voltpulse/work-order', () => {
+  it('exports JSON rows via @voltpulse/work-order', async () => {
     const assetId = store.nextId();
-    store.assets.set(assetId, {
+    await store.createAsset({
       id: assetId,
       utility_id: 'u-1',
       name: 'Tower-A1',
@@ -21,7 +21,7 @@ describe('WorkOrdersService', () => {
       voltage_class: '132kV',
     });
 
-    const result = service.exportFromBody({
+    const result = await service.exportFromBody({
       utility_id: 'u-1',
       exported_at: '2026-11-18T00:00:00.000Z',
       items: [
@@ -62,8 +62,8 @@ describe('WorkOrdersService', () => {
     expect(JSON.parse(result.json)).toHaveLength(1);
   });
 
-  it('404 when asset_id missing from store', () => {
-    expect(() =>
+  it('404 when asset_id missing from store', async () => {
+    await expect(
       service.exportFromBody({
         utility_id: 'u-1',
         items: [
@@ -78,11 +78,11 @@ describe('WorkOrdersService', () => {
           },
         ],
       }),
-    ).toThrow(NotFoundException);
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('rejects invalid format enums from package', () => {
-    expect(() =>
+  it('rejects invalid format enums from package', async () => {
+    await expect(
       service.exportFromBody({
         utility_id: 'u-1',
         items: [
@@ -96,6 +96,6 @@ describe('WorkOrdersService', () => {
           },
         ],
       }),
-    ).toThrow(BadRequestException);
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

@@ -13,36 +13,31 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthPrincipal } from '../auth/principal';
 import { Roles } from '../auth/roles.decorator';
 import { WRITE_ROLES } from '../auth/roles';
-import { MemoryStore } from '../domain/memory.store';
+import { DomainStore } from '../domain/domain.store';
 import type { Inspection, InspectionCreate } from '../domain/types';
 
 @Controller('inspections')
 export class InspectionsController {
   constructor(
-    private readonly store: MemoryStore,
+    private readonly store: DomainStore,
     private readonly auth: AuthService,
   ) {}
 
   @Get()
-  list(
+  async list(
     @Query('utility_id') utilityId?: string,
     @Query('status') status?: string,
-  ): { items: Inspection[] } {
+  ): Promise<{ items: Inspection[] }> {
     if (!utilityId) {
       throw new BadRequestException('utility_id query param is required');
     }
-    let items = [...this.store.inspections.values()].filter(
-      (i) => i.utility_id === utilityId,
-    );
-    if (status) {
-      items = items.filter((i) => i.status === status);
-    }
+    const items = await this.store.listInspections({ utilityId, status });
     return { items };
   }
 
   @Post()
   @Roles(...WRITE_ROLES)
-  create(@Body() body: InspectionCreate): { id: string } {
+  async create(@Body() body: InspectionCreate): Promise<{ id: string }> {
     if (!body?.utility_id) {
       throw new BadRequestException('utility_id is required');
     }
@@ -54,16 +49,16 @@ export class InspectionsController {
       asset_ids: body.asset_ids ?? [],
       planned_at: body.planned_at ?? null,
     };
-    this.store.inspections.set(id, row);
+    await this.store.createInspection(row);
     return { id };
   }
 
   @Get(':inspectionId')
-  getOne(
+  async getOne(
     @Param('inspectionId') inspectionId: string,
     @CurrentUser() user?: AuthPrincipal,
-  ): Inspection {
-    const row = this.store.inspections.get(inspectionId);
+  ): Promise<Inspection> {
+    const row = await this.store.getInspection(inspectionId);
     if (!row) {
       throw new NotFoundException(`inspection ${inspectionId} not found`);
     }

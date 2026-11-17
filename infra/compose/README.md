@@ -9,7 +9,7 @@ Docker Compose project **`voltpulse`**.
 | `sense` | `grid-perception` |
 | `media` | `pulse-gateway` |
 | `stream` | `pulse-bus` (Kafka), `pulse-kafka-topics`, `grid-rules` |
-| `data` | `pulse-bus` (Kafka), `pulse-kafka-topics`, `pulse-postgres`, `pulse-api`, `pulse-web`, `pulse-notify`, `pulse-train` |
+| `data` | `pulse-bus` (Kafka), `pulse-kafka-topics`, `pulse-postgres` (healthchecked), `pulse-api`, `pulse-web`, `pulse-notify`, `pulse-train` |
 | `obs` | `pulse-prometheus`, `pulse-grafana` |
 | `store` | `pulse-store` (MinIO), `pulse-store-buckets` (mc init) |
 
@@ -35,6 +35,22 @@ docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env 
 
 See also `infra/kafka/README.md`.
 
+## Data → Postgres (`pulse-postgres`)
+
+| Piece | Role |
+|-------|------|
+| Compose `pulse-postgres` | Postgres 16; profile `data`; volume `pulse_pg_data` |
+| Env | `PULSE_PG_*`, `PULSE_DATABASE_URL` in root `.env.template` |
+| Client | `apps/pulse-api` — migrate with `npm run db:migrate`; Nest uses URL when set |
+
+```bash
+docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env \
+  --profile data up -d pulse-postgres
+# host migrate/API:
+export PULSE_DATABASE_URL=postgres://voltpulse:change-me-local-only@127.0.0.1:5432/voltpulse
+cd apps/pulse-api && npm run db:migrate
+```
+
 ## Store → MinIO (`apps/pulse-store`)
 
 | Piece | Role |
@@ -53,4 +69,4 @@ docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env 
 docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env --profile store config >/dev/null
 ```
 
-**Real images:** `store` → MinIO/mc; `stream`/`data` → Apache Kafka. Other services remain alpine/postgres stubs until their cards land. Pull only when you `up` (disk-sensitive).
+**Real images:** `store` → MinIO/mc; `stream`/`data` → Apache Kafka; `data` → Postgres (`pulse-postgres`). Other services remain alpine stubs until their cards land. Pull only when you `up` (disk-sensitive).

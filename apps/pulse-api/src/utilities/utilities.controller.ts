@@ -12,7 +12,7 @@ import { AuthService } from '../auth/auth.service';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthPrincipal } from '../auth/principal';
 import { Roles } from '../auth/roles.decorator';
-import { MemoryStore } from '../domain/memory.store';
+import { DomainStore } from '../domain/domain.store';
 import type {
   Asset,
   Site,
@@ -25,7 +25,7 @@ import type {
 @Controller('utilities')
 export class UtilitiesController {
   constructor(
-    private readonly store: MemoryStore,
+    private readonly store: DomainStore,
     private readonly auth: AuthService,
   ) {}
 
@@ -99,11 +99,11 @@ export class UtilitiesController {
 
   @Post(':utilityId/seed')
   @Roles('platform_admin', 'utility_admin')
-  seed(
+  async seed(
     @Param('utilityId') utilityId: string,
     @Body() body: UtilitySeed,
     @CurrentUser() user?: AuthPrincipal,
-  ): { site_ids: string[]; asset_ids: string[] } {
+  ): Promise<{ site_ids: string[]; asset_ids: string[] }> {
     const utility = this.store.utilities.get(utilityId);
     if (!utility) {
       throw new NotFoundException(`utility ${utilityId} not found`);
@@ -156,7 +156,7 @@ export class UtilitiesController {
         criticality: asset.criticality,
         voltage_class: asset.voltage_class ?? null,
       };
-      this.store.assets.set(assetId, row);
+      await this.store.createAsset(row);
       asset_ids.push(assetId);
     }
 

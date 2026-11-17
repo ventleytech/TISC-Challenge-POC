@@ -14,6 +14,7 @@ function serviceWith(
     swaggerPath: '/api/docs',
     authEnabled,
     authPrincipals: principals,
+    databaseUrl: null,
   };
   return new AuthService(settings);
 }
