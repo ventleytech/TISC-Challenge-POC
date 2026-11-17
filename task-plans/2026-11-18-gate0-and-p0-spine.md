@@ -120,6 +120,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 14 | P0-T170 | C09 priority board + alerts SLA/ack (mock) | P0-T060 | **ok** vs api (web-only) | done |
 | 15 | P0-T230 | Wow pulse-web redesign (brand + density) | P0-T170 | no (web) | done |
 | 16 | P0-T310 | Postgres behind pulse-api (kill MemoryStore) | T004 + compose data | serialize vs other pulse-api writers | done |
+| 16 | P0-T320 | pulse-web live API + real ack/write | T230, T300 | ok vs T310 (tiny ack only) | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**; web via **T060 → T170 → T230**.
 

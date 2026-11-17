@@ -3,6 +3,7 @@ import type {
   Asset,
   AssetKind,
   Criticality,
+  DetectionClass,
   EvidenceObject,
   Finding,
   Inspection,
@@ -51,11 +52,39 @@ export type AlertFilters = {
 
 type ListResult<T> = { items: T[] };
 
+/** Nest findings row (thinner than C09 board UI). */
+type ApiFinding = {
+  id: string;
+  utility_id: string;
+  class_id: DetectionClass;
+  severity: Severity;
+  risk_score: number;
+  inspection_id?: string | null;
+  asset_id?: string | null;
+};
+
+/** Nest alert row (no title). */
+type ApiAlert = {
+  id: string;
+  utility_id: string;
+  finding_id: string;
+  inspection_id?: string | null;
+  severity: Severity;
+  sla_due_at?: string | null;
+  ack_at?: string | null;
+};
+
 const assetsDb = [...MOCK_ASSETS];
 const inspectionsDb = [...MOCK_INSPECTIONS];
 const findingsDb = [...MOCK_FINDINGS];
 const alertsDb = MOCK_ALERTS.map((a) => ({ ...a }));
 let nextSeq = 100;
+
+type VitePulseEnv = {
+  VITE_PULSE_API_BASE?: string;
+  VITE_PULSE_API_URL?: string;
+  VITE_PULSE_API_KEY?: string;
+};
 
 /** C09 sort: risk desc → severity → criticality → occurred_at desc → id. */
 function compareFindings(a: Finding, b: Finding): number {
@@ -70,27 +99,88 @@ function compareFindings(a: Finding, b: Finding): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }
 
-function liveApiEnabled(): boolean {
-  const env = import.meta.env as
-    | { VITE_PULSE_API_BASE?: string; VITE_PULSE_API_URL?: string }
-    | undefined;
+function pulseEnv(): VitePulseEnv | undefined {
+  return import.meta.env as VitePulseEnv | undefined;
+}
+
+export function liveApiEnabled(): boolean {
+  const env = pulseEnv();
   return env?.VITE_PULSE_API_BASE === "1" || Boolean(env?.VITE_PULSE_API_URL);
 }
 
 function apiBase(): string {
-  const env = import.meta.env as { VITE_PULSE_API_URL?: string } | undefined;
+  const env = pulseEnv();
   return env?.VITE_PULSE_API_URL ?? "http://127.0.0.1:3000/api/v1";
+}
+
+function apiHeaders(extra?: HeadersInit): Headers {
+  const headers = new Headers(extra);
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json");
+  }
+  const key = pulseEnv()?.VITE_PULSE_API_KEY?.trim();
+  if (key && !headers.has("X-API-Key")) {
+    headers.set("X-API-Key", key);
+  }
+  return headers;
+}
+
+async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  return fetch(`${apiBase()}${path}`, {
+    ...init,
+    headers: apiHeaders(init.headers),
+  });
 }
 
 async function tryFetchJson<T>(path: string): Promise<T | null> {
   if (!liveApiEnabled()) return null;
   try {
-    const res = await fetch(`${apiBase()}${path}`);
+    const res = await apiFetch(path);
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
     return null;
   }
+}
+
+function severityToCriticality(severity: Severity): Criticality {
+  if (severity === "critical") return "critical";
+  if (severity === "high") return "high";
+  if (severity === "medium") return "medium";
+  return "low";
+}
+
+function toUiFinding(row: ApiFinding): Finding {
+  return {
+    id: row.id,
+    utility_id: row.utility_id,
+    asset_id: row.asset_id ?? "",
+    class_id: row.class_id,
+    severity: row.severity,
+    criticality: severityToCriticality(row.severity),
+    risk_score: row.risk_score,
+    recommendation: `Review ${row.class_id.replace(/_/g, " ")} finding`,
+    occurred_at: new Date(0).toISOString(),
+  };
+}
+
+function enrichAlert(row: ApiAlert): Alert {
+  const seed = alertsDb.find((a) => a.id === row.id);
+  return {
+    id: row.id,
+    utility_id: row.utility_id,
+    finding_id: row.finding_id,
+    inspection_id: row.inspection_id ?? seed?.inspection_id ?? null,
+    severity: row.severity,
+    title:
+      seed?.title ??
+      `Alert · ${row.severity} · ${row.finding_id.slice(0, 8)}`,
+    sla_due_at: row.sla_due_at ?? seed?.sla_due_at ?? null,
+    ack_at: row.ack_at ?? seed?.ack_at ?? null,
+  };
 }
 
 export async function listAssets(
@@ -152,7 +242,7 @@ export async function createInspection(
 ): Promise<{ id: string }> {
   if (liveApiEnabled()) {
     try {
-      const res = await fetch(`${apiBase()}/inspections`, {
+      const res = await apiFetch(`/inspections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -187,7 +277,13 @@ export async function listFindings(
   filters: FindingFilters = {},
 ): Promise<ListResult<Finding>> {
   const utilityId = filters.utilityId ?? DEMO_UTILITY_ID;
-  let items = findingsDb.filter((f) => f.utility_id === utilityId);
+  const live = await tryFetchJson<ListResult<ApiFinding>>(
+    `/findings?utility_id=${encodeURIComponent(utilityId)}`,
+  );
+
+  let items: Finding[] = live?.items
+    ? live.items.map(toUiFinding)
+    : findingsDb.filter((f) => f.utility_id === utilityId);
 
   if (filters.classId) {
     items = items.filter((f) => f.class_id === filters.classId);
@@ -209,20 +305,13 @@ export async function listAlerts(
   const severityQ = filters.severity
     ? `&severity=${encodeURIComponent(filters.severity)}`
     : "";
-  const live = await tryFetchJson<ListResult<Alert>>(
+  const live = await tryFetchJson<ListResult<ApiAlert>>(
     `/alerts?utility_id=${encodeURIComponent(utilityId)}${severityQ}`,
   );
 
   let items =
-    live?.items?.map((row) => {
-      const seed = alertsDb.find((a) => a.id === row.id);
-      return {
-        ...row,
-        title: seed?.title ?? `Alert ${row.id}`,
-        ack_at: row.ack_at ?? seed?.ack_at ?? null,
-        sla_due_at: row.sla_due_at ?? seed?.sla_due_at ?? null,
-      };
-    }) ?? alertsDb.filter((a) => a.utility_id === utilityId);
+    live?.items?.map(enrichAlert) ??
+    alertsDb.filter((a) => a.utility_id === utilityId);
 
   if (filters.severity) {
     items = items.filter((a) => a.severity === filters.severity);
@@ -241,8 +330,29 @@ export async function listAlerts(
   return { items };
 }
 
-/** Mock acknowledge — local state only. */
+/**
+ * Acknowledge alert. Live: POST /alerts/:id/ack when enabled.
+ * Unset / failure → mock-local row if present.
+ */
 export async function ackAlert(alertId: string): Promise<Alert | null> {
+  if (liveApiEnabled()) {
+    try {
+      const res = await apiFetch(`/alerts/${encodeURIComponent(alertId)}/ack`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const row = enrichAlert((await res.json()) as ApiAlert);
+        const local = alertsDb.find((a) => a.id === alertId);
+        if (local) {
+          local.ack_at = row.ack_at;
+        }
+        return row;
+      }
+    } catch {
+      // fall through to mock
+    }
+  }
+
   const row = alertsDb.find((a) => a.id === alertId);
   if (!row) return null;
   if (!row.ack_at) {

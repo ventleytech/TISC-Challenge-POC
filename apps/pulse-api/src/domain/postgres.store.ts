@@ -121,6 +121,9 @@ export class PostgresStore extends DomainStore implements OnModuleDestroy {
   }
 
   async getAlert(id: string): Promise<Alert | undefined> {
+    if (!UUID_RE.test(id)) {
+      return undefined; // uuid column: non-uuid id can never exist -> 404 not 500
+    }
     const res = await this.pool.query(
       `SELECT id, finding_id, utility_id, severity, inspection_id, sla_due_at, ack_at
        FROM alerts WHERE id = $1`,
@@ -145,6 +148,21 @@ export class PostgresStore extends DomainStore implements OnModuleDestroy {
       ],
     );
   }
+
+  async ackAlert(id: string): Promise<Alert | undefined> {
+    if (!UUID_RE.test(id)) {
+      return undefined;
+    }
+    // COALESCE keeps first ack timestamp -> idempotent.
+    const res = await this.pool.query(
+      `UPDATE alerts SET ack_at = COALESCE(ack_at, now()) WHERE id = $1
+       RETURNING id, finding_id, utility_id, severity, inspection_id, sla_due_at, ack_at`,
+      [id],
+    );
+    const row = res.rows[0];
+    return row ? mapAlert(row) : undefined;
+  }
+
   async listFindings(opts: {
     utilityId: string;
     inspectionId?: string;
@@ -231,6 +249,9 @@ function mapAsset(row: QueryResultRow): Asset {
   }
   return asset;
 }
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function mapAlert(row: QueryResultRow): Alert {
   const alert: Alert = {

@@ -47,6 +47,9 @@ export abstract class DomainStore {
 
   abstract createAlert(row: Alert): Promise<void>;
 
+  /** Sets ack_at once (idempotent). Returns undefined when alert missing. */
+  abstract ackAlert(id: string): Promise<Alert | undefined>;
+
   abstract listFindings(opts: {
     utilityId: string;
     inspectionId?: string;

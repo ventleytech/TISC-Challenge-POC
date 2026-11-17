@@ -69,6 +69,14 @@ export class MemoryStore extends DomainStore {
     this.alerts.set(row.id, row);
   }
 
+  async ackAlert(id: string): Promise<Alert | undefined> {
+    const row = this.alerts.get(id);
+    if (row && !row.ack_at) {
+      row.ack_at = new Date().toISOString();
+    }
+    return row;
+  }
+
   async listFindings(opts: {
     utilityId: string;
     inspectionId?: string;
