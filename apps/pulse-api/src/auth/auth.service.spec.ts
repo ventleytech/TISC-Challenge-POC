@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { PulseApiSettings } from '../config/settings';
 import type { AuthPrincipal } from './principal';
@@ -53,5 +53,22 @@ describe('AuthService', () => {
     expect(() => auth.assertUtilityAccess(op, utilB)).toThrow(
       ForbiddenException,
     );
+  });
+
+  it('registers runtime principal for onboarding', () => {
+    const auth = serviceWith(new Map());
+    auth.registerPrincipal('ua-new', {
+      keyId: 'ua-new',
+      role: 'utility_admin',
+      utilityId: utilA,
+    });
+    expect(auth.resolveCredential('ua-new')?.role).toBe('utility_admin');
+    expect(() =>
+      auth.registerPrincipal('ua-new', {
+        keyId: 'ua-new',
+        role: 'utility_admin',
+        utilityId: utilA,
+      }),
+    ).toThrow(ConflictException);
   });
 });

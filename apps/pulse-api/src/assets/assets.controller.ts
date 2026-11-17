@@ -45,6 +45,7 @@ export class AssetsController {
       id,
       utility_id: body.utility_id,
       name: body.name,
+      site_id: body.site_id ?? null,
       criticality: body.criticality,
       voltage_class: body.voltage_class ?? null,
     };
