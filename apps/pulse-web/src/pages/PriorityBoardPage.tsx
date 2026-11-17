@@ -143,7 +143,11 @@ export function PriorityBoardPage() {
                       {f.severity}
                     </span>
                   </div>
-                  <p className="board-card__asset">{assetName(f.asset_id)}</p>
+                  <p className="board-card__asset">
+                    <Link to={`/assets/${f.asset_id}`}>
+                      {assetName(f.asset_id)}
+                    </Link>
+                  </p>
                   <div className="board-card__risk">
                     <span
                       className="risk-bar"
@@ -157,6 +161,17 @@ export function PriorityBoardPage() {
                     {new Date(f.occurred_at).toLocaleString()}
                   </p>
                   <p className="board-card__rec">{f.recommendation}</p>
+                  <div className="board-card__actions">
+                    <Link className="btn btn--ghost btn--sm" to="/alerts">
+                      Open alerts
+                    </Link>
+                    <Link
+                      className="btn btn--ghost btn--sm"
+                      to={`/assets/${f.asset_id}`}
+                    >
+                      Asset
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ol>

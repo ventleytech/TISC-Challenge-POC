@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CorridorVisual } from "../components/CorridorVisual";
 import { SlaCountdown } from "../components/SlaCountdown";
@@ -35,7 +35,7 @@ const lanes = [
 
 export function HomePage() {
   const [metrics, setMetrics] = useState<OpsMetric[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [breachQueue, setBreachQueue] = useState<Alert[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
 
   useEffect(() => {
@@ -46,22 +46,22 @@ export function HomePage() {
       listFindings({}),
     ]).then(([m, a, f]) => {
       if (cancelled) return;
+      const now = Date.now();
       setMetrics(m.items);
-      setAlerts(a.items);
+      setBreachQueue(
+        a.items
+          .filter(
+            (row) =>
+              row.sla_due_at && new Date(row.sla_due_at).getTime() < now,
+          )
+          .slice(0, 4),
+      );
       setFindings(f.items.slice(0, 5));
     });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const breachQueue = useMemo(
-    () =>
-      alerts
-        .filter((a) => a.sla_due_at && new Date(a.sla_due_at).getTime() < Date.now())
-        .slice(0, 4),
-    [alerts],
-  );
 
   return (
     <>
