@@ -18,6 +18,8 @@ DEFAULT_LABEL_MAP: dict[str, str] = {
     "Powerline": "vegetation",
     "powerline": "vegetation",
     "vegetation": "vegetation",
+    "sag": "sag",
+    "thermal_hotspot": "thermal_hotspot",
 }
 
 DETECTOR_WEIGHT_ENV = {
@@ -25,6 +27,9 @@ DETECTOR_WEIGHT_ENV = {
     "crack": "GP_WEIGHTS_CRACK",
     "vegetation": "GP_WEIGHTS_VEGETATION",
 }
+
+# C04 remaining — no Gate0 weights; routed via packages/detector-fallbacks
+FALLBACK_DETECTORS: frozenset[str] = frozenset({"sag", "thermal_hotspot"})
 
 
 @dataclass(frozen=True)
@@ -38,10 +43,19 @@ class Settings:
     weights: dict[str, Path] = field(default_factory=dict)
     label_map: dict[str, str] = field(default_factory=lambda: dict(DEFAULT_LABEL_MAP))
     venv_path: str = ""
+    # When true, fallback detectors emit one ≤0.01 conf row (plumbing only).
+    fallback_sentinel: bool = False
 
 
 def _env(key: str, default: str = "") -> str:
     return os.environ.get(key, default).strip()
+
+
+def _env_bool(key: str, default: bool = False) -> bool:
+    raw = _env(key)
+    if not raw:
+        return default
+    return raw.lower() in ("1", "true", "yes", "on")
 
 
 def load_settings(repo_root: Path | None = None) -> Settings:
@@ -68,4 +82,5 @@ def load_settings(repo_root: Path | None = None) -> Settings:
         source=_env("GP_SOURCE", ""),
         weights=weights,
         venv_path=_env("GP_VENV", "local-notes/models-experiments/_scratch/venv"),
+        fallback_sentinel=_env_bool("GP_FALLBACK_SENTINEL", False),
     )

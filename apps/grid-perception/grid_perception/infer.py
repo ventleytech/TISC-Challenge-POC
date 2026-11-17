@@ -1,4 +1,4 @@
-"""Ultralytics file predict → raw detection dicts."""
+"""Ultralytics file predict → raw detection dicts (+ honest fallbacks)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from grid_perception.config import Settings
+from grid_perception.config import FALLBACK_DETECTORS, Settings
+
+
+def _ensure_detector_fallbacks_on_path(repo_root: Path) -> None:
+    pkg = (repo_root / "packages" / "detector-fallbacks").resolve()
+    if not pkg.is_dir():
+        raise FileNotFoundError(f"detector-fallbacks package missing: {pkg}")
+    path = str(pkg)
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 
 def _xyxy_from_result(result: Any, idx: int) -> list[float] | None:
@@ -94,16 +103,86 @@ def predict_source(
     return out
 
 
+def run_fallback_detector(
+    *,
+    class_id: str,
+    source: Path,
+    settings: Settings,
+    repo_root: Path,
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    """
+    Honest stub via packages/detector-fallbacks.
+
+    Returns (raw detections for emit, fallback_reasons row).
+    Default: empty detections + documented reason (no fake accuracy).
+    """
+    _ensure_detector_fallbacks_on_path(repo_root)
+    try:
+        from detector_fallbacks import run_fallback
+    except ImportError as exc:
+        raise SystemExit(
+            "detector_fallbacks import failed — expected "
+            f"{repo_root / 'packages' / 'detector-fallbacks'}"
+        ) from exc
+
+    result = run_fallback(
+        class_id,
+        source=str(source),
+        emit_low_conf_sentinel=settings.fallback_sentinel,
+    )
+    raw: list[dict[str, Any]] = []
+    for det in result["detections"]:
+        row: dict[str, Any] = {
+            "label": det.get("label", class_id),
+            "confidence": float(det["confidence"]),
+            "reason": result["fallback_reason"],
+        }
+        if "bbox" in det:
+            row["bbox"] = det["bbox"]
+        raw.append(row)
+
+    meta = {
+        "class_id": class_id,
+        "reason": result["fallback_reason"],
+        "status": result["status"],
+    }
+    print(
+        f"fallback {class_id} status={result['status']} "
+        f"detections={len(raw)} sentinel={settings.fallback_sentinel}",
+        file=sys.stderr,
+    )
+    return raw, meta
+
+
 def run_detectors(
     *,
     settings: Settings,
     source: Path,
     detectors: list[str],
-) -> list[dict[str, Any]]:
-    """Run selected detectors; skip missing weights with warning."""
+    repo_root: Path | None = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """
+    Run selected detectors; route sag/thermal_hotspot to fallbacks.
+
+    Returns (merged raw detections, fallback_reasons for vp.detect.v1).
+    """
+    root = repo_root or Path(__file__).resolve().parents[3]
     merged: list[dict[str, Any]] = []
+    fallback_reasons: list[dict[str, str]] = []
     ran = 0
     for name in detectors:
+        if name in FALLBACK_DETECTORS:
+            raw, meta = run_fallback_detector(
+                class_id=name,
+                source=source,
+                settings=settings,
+                repo_root=root,
+            )
+            merged.extend(raw)
+            fallback_reasons.append(meta)
+            ran += 1
+            continue
+
         path = settings.weights.get(name)
         if path is None:
             print(f"skip {name}: weight env not set", file=sys.stderr)
@@ -117,5 +196,7 @@ def run_detectors(
         )
         ran += 1
     if ran == 0:
-        raise SystemExit("no detectors ran — set GP_WEIGHTS_* and check paths")
-    return merged
+        raise SystemExit(
+            "no detectors ran — set GP_WEIGHTS_* or request sag/thermal_hotspot fallbacks"
+        )
+    return merged, fallback_reasons
