@@ -1,0 +1,344 @@
+TIP 62b631bb6e7dfd41d1c7b3fa7b8cd82756d43f79
+TIP_SHORT 62b631b
+COMPOSE_OK
+==== packages/offline-sync ====
+▶ protocol types
+  ✔ accepts valid SyncOp (1.282197ms)
+  ✔ rejects bad SyncOp (1.889433ms)
+  ✔ builds vp.offline.sync.v1 envelope (0.59353ms)
+  ✔ builds ack with accepts and rejects (1.439739ms)
+✔ protocol types (6.501491ms)
+▶ InMemoryOpQueue
+  ✔ enqueues and dequeues FIFO (1.511732ms)
+  ✔ rejects duplicate ids and invalid ops (2.062689ms)
+  ✔ drains into sync envelope (0.814207ms)
+  ✔ clear empties queue (1.274991ms)
+✔ InMemoryOpQueue (7.36405ms)
+ℹ tests 8
+ℹ suites 2
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.318921
+EXIT_packages/offline-sync=0
+==== packages/i18n ====
+
+> @voltpulse/i18n@0.1.0 test
+> node --test tests/*.test.js
+
+▶ i18n catalogs
+  ✔ exposes en + hi with identical keysets (3.696026ms)
+  ✔ brands VoltPulse only (0.437719ms)
+  ✔ t() resolves locale and falls back (0.274953ms)
+  ✔ covers detection enum keys (0.327289ms)
+✔ i18n catalogs (6.886109ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 121.563558
+EXIT_packages/i18n=0
+==== packages/responsibility ====
+  ✔ sag in warranty → installer + in_warranty (3.785129ms)
+  ✔ crack with no dates → utility + no_warranty_data (0.326419ms)
+  ✔ thermal_hotspot in warranty → oem + warranty_breach_suspect (0.329739ms)
+✔ hintResponsibility — A04 party / A06 warranty (7.55345ms)
+▶ hintResponsibility — A05 tender_ref
+  ✔ passthrough tender_ref when present (0.434274ms)
+  ✔ empty tender_ref becomes null (0.215135ms)
+✔ hintResponsibility — A05 tender_ref (0.958205ms)
+▶ isWithinWarranty
+  ✔ true / false / null (0.204308ms)
+  ✔ throws on invalid date (0.556242ms)
+✔ isWithinWarranty (0.956277ms)
+ℹ tests 13
+ℹ suites 4
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 416.036868
+EXIT_packages/responsibility=0
+==== packages/work-order ====
+▶ buildWorkOrderRow
+  ✔ maps finding + asset + party hint to a stable row (1.000761ms)
+  ✔ allows missing asset / optional hint fields (1.551464ms)
+  ✔ uses custom recommendation when provided (0.18873ms)
+  ✔ rejects asset id mismatch (0.566146ms)
+  ✔ rejects invalid enums (0.259341ms)
+✔ buildWorkOrderRow (4.209031ms)
+▶ CSV / JSON export
+  ✔ escapes CSV cells with commas and quotes (0.514373ms)
+  ✔ emits header + multi-row CSV (0.617472ms)
+  ✔ JSON round-trips and exportWorkOrders returns both encodings (0.555785ms)
+✔ CSV / JSON export (2.073405ms)
+ℹ tests 10
+ℹ suites 3
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 385.452305
+EXIT_packages/work-order=0
+==== packages/audit ====
+> node --import tsx --test test/**/*.test.ts
+
+▶ createAuditEvent
+  ✔ builds who/when/action/entity fields (2.57491ms)
+  ✔ rejects empty actor_id (0.550769ms)
+✔ createAuditEvent (4.766483ms)
+▶ AppendOnlyAuditLog
+  ✔ appends in order and lists snapshots (1.095997ms)
+  ✔ filters by actor / action / entity / utility / time (0.48985ms)
+  ✔ rejects update / delete / clear (0.929077ms)
+  ✔ freezes stored events against mutation (0.371096ms)
+✔ AppendOnlyAuditLog (3.394929ms)
+ℹ tests 6
+ℹ suites 2
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 311.660168
+EXIT_packages/audit=0
+==== packages/prioritisation ====
+  ✔ orders by risk_score desc (2.356196ms)
+  ✔ prefers sla_breached on equal risk (1.126407ms)
+  ✔ does not mutate input (1.527609ms)
+✔ sortBoardItems (5.450852ms)
+▶ filterBoardItems
+  ✔ filters by severity and utility (0.92088ms)
+  ✔ filters by min_risk and class (0.295273ms)
+  ✔ filters sla_breached_only (0.316244ms)
+✔ filterBoardItems (2.037937ms)
+▶ rankBoardItems
+  ✔ filters then sorts (0.34504ms)
+✔ rankBoardItems (0.589263ms)
+ℹ tests 8
+ℹ suites 4
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.697576
+EXIT_packages/prioritisation=0
+==== packages/geo-map ====
+
+> @voltpulse/geo-map@0.1.0 test
+> node --test --experimental-strip-types tests/*.test.ts
+
+✔ pointFeature emits lon/lat Point (2.838543ms)
+✔ lineFeature emits LineString with ≥2 verts (0.462596ms)
+✔ lineFeature rejects short spans (0.801327ms)
+✔ feederFeatureCollection filters by feederId (0.588923ms)
+✔ boundingBox covers fixture extents (1.754171ms)
+✔ project maps SW corner near padding (0.557755ms)
+✔ renderMapSvg includes polyline and circle (0.946675ms)
+✔ renderMapHtml wraps SVG (0.447451ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 243.713566
+EXIT_packages/geo-map=0
+==== packages/label-ui-stub ====
+npm error Missing script: "test"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2026-11-17T23_15_02_474Z-debug-0.log
+EXIT_packages/label-ui-stub=1
+==== packages/alert-policy ====
+▶ loadAlertPolicy
+  ✔ loads package default JSON when env empty (3.3772ms)
+  ✔ applies env overlays on top of base (2.163812ms)
+  ✔ loads custom JSON path then overlays env (0.833307ms)
+  ✔ rejects invalid JSON shape (0.699469ms)
+✔ loadAlertPolicy (9.585333ms)
+▶ sla helpers
+  ✔ maps severity to Demo Day minute defaults (1.414743ms)
+  ✔ computes sla_due_at from occurred_at (0.745208ms)
+  ✔ detects breach after due (0.584933ms)
+  ✔ rejects bad inputs (1.069168ms)
+✔ sla helpers (5.792195ms)
+ℹ tests 12
+ℹ suites 3
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 392.536951
+EXIT_packages/alert-policy=0
+==== apps/pulse-store ====
+  ✔ rejects empty / unsafe segments (1.490192ms)
+✔ evidence-id (5.837178ms)
+▶ FsObjectStore
+  ✔ put/get roundtrip under inspection-scoped key (31.63639ms)
+✔ FsObjectStore (33.310523ms)
+▶ resolveTier
+  ✔ hot → warm → expire by age (1.416193ms)
+✔ resolveTier (5.222756ms)
+▶ RetentionStore legal hold
+  ✔ blocks delete while hold set; allows after clear (39.009721ms)
+  ✔ listExpirable skips held objects (13.688345ms)
+✔ RetentionStore legal hold (53.24761ms)
+ℹ tests 13
+ℹ suites 5
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 470.506695
+EXIT_apps/pulse-store=0
+==== apps/grid-rules ====
+ℹ pass 4
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 399.982912
+
+✖ failing tests:
+
+test at test/rules-engine.test.ts:1:1
+✖ test/rules-engine.test.ts (345.363823ms)
+  'test failed'
+
+test at test/settings-alert-policy.test.ts:1:1
+✖ test/settings-alert-policy.test.ts (308.562195ms)
+  'test failed'
+
+test at test/sla.test.ts:1:1
+✖ test/sla.test.ts (306.282127ms)
+  'test failed'
+EXIT_apps/grid-rules=1
+==== apps/pulse-gateway ====
+
+> @voltpulse/pulse-gateway@0.1.0 test
+> tsx --test test/*.test.ts
+
+✔ loadSettings reads gateway ports from env (1.745256ms)
+✔ buildPullUrl constructs rtsp and rtmp URLs (0.637885ms)
+✔ FileSessionRegistry persists RTSP session and handoff targets grid-perception (29.486115ms)
+✔ FileSessionRegistry rejects bad protocol (5.795729ms)
+✔ GET /health returns pulse-gateway ok (77.794194ms)
+✔ POST /sessions registers RTMP URL and handoff is available (23.302582ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 617.484767
+EXIT_apps/pulse-gateway=0
+==== apps/pulse-notify ====
+
+> @voltpulse/pulse-notify@0.1.0 test
+> tsx --test test/*.test.ts
+
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] ack receipt alert=22222222-2222-2222-2222-222222222222 deliveries=2
+[pulse-notify] ack http ok alert=a1 url=http://api.test/api/v1/alerts/a1/receipts
+✔ parseVpAlertsV1 accepts contract-shaped payload (2.905773ms)
+✔ parseVpAlertsV1 rejects bad severity (0.811495ms)
+✔ processAlertEvent delivers push+sms and log-acks (2.47084ms)
+✔ sendAck http posts receipt URL (27.20016ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 387.183305
+EXIT_apps/pulse-notify=0
+==== apps/pulse-train ====
+> tsx --test test/*.test.ts
+
+[pulse-train] label ingested id=22222222-2222-2222-2222-222222222222 kind=tp class=corrosion
+[pulse-train] label ingested id=55555555-5555-5555-5555-555555555555 kind=fp class=crack
+[pulse-train] retrain enqueued id=f08dd7fa-77c3-49da-801c-553cdddda3a4 classes=corrosion labels=1
+[pulse-train] model registered id=vp-stub-corrosion-f08dd7fa action=registered uri=http://store.test/models/vp-stub-corrosion-f08dd7fa.onnx
+[pulse-train] reload http ok model=m1 url=http://perception.test/internal/reload
+✔ parseVpLabelsV1 accepts contract-shaped TP/FP payloads (1.512178ms)
+✔ parseVpLabelsV1 rejects bad class_id (0.759351ms)
+✔ processLabelEvent queues labels and persists file (2.691853ms)
+✔ retrain stub completes and registers model (1.629116ms)
+✔ sendReload http posts vp.models.v1-shaped event (41.300401ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 372.987395
+EXIT_apps/pulse-train=0
+==== pytest packages/detector-fallbacks ====
+.....                                                                    [100%]
+5 passed in 0.03s
+EXIT_packages/detector-fallbacks=0
+==== pytest packages/compliance-report ====
+......                                                                   [100%]
+6 passed in 0.05s
+EXIT_packages/compliance-report=0
+==== pulse-api ====
+==== contained branches ===
+IN 0d1d875 vp/P0-T002-contracts
+IN 16e73e1 vp/P0-T001-compose
+IN 5353332 vp/P0-T110-minio-compose
+IN e232e0a vp/P0-T090-kafka-bootstrap
+IN 61efcd2 vp/P0-T210-kafka-compose
+IN 49de9d6 vp/P0-T007-pulse-store
+IN f4b1537 vp/P0-T070-retention-hold
+IN 0f5965d vp/P0-T003-pulse-api
+IN 4ea3129 vp/P0-T004-api-stubs
+IN 6e3b4cf vp/P0-T050-auth-roles
+IN 1f371c9 vp/P0-T140-utility-onboarding
+IN 8e038ed vp/P0-T006-pulse-notify
+IN 9dc97f6 vp/P0-T008-obs
+IN d83b8cd vp/P0-T020-grid-rules
+IN ca32b71 vp/P0-T190-rules-responsibility
+IN e073d2f vp/P0-T180-alert-policy
+IN 423faef vp/P0-T280-rules-alert-policy
+IN f3906a8 vp/P0-T010-grid-perception
+IN 8549d8e vp/P0-T130-detect-rules-glue
+IN 8fbfd68 vp/P0-T240-perception-fallbacks
+IN 39ca95b vp/P0-T080-responsibility
+IN bc7bcc9 vp/P0-T150-work-order
+IN 194912b vp/P0-T100-audit-priority
+IN 5b72d85 vp/P0-T120-compliance-report
+IN 77329a7 vp/P0-T160-sag-thermal-stubs
+IN e429d7b vp/P0-T200-geo-map
+IN fc21cb9 vp/P0-T220-label-ui-stub
+IN 0abd803 vp/P0-T270-offline-i18n
+IN 6e70172 vp/P0-T030-pulse-train
+IN d3b97ac vp/P0-T040-pulse-gateway
+==== deferred web ===
+DEFER vp/P0-T005-pulse-web 0db34d6 feat(pulse-web): scaffold VoltPulse shell with brand hero and route stubs
+DEFER vp/P0-T060-schedule-assets-ui e74ee9c feat(pulse-web): add S8 schedule wizards and A01 asset shells
+DEFER vp/P0-T170-priority-alerts-ui 9950332 feat(pulse-web): add C09 priority board and alerts SLA/ack mocks
+DEFER vp/P0-T230-wow-ui 9950332 feat(pulse-web): add C09 priority board and alerts SLA/ack mocks
+NO_WEB
+==== anti-leak product paths ====
+packages/i18n/tests/t.test.js:28:      assert.equal(blob.includes("Trinetra"), false);
+packages/i18n/tests/t.test.js:29:      assert.equal(blob.includes("T-Netra"), false);
+packages/detector-fallbacks/tests/test_stubs.py:35:            self.assertNotIn("Trinetra", reason)
+packages/detector-fallbacks/tests/test_stubs.py:36:            self.assertNotIn("T-Netra", reason)
+apps/grid-perception/tests/test_fallback_route.py:45:        assert "Trinetra" not in row["reason"]
