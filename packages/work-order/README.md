@@ -16,6 +16,8 @@ Pure helpers for VoltPulse feature **A07** (work-order export):
 
 No I/O. Callers (`pulse-api`, `pulse-web`) supply hydrated finding/asset/hint.
 
+Built as **CommonJS** (`dist/`) so Nest/Jest can `require` the package; run `npm run build` before linking from `pulse-api`.
+
 ## API
 
 ```ts

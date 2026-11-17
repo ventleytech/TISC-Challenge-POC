@@ -8,6 +8,7 @@ VoltPulse NestJS data-plane API. Owns authoritative state (inspections, assets, 
 - `GET /api/openapi.yaml` + `GET /api/docs` — contracts OpenAPI / Swagger (public mount)
 - In-memory stubs: `GET/POST /api/v1/inspections|assets|alerts` (+ get by id)
 - M01 onboarding stub: `POST/GET /api/v1/utilities`, `POST /api/v1/utilities/:id/seed`
+- A07 work-order export: `POST /api/v1/work-orders/export?format=json|csv` (via `@voltpulse/work-order`)
 - C10 auth stub: `X-API-Key` or `Authorization: Bearer` + Energy roles + `utility_id` scope
 - `GET /api/v1/me` — current stub principal
 

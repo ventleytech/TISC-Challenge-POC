@@ -226,4 +226,76 @@ describe('pulse-api (e2e)', () => {
     expect(assets.body.items).toHaveLength(1);
     expect(assets.body.items[0].name).toBe('Pole-01');
   });
+
+  it('A07 work-order export JSON + CSV', async () => {
+    const asset = await request(app.getHttpServer())
+      .post('/api/v1/assets')
+      .set('X-API-Key', 'dev-operator')
+      .send({
+        utility_id: UTILITY,
+        name: 'Tower-Export-1',
+        criticality: 'high',
+        voltage_class: '132kV',
+      })
+      .expect(201);
+
+    const payload = {
+      utility_id: UTILITY,
+      exported_at: '2026-11-18T12:00:00.000Z',
+      items: [
+        {
+          finding: {
+            finding_id: 'f-export-1',
+            inspection_id: 'i-export-1',
+            class_id: 'corrosion',
+            severity: 'high',
+            risk_score: 0.88,
+            asset_id: asset.body.id,
+          },
+          party_hint: {
+            party_type: 'maintenance_contractor',
+            tender_ref: 'VP-TENDER-SMOKE',
+          },
+          asset: { oem: 'DemoOem' },
+        },
+      ],
+    };
+
+    await request(app.getHttpServer())
+      .post('/api/v1/work-orders/export?format=json')
+      .send(payload)
+      .expect(401);
+
+    const json = await request(app.getHttpServer())
+      .post('/api/v1/work-orders/export?format=json')
+      .set('X-API-Key', 'dev-operator')
+      .send(payload)
+      .expect(200);
+
+    expect(json.body.items).toHaveLength(1);
+    expect(json.body.items[0]).toMatchObject({
+      finding_id: 'f-export-1',
+      asset_name: 'Tower-Export-1',
+      class_id: 'corrosion',
+      party_type: 'maintenance_contractor',
+      oem: 'DemoOem',
+    });
+
+    const csv = await request(app.getHttpServer())
+      .post('/api/v1/work-orders/export?format=csv')
+      .set('X-API-Key', 'dev-operator')
+      .send(payload)
+      .expect(200);
+
+    expect(csv.headers['content-type']).toMatch(/text\/csv/);
+    expect(csv.text).toMatch(/^work_order_id,/);
+    expect(csv.text).toContain('f-export-1');
+    expect(csv.text).toContain('corrosion');
+
+    await request(app.getHttpServer())
+      .post('/api/v1/work-orders/export?format=json')
+      .set('X-API-Key', 'dev-operator')
+      .send({ ...payload, utility_id: OTHER })
+      .expect(403);
+  });
 });
