@@ -109,6 +109,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 5 | P0-T005 | `pulse-web` shell + VoltPulse brand | — | **ok** | ready |
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
+| 8 | P0-T011 | ONNX export notes (all three Gate0 ONNX on disk) | M003/M004/T010 | ok vs pulse-* | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010**.
 
