@@ -25,4 +25,26 @@ Routes:
 | `/evidence` | Retention-tagged objects |
 | `/admin` | Roles + pipeline health stubs |
 
-Data: mock client in `src/mock/` (default). Optional live Nest: set `VITE_PULSE_API_URL` (or `VITE_PULSE_API_BASE=1` → `http://127.0.0.1:3000/api/v1`). Ack stays mock-local.
+## Data mode
+
+Default: mock client in `src/mock/` (offline demo).
+
+Live Nest (opt-in):
+
+```bash
+# URL form
+VITE_PULSE_API_URL=http://127.0.0.1:3000/api/v1 \
+VITE_PULSE_API_KEY=dev-operator \
+npm run dev
+
+# or shorthand base flag (same default URL)
+VITE_PULSE_API_BASE=1 VITE_PULSE_API_KEY=dev-operator npm run dev
+```
+
+| Env | Role |
+|-----|------|
+| `VITE_PULSE_API_URL` | Base `/api/v1` URL — enables live mode |
+| `VITE_PULSE_API_BASE=1` | Enables live mode at `http://127.0.0.1:3000/api/v1` |
+| `VITE_PULSE_API_KEY` | Optional → `X-API-Key` (needed when Nest auth on) |
+
+Live surfaces: inspections / assets / alerts / findings list + inspection create + alert ack (`POST …/alerts/{id}/ack`). On unset env or fetch failure → mock fallback. Evidence / ops metrics stay mock until store UI wire.

@@ -77,4 +77,23 @@ export class AlertsController {
     this.auth.assertUtilityAccess(user, row.utility_id);
     return row;
   }
+
+  /** Operator ack — sets ack_at once; idempotent. */
+  @Post(':alertId/ack')
+  @Roles(...WRITE_ROLES)
+  ack(
+    @Param('alertId') alertId: string,
+    @CurrentUser() user?: AuthPrincipal,
+  ): Alert {
+    const row = this.store.alerts.get(alertId);
+    if (!row) {
+      throw new NotFoundException(`alert ${alertId} not found`);
+    }
+    this.auth.assertUtilityAccess(user, row.utility_id);
+    if (!row.ack_at) {
+      row.ack_at = new Date().toISOString();
+      this.store.alerts.set(alertId, row);
+    }
+    return row;
+  }
 }

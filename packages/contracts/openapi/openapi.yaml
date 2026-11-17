@@ -266,6 +266,23 @@ paths:
         '404':
           description: Not found
 
+  /alerts/{alertId}/ack:
+    post:
+      tags: [alerts]
+      operationId: ackAlert
+      summary: Acknowledge alert (operator ack; sets ack_at)
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert with ack_at set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Not found
+
 components:
   parameters:
     UtilityId:

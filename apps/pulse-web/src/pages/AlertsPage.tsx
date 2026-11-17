@@ -95,8 +95,8 @@ export function AlertsPage() {
           </Link>
         </div>
         <p className="catalog__summary">
-          Operator ack queue with live countdown. Breach rows pulse; mock state
-          only — no SMS bus.
+          Operator ack queue with live countdown. Breach rows pulse. Live Nest
+          when <code>VITE_PULSE_API_URL</code> set; else mock. No SMS bus.
         </p>
       </header>
 
