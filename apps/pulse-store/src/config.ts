@@ -10,6 +10,10 @@ export interface StoreSettings {
   region: string;
   fsRoot: string;
   useSSL: boolean;
+  /** Retention: age < hotDays → hot (docs/storage-retention.md). */
+  hotDays: number;
+  /** Retention: age < warmDays → warm; else expire. */
+  warmDays: number;
 }
 
 function requireNonEmpty(name: string, value: string | undefined, fallback: string): string {
@@ -35,6 +39,15 @@ function parseBool(raw: string | undefined, fallback: boolean): boolean {
   throw new Error(`Boolean env invalid: ${raw}`);
 }
 
+function parseDays(name: string, raw: string | undefined, fallback: number): number {
+  const v = (raw ?? String(fallback)).trim();
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0) {
+    throw new Error(`${name} must be a non-negative integer`);
+  }
+  return n;
+}
+
 /** Load settings from env. Callers use StoreSettings — not raw process.env. */
 export function loadSettings(env: NodeJS.ProcessEnv = process.env): StoreSettings {
   const endpoint = requireNonEmpty(
@@ -43,6 +56,11 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): StoreSetting
     'http://127.0.0.1:9000',
   );
   const useSSL = parseBool(env.PULSE_STORE_USE_SSL, endpoint.startsWith('https://'));
+  const hotDays = parseDays('PULSE_STORE_HOT_DAYS', env.PULSE_STORE_HOT_DAYS, 30);
+  const warmDays = parseDays('PULSE_STORE_WARM_DAYS', env.PULSE_STORE_WARM_DAYS, 365);
+  if (warmDays < hotDays) {
+    throw new Error('PULSE_STORE_WARM_DAYS must be >= PULSE_STORE_HOT_DAYS');
+  }
 
   return {
     backend: parseBackend(env.PULSE_STORE_BACKEND),
@@ -67,5 +85,7 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): StoreSetting
       ),
     ),
     useSSL,
+    hotDays,
+    warmDays,
   };
 }

@@ -109,8 +109,9 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 5 | P0-T005 | `pulse-web` shell + VoltPulse brand | — | **ok** | ready |
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T007 | `pulse-store` MinIO config + evidence IDs (E01/E02) | T001 preferred | **ok** (app-only; no compose rewrite) | done |
+| 8 | P0-T070 | Retention hot/warm/expire + legal hold (E03/E04 + M07 thin) | P0-T007 | **ok** (store-only) | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T007**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T007 → T070**.
 
 Merge order (morning): **contracts → compose → api → store → web**; perception only after Gate 0.1 evidence.
 

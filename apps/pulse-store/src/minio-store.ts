@@ -13,6 +13,7 @@ type MinioClient = {
   ) => Promise<{ etag?: string; versionId?: string | null }>;
   getObject: (bucket: string, key: string) => Promise<NodeJS.ReadableStream>;
   statObject: (bucket: string, key: string) => Promise<unknown>;
+  removeObject: (bucket: string, key: string) => Promise<void>;
 };
 
 function parseEndpoint(endpoint: string): { endPoint: string; port: number; useSSL: boolean } {
@@ -103,6 +104,15 @@ export class MinioObjectStore implements ObjectStore {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    const client = await this.getClient();
+    try {
+      await client.removeObject(this.settings.bucket, key);
+    } catch (err) {
+      throw new Error(`MinIO delete failed for ${key}: ${String(err)}`);
     }
   }
 }

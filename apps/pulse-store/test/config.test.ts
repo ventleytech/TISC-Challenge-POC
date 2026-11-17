@@ -14,6 +14,24 @@ describe('loadSettings', () => {
     assert.equal(s.bucket, 'voltpulse-evidence');
     assert.equal(s.endpoint, 'http://pulse-store:9000');
     assert.equal(s.accessKey, 'minioadmin');
+    assert.equal(s.hotDays, 30);
+    assert.equal(s.warmDays, 365);
+  });
+
+  it('loads retention days from env', () => {
+    const s = loadSettings({
+      PULSE_STORE_HOT_DAYS: '7',
+      PULSE_STORE_WARM_DAYS: '90',
+    });
+    assert.equal(s.hotDays, 7);
+    assert.equal(s.warmDays, 90);
+  });
+
+  it('rejects warm < hot', () => {
+    assert.throws(
+      () => loadSettings({ PULSE_STORE_HOT_DAYS: '30', PULSE_STORE_WARM_DAYS: '7' }),
+      /WARM_DAYS/,
+    );
   });
 
   it('accepts minio backend', () => {

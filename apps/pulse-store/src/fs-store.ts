@@ -48,4 +48,17 @@ export class FsObjectStore implements ObjectStore {
       return false;
     }
   }
+
+  async delete(key: string): Promise<void> {
+    const dest = this.resolveKey(key);
+    try {
+      await fs.unlink(dest);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') {
+        throw new Error(`object not found: ${key}`);
+      }
+      throw err;
+    }
+  }
 }

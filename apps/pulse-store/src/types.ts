@@ -18,4 +18,5 @@ export interface ObjectStore {
   put(key: string, body: Buffer | string, contentType?: string): Promise<PutResult>;
   get(key: string): Promise<GetResult>;
   exists(key: string): Promise<boolean>;
+  delete(key: string): Promise<void>;
 }

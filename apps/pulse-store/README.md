@@ -1,6 +1,6 @@
 # pulse-store
 
-VoltPulse object-store helper (E01/E02): MinIO-oriented config from env, inspection-scoped evidence keys, put/get with filesystem fallback.
+VoltPulse object-store helper (E01–E04): MinIO-oriented config from env, inspection-scoped evidence keys, put/get, retention tiers, legal hold.
 
 ## Config (`PULSE_STORE_*`)
 
@@ -13,8 +13,10 @@ VoltPulse object-store helper (E01/E02): MinIO-oriented config from env, inspect
 | `PULSE_STORE_REGION` | Region (default `us-east-1`) |
 | `PULSE_STORE_FS_ROOT` | Local root for `fs` backend |
 | `PULSE_STORE_USE_SSL` | Override SSL flag |
+| `PULSE_STORE_HOT_DAYS` | Age &lt; N → hot (default 30) |
+| `PULSE_STORE_WARM_DAYS` | Age &lt; N → warm; else expire (default 365) |
 
-Compose profile `store` / service `pulse-store` is owned by T001 (placeholder). This package is the app-level client.
+Compose profile `store` / service `pulse-store` is owned by T001 (placeholder). This package is the app-level client. M07 thin = env policy only.
 
 ## Evidence keys
 
@@ -27,7 +29,7 @@ See `docs/storage-retention.md`:
 ## Smoke
 
 ```bash
-npm ci && npm test && npm run smoke
+npm ci && npm test && npm run smoke && npm run smoke:retention
 # optional:
 PULSE_STORE_BACKEND=minio npm run smoke
 ```
