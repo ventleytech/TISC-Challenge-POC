@@ -1,0 +1,10 @@
+{
+  "name": "@voltpulse/label-ui-stub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VoltPulse O04 static TP/FP label form stub → pulse-train",
+  "files": [
+    "static",
+    "README.md"
+  ]
+}
