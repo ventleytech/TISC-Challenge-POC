@@ -109,10 +109,12 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 5 | P0-T005 | `pulse-web` shell + VoltPulse brand | — | **ok** | ready |
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
+| 8 | P0-T020 | `grid-rules` findings/alerts + W01 risk (fixture bus) | P0-T002 | ok vs pulse-* / perception | done |
+| 9 | P0-T130 | S2 file-bus smoke: detect → rules → evidence JSON | P0-T010, P0-T020 | ok vs pulse-api/web/store | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**.
 
-Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`).
+Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`); rules + S2 glue (`P0-T020`, `P0-T130`).
 
 ## Risks
 
@@ -133,5 +135,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-M004 evidence: ≥1 annotated Powerline OBB on T4 (AGPL smoke)
 - [ ] P0-T002 stubs exist for `vp.*` + OpenAPI skeleton
 - [ ] Optional: T001 / T005 scaffold with smoke cmds
+- [x] P0-T010 / P0-T020 / P0-T130: detect → rules file-bus smoke with evidence
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes
