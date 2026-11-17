@@ -8,12 +8,20 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthPrincipal } from '../auth/principal';
+import { Roles } from '../auth/roles.decorator';
+import { WRITE_ROLES } from '../auth/roles';
 import { MemoryStore } from '../domain/memory.store';
 import type { Inspection, InspectionCreate } from '../domain/types';
 
 @Controller('inspections')
 export class InspectionsController {
-  constructor(private readonly store: MemoryStore) {}
+  constructor(
+    private readonly store: MemoryStore,
+    private readonly auth: AuthService,
+  ) {}
 
   @Get()
   list(
@@ -33,6 +41,7 @@ export class InspectionsController {
   }
 
   @Post()
+  @Roles(...WRITE_ROLES)
   create(@Body() body: InspectionCreate): { id: string } {
     if (!body?.utility_id) {
       throw new BadRequestException('utility_id is required');
@@ -50,11 +59,15 @@ export class InspectionsController {
   }
 
   @Get(':inspectionId')
-  getOne(@Param('inspectionId') inspectionId: string): Inspection {
+  getOne(
+    @Param('inspectionId') inspectionId: string,
+    @CurrentUser() user?: AuthPrincipal,
+  ): Inspection {
     const row = this.store.inspections.get(inspectionId);
     if (!row) {
       throw new NotFoundException(`inspection ${inspectionId} not found`);
     }
+    this.auth.assertUtilityAccess(user, row.utility_id);
     return row;
   }
 }

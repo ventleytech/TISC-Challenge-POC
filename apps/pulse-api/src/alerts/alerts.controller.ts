@@ -8,12 +8,20 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthPrincipal } from '../auth/principal';
+import { Roles } from '../auth/roles.decorator';
+import { WRITE_ROLES } from '../auth/roles';
 import { MemoryStore } from '../domain/memory.store';
 import { SEVERITIES, type Alert, type AlertCreate } from '../domain/types';
 
 @Controller('alerts')
 export class AlertsController {
-  constructor(private readonly store: MemoryStore) {}
+  constructor(
+    private readonly store: MemoryStore,
+    private readonly auth: AuthService,
+  ) {}
 
   @Get()
   list(
@@ -33,6 +41,7 @@ export class AlertsController {
   }
 
   @Post()
+  @Roles(...WRITE_ROLES)
   create(@Body() body: AlertCreate): { id: string } {
     if (!body?.utility_id || !body?.finding_id || !body?.severity) {
       throw new BadRequestException(
@@ -57,11 +66,15 @@ export class AlertsController {
   }
 
   @Get(':alertId')
-  getOne(@Param('alertId') alertId: string): Alert {
+  getOne(
+    @Param('alertId') alertId: string,
+    @CurrentUser() user?: AuthPrincipal,
+  ): Alert {
     const row = this.store.alerts.get(alertId);
     if (!row) {
       throw new NotFoundException(`alert ${alertId} not found`);
     }
+    this.auth.assertUtilityAccess(user, row.utility_id);
     return row;
   }
 }
