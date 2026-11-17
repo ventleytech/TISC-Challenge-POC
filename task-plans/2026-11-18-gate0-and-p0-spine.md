@@ -111,14 +111,11 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
 | 7 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
 | 8 | P0-T011 | ONNX export notes (all three Gate0 ONNX on disk) | M003/M004/T010 | ok vs pulse-* | done |
-| 9 | P0-T020 | `grid-rules` findings/alerts + W01 risk (fixture bus) | P0-T002 | ok vs pulse-* / perception | done |
-| 10 | P0-T130 | S2 file-bus smoke: detect → rules → evidence JSON | P0-T010, P0-T020 | ok vs pulse-api/web/store | done |
-| 11 | P0-T160 | Honest `sag` + `thermal_hotspot` stubs (C04 remaining) | contracts enum | **ok** vs T130 / perception | done |
-| 12 | P0-T240 | Wire perception fallbacks for `sag` / `thermal_hotspot` | T160, T130 | ok vs pulse-web | in_progress |
+| 9 | P0-T160 | Honest `sag` + `thermal_hotspot` stubs (C04 remaining) | contracts enum | **ok** vs T130 / perception | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010**.
 
-Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`); rules + S2 glue (`P0-T020`, `P0-T130`).
+Merge order (morning): **contracts → compose → api → web**; perception after Gate 0.1 evidence (`P0-T010`).
 
 ## Risks
 
@@ -139,8 +136,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-M004 evidence: ≥1 annotated Powerline OBB on T4 (AGPL smoke)
 - [ ] P0-T002 stubs exist for `vp.*` + OpenAPI skeleton
 - [ ] Optional: T001 / T005 scaffold with smoke cmds
-- [x] P0-T010 / P0-T020 / P0-T130: detect → rules file-bus smoke with evidence
 - [x] P0-T160 honest sag/thermal fallbacks under `packages/detector-fallbacks` (no accuracy claims)
-- [ ] P0-T240 perception emits honest empty/low-conf `vp.detect.v1` + reason for sag/thermal
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes
