@@ -108,8 +108,9 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 4 | P0-T001 | Compose profiles skeleton (`voltpulse`) | — | **ok** vs M* / T002 | ready |
 | 5 | P0-T005 | `pulse-web` shell + VoltPulse brand | — | **ok** | ready |
 | 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
+| 7 | P0-T040 | `pulse-gateway` C01 live-pull scaffold | T001 preferred | **ok** vs perception/api | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; C01 gateway scaffold via **T040** when media path free.
 
 Merge order (morning): **contracts → compose → api → web**; perception only after Gate 0.1 evidence.
 
