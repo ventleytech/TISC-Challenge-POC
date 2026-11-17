@@ -1,6 +1,20 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { InspectionsController } from './inspections.controller';
+import { AuthService } from '../auth/auth.service';
 import { MemoryStore } from '../domain/memory.store';
+import { InspectionsController } from './inspections.controller';
+import type { PulseApiSettings } from '../config/settings';
+
+function disabledAuth(): AuthService {
+  const settings: PulseApiSettings = {
+    port: 3000,
+    openapiPath: '/tmp/x',
+    openapiUrlPath: '/api/openapi.yaml',
+    swaggerPath: '/api/docs',
+    authEnabled: false,
+    authPrincipals: new Map(),
+  };
+  return new AuthService(settings);
+}
 
 describe('InspectionsController', () => {
   let controller: InspectionsController;
@@ -8,7 +22,7 @@ describe('InspectionsController', () => {
 
   beforeEach(() => {
     store = new MemoryStore();
-    controller = new InspectionsController(store);
+    controller = new InspectionsController(store, disabledAuth());
   });
 
   it('creates and lists by utility_id', () => {

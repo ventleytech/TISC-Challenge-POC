@@ -104,17 +104,21 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 2 | P0-M002 | Corrosion local smoke / first detection proof | P0-M001 | ok vs T* after M001 | done |
 | 2b | P0-M003 | Crack local smoke | P0-M001 | serialize GPU | done |
 | 2c | P0-M004 | Vegetation local smoke (AGPL) | P0-M001 | serialize GPU | done |
-| 3 | P0-T002 | `packages/contracts` `vp.*` + OpenAPI stubs | — | **ok** vs M* | ready |
+| 3 | P0-T002 | `packages/contracts` `vp.*` + OpenAPI stubs | — | **ok** vs M* | done |
 | 4 | P0-T001 | Compose profiles skeleton (`voltpulse`) | — | **ok** vs M* / T002 | ready |
 | 5 | P0-T005 | `pulse-web` shell + VoltPulse brand | — | **ok** | ready |
-| 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | blocked |
-| 7 | P0-T007 | `pulse-store` MinIO config + evidence IDs (E01/E02) | T001 preferred | **ok** (app-only; no compose rewrite) | done |
-| 8 | P0-T070 | Retention hot/warm/expire + legal hold (E03/E04 + M07 thin) | P0-T007 | **ok** (store-only) | done |
-| 9 | P0-T110 | Compose `store` → real MinIO + buckets env | T001, T007 | **no** (compose store owner) | done |
+| 6 | P0-T003 | `pulse-api` Nest health + OpenAPI mount | P0-T002 | ok vs perception | done |
+| 7 | P0-T004 | `pulse-api` in-memory `/api/v1` stubs | P0-T003 | serialize vs api writers | done |
+| 8 | P0-T050 | C10 Auth + Energy roles stub (`pulse-api`) | P0-T004 | serialize vs api writers | done |
+| 9 | P0-T007 | `pulse-store` MinIO config + evidence IDs (E01/E02) | T001 preferred | **ok** (app-only; no compose rewrite) | done |
+| 10 | P0-T070 | Retention hot/warm/expire + legal hold (E03/E04 + M07 thin) | P0-T007 | **ok** (store-only) | done |
+| 11 | P0-T110 | Compose `store` → real MinIO + buckets env | T001, T007 | **no** (compose store owner) | done |
+| 12 | P0-T010 | `grid-perception` file-ingest → `vp.detect.v1` JSON | Gate 0.1 (M002+) | ok vs pulse-* / rules | done |
 
-Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T007 → T070 → T110**.
+Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003 → T004 → T050 → T007 → T070 → T110**; after Gate 0.1 → **T010**.
 
-Merge order (morning): **contracts → compose → api → store → web**; perception only after Gate 0.1 evidence.
+Merge order (morning): **contracts → compose → MinIO/store → kafka → api → notify → rules → perception → packages → train → gateway**; defer pulse-web if T230 mid-flight.
+
 
 ## Risks
 

@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { loadSettings } from './settings';
+import { loadSettings, parseStubKeys } from './settings';
 
 describe('loadSettings', () => {
   it('reads PULSE_API_PORT from env', () => {
@@ -23,5 +23,30 @@ describe('loadSettings', () => {
     expect(settings.openapiPath).toContain(
       path.join('packages', 'contracts', 'openapi', 'openapi.yaml'),
     );
+  });
+
+  it('defaults auth enabled', () => {
+    expect(loadSettings({}).authEnabled).toBe(true);
+  });
+
+  it('parses PULSE_AUTH_STUB_KEYS', () => {
+    const util = '00000000-0000-4000-8000-000000000001';
+    const settings = loadSettings({
+      PULSE_AUTH_STUB_KEYS: `dev-platform:platform_admin:;dev-op:energy_operator:${util}`,
+    });
+    expect(settings.authPrincipals.get('dev-platform')?.role).toBe(
+      'platform_admin',
+    );
+    expect(settings.authPrincipals.get('dev-op')?.utilityId).toBe(util);
+  });
+});
+
+describe('parseStubKeys', () => {
+  it('rejects unknown role', () => {
+    expect(() => parseStubKeys('x:not_a_role:u')).toThrow(/Unknown Energy role/);
+  });
+
+  it('requires utility_id for non-platform roles', () => {
+    expect(() => parseStubKeys('x:viewer:')).toThrow(/utility_id required/);
   });
 });
