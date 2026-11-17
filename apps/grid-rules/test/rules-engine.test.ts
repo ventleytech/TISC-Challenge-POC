@@ -139,4 +139,60 @@ describe('processDetectEvent', () => {
         low.findings[0]!.finding.risk_score,
     );
   });
+
+  it('attaches S9 extensions when asset has OEM/warranty', () => {
+    const settings = loadSettings({});
+    const result = processDetectEvent(DETECT, {
+      settings,
+      nowIso: '2026-06-01T00:00:00.000Z',
+      assets: {
+        'cccccccc-cccc-4ccc-8ccc-cccccccccccc': {
+          asset_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+          criticality: 'high',
+          oem: 'VoltPulse Demo OEM',
+          warranty_end: '2027-01-15',
+          anti_corrosion_sla_end: '2026-12-31',
+          tender_ref: 'VP-TENDER-SYN-001',
+        },
+      },
+    });
+
+    const corrosion = result.findings.find(
+      (f) => f.finding.class_id === 'corrosion',
+    );
+    const vegetation = result.findings.find(
+      (f) => f.finding.class_id === 'vegetation',
+    );
+    assert.ok(corrosion?.finding.extensions);
+    assert.equal(corrosion!.finding.extensions!.party_type, 'oem');
+    assert.equal(
+      corrosion!.finding.extensions!.warranty_hint,
+      'warranty_breach_suspect',
+    );
+    assert.equal(
+      corrosion!.finding.extensions!.tender_ref,
+      'VP-TENDER-SYN-001',
+    );
+    assert.equal(
+      vegetation!.finding.extensions!.party_type,
+      'vegetation_contractor',
+    );
+    assert.equal(vegetation!.finding.extensions!.warranty_hint, 'in_warranty');
+  });
+
+  it('skips S9 extensions when asset lacks OEM/warranty', () => {
+    const settings = loadSettings({});
+    const result = processDetectEvent(DETECT, {
+      settings,
+      assets: {
+        'cccccccc-cccc-4ccc-8ccc-cccccccccccc': {
+          asset_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+          criticality: 'high',
+        },
+      },
+    });
+    assert.ok(
+      result.findings.every((f) => f.finding.extensions === undefined),
+    );
+  });
 });
