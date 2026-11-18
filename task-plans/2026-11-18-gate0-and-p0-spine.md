@@ -127,6 +127,10 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 20 | P0-T350 | Evidence API + MinIO store + Evidence page | T330, T340 | ok vs T360/T365 | done |
 | 21 | P0-T360 | pulse-notify real channel sink | T330, T340 | ok vs T350 | done |
 | 22 | P0-T365 | pulse-notify Kafka consumer | T360 | no vs web | done |
+| 23 | P0-T370 | Compose hygiene scrub (anti-leak) | T340 | no vs compose | done |
+| 23 | P0-T371 | MinIO image re-pin (`bitnamilegacy` tag+digest) | T110, T350 | no vs compose | done |
+| 24 | P0-T380 | pulse-gateway pull targets + env-gated synthetic `vp.detect.v1` | T040 | ok vs compose | done |
+| 25 | P0-T381 | pulse-gateway real Docker image + compose service | T380, T371 | no vs compose | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**; web via **T060 → T170 → T230**.
 
@@ -161,5 +165,9 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-T350 evidence API + MinIO store + Evidence page
 - [x] P0-T360 pulse-notify real channel sink
 - [x] P0-T365 pulse-notify Kafka consumer
+- [x] P0-T370 compose hygiene scrub
+- [x] P0-T371 MinIO image re-pin
+- [x] P0-T380 pulse-gateway pull stub + detect sink
+- [x] P0-T381 pulse-gateway Docker image + compose
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes
