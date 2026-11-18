@@ -124,6 +124,7 @@ export function processDetectEvent(
       event_id: id(),
       occurred_at: occurredAt,
       inspection_id: detect.inspection_id,
+      ...(asset?.utility_id ? { utility_id: asset.utility_id } : {}),
       finding,
     });
 

@@ -7,12 +7,15 @@ name: voltpulse
 services:
   grid-perception:
     profiles: [sense]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/grid-perception/Dockerfile
+    image: voltpulse/grid-perception:dev
     container_name: vp-grid-perception
-    command: ["sleep", "infinity"]
     environment:
       PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
       PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC}
+      GP_HEALTH_PORT: ${GP_HEALTH_PORT:-8081}
     restart: "no"
 
   pulse-gateway:
@@ -98,10 +101,15 @@ services:
 
   grid-rules:
     profiles: [stream]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/grid-rules/Dockerfile
+    image: voltpulse/grid-rules:dev
     container_name: vp-grid-rules
-    command: ["sleep", "infinity"]
     environment:
+      GRID_RULES_HEALTH_PORT: ${GRID_RULES_HEALTH_PORT:-8080}
+      KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP}
+      GRID_RULES_KAFKA_PRODUCER_ENABLED: ${GRID_RULES_KAFKA_PRODUCER_ENABLED:-false}
       PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
       PULSE_FINDINGS_TOPIC: ${PULSE_FINDINGS_TOPIC}
       PULSE_ALERTS_TOPIC: ${PULSE_ALERTS_TOPIC}
@@ -132,15 +140,20 @@ services:
 
   pulse-api:
     profiles: [data]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/pulse-api/Dockerfile
+    image: voltpulse/pulse-api:dev
     container_name: vp-pulse-api
-    command: ["sleep", "infinity"]
     ports:
-      - "${PULSE_API_PORT:-3000}:3000"
+      - "${PULSE_API_PORT:-3000}:${PULSE_API_PORT:-3000}"
     environment:
       PULSE_API_PORT: ${PULSE_API_PORT:-3000}
       PULSE_DATABASE_URL: ${PULSE_DATABASE_URL}
       PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+      PULSE_KAFKA_CONSUMER_ENABLED: ${PULSE_KAFKA_CONSUMER_ENABLED:-false}
+      PULSE_AUTH_ENABLED: ${PULSE_AUTH_ENABLED:-true}
+      PULSE_AUTH_STUB_KEYS: ${PULSE_AUTH_STUB_KEYS:-}
     depends_on:
       pulse-postgres:
         condition: service_healthy
@@ -148,11 +161,17 @@ services:
 
   pulse-web:
     profiles: [data]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/pulse-web/Dockerfile
+      args:
+        # Browser-facing API base (host port), baked at build time.
+        PULSE_WEB_API_URL: ${PULSE_WEB_API_URL:-}
+        PULSE_WEB_API_KEY: ${PULSE_WEB_API_KEY:-}
+    image: voltpulse/pulse-web:dev
     container_name: vp-pulse-web
-    command: ["sleep", "infinity"]
     ports:
-      - "${PULSE_WEB_PORT:-5173}:5173"
+      - "${PULSE_WEB_PORT:-5173}:${PULSE_WEB_PORT:-5173}"
     environment:
       PULSE_WEB_PORT: ${PULSE_WEB_PORT:-5173}
       PULSE_API_BASE_URL: ${PULSE_API_BASE_URL}

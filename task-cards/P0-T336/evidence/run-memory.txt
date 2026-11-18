@@ -1,0 +1,9 @@
+[e2e] mode=memory utility=0487eea2-7507-4e6d-96f1-137b42f5918e inspection=3638bab8-7146-447b-abd0-6765c30e2319
+[e2e] grid-rules -> Kafka (localhost:9094)
+{"level":"WARN","timestamp":"2026-11-18T00:01:26.653Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+(node:777473) TimeoutNegativeWarning: -1794960086690 is a negative number.
+Timeout duration was set to 1.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[e2e] poll GET /api/v1/{findings,alerts}
+ok mode=memory kafka_published=6 findings=3 alerts=3 visible via API
+[e2e] PASS mode=memory

@@ -63,6 +63,28 @@ describe('IngestService', () => {
     expect((await store.getFinding(FID))?.utility_id).toBe('other-util');
   });
 
+  it('persists unknown-inspection finding using event.utility_id (no default)', async () => {
+    const ev = { ...findingEvent, utility_id: 'event-util' };
+    expect(await svc.ingestFinding(ev, null)).toBe('created');
+    expect((await store.getFinding(FID))?.utility_id).toBe('event-util');
+  });
+
+  it('event.utility_id beats default; inspection row beats event', async () => {
+    await svc.ingestFinding({ ...findingEvent, utility_id: 'event-util' }, UTIL);
+    expect((await store.getFinding(FID))?.utility_id).toBe('event-util');
+    const s2 = new MemoryStore();
+    await s2.createInspection({
+      id: findingEvent.inspection_id,
+      utility_id: 'insp-util',
+      status: 'processing',
+    } as never);
+    await new IngestService(s2).ingestFinding(
+      { ...findingEvent, utility_id: 'event-util' },
+      UTIL,
+    );
+    expect((await s2.getFinding(FID))?.utility_id).toBe('insp-util');
+  });
+
   it('alert inherits finding utility when event omits it', async () => {
     await svc.ingestFinding(findingEvent, UTIL);
     await svc.ingestAlert(alertEvent, null);

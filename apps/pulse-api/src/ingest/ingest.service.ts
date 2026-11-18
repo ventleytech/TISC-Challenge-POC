@@ -14,6 +14,8 @@ export type FindingsEvent = {
   event_id: string;
   occurred_at: string;
   inspection_id: string;
+  /** Optional tenant (additive); used when the inspection row is unknown. */
+  utility_id?: string;
   finding: {
     finding_id: string;
     class_id: DetectionClass;
@@ -75,10 +77,12 @@ export class IngestService {
     const inspection = event.inspection_id
       ? await this.store.getInspection(event.inspection_id)
       : undefined;
-    const utilityId = inspection?.utility_id ?? defaultUtilityId;
+    // Precedence: stored inspection (authoritative) > event.utility_id > env default.
+    const utilityId =
+      inspection?.utility_id ?? event.utility_id ?? defaultUtilityId;
     if (!utilityId) {
       throw new IngestRejectedError(
-        `finding ${f.finding_id}: no utility (unknown inspection, no default)`,
+        `finding ${f.finding_id}: no utility (unknown inspection, no event utility_id, no default)`,
       );
     }
     const row: Finding = {

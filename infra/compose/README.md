@@ -69,4 +69,10 @@ docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env 
 docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env --profile store config >/dev/null
 ```
 
-**Real images:** `store` → MinIO/mc; `stream`/`data` → Apache Kafka; `data` → Postgres (`pulse-postgres`). Other services remain alpine stubs until their cards land. Pull only when you `up` (disk-sensitive).
+**Real images:** `store` → MinIO/mc; `stream`/`data` → Apache Kafka; `data` → Postgres (`pulse-postgres`).
+**Built from repo (T340, context = repo root, tag `voltpulse/<svc>:dev`):** `pulse-api` (migrate + Nest), `pulse-web` (nginx; `PULSE_WEB_API_URL` baked at build), `grid-rules` + `grid-perception` (`/health` entrypoints only; no live consume loop / weights yet). `pulse-gateway`, `pulse-notify`, `pulse-train`, obs remain alpine stubs.
+
+```bash
+docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env --profile data --profile stream --profile sense build
+```
+Pull only when you `up` (disk-sensitive).

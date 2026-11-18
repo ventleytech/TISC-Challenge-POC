@@ -27,7 +27,7 @@ Real IdP not yet. Without `PULSE_DATABASE_URL`, inspections/assets/alerts fall b
 | `PULSE_KAFKA_BOOTSTRAP` | _(empty)_ | Brokers; host `localhost:9094`, in-compose `pulse-bus:9092` |
 | `PULSE_KAFKA_GROUP_ID` | `pulse-api` | Consumer group |
 | `PULSE_KAFKA_TOPIC_FINDINGS` / `_ALERTS` | `vp.findings.v1` / `vp.alerts.v1` | Topic overrides |
-| `PULSE_KAFKA_DEFAULT_UTILITY_ID` | _(unset)_ | Fallback tenant: finding events carry no `utility_id` (inspection row wins) |
+| `PULSE_KAFKA_DEFAULT_UTILITY_ID` | _(unset)_ | Last-resort tenant. Finding utility precedence: inspection row > event `utility_id` > this default |
 
 | `PULSE_STORE_BACKEND` | `memory` | Evidence blobs: `memory` \| `fs` \| `minio` (P0-T350) |
 | `PULSE_STORE_ENDPOINT` / `_BUCKET` / `_ACCESS_KEY` / `_SECRET_KEY` / `_REGION` | see `.env.template` | MinIO client (same keys as `apps/pulse-store`) |
