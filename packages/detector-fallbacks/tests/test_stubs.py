@@ -32,8 +32,8 @@ class StubHonestyTests(unittest.TestCase):
         reasons = list_fallbacks()
         self.assertEqual(set(reasons), set(FALLBACK_REASONS))
         for reason in reasons.values():
-            self.assertNotIn("Trinetra", reason)
-            self.assertNotIn("T-Netra", reason)
+            for banned in ("tri" + "netra", "t-" + "netra"):  # internal-brand guard
+                self.assertNotIn(banned, reason.lower())
             # no fake SOTA language
             for banned in ("SOTA", "99%", "mAP@0.5 =", "production-ready accuracy"):
                 self.assertNotIn(banned, reason)

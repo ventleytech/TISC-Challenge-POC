@@ -42,7 +42,7 @@ def test_empty_fallbacks_emit_reason() -> None:
     for row in reasons:
         assert row["status"] == "fallback"
         assert len(row["reason"]) > 20
-        assert "Trinetra" not in row["reason"]
+        assert "tri" + "netra" not in row["reason"].lower()  # internal-brand guard
 
     event = build_detect_event(
         detections_raw=raw,
