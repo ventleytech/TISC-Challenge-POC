@@ -1,19 +1,23 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { t } from "../i18n";
 
-const primary: { to: string; label: string; end?: boolean; hint: string }[] = [
-  { to: "/", label: "Home", end: true, hint: "Brand" },
-  { to: "/inspections", label: "Inspections", hint: "Lifecycle" },
-  { to: "/assets", label: "Assets", hint: "Registry" },
-  { to: "/priority", label: "Priority", hint: "Risk board" },
-  { to: "/map", label: "Map", hint: "Corridor" },
-  { to: "/alerts", label: "Alerts", hint: "SLA / ack" },
-  { to: "/evidence", label: "Evidence", hint: "Objects" },
-  { to: "/admin", label: "Admin", hint: "Ops health" },
-];
+function navItems() {
+  return [
+    { to: "/", label: "Home", end: true as boolean | undefined, hint: "Brand" },
+    { to: "/inspections", label: t("nav.inspections"), hint: "Lifecycle" },
+    { to: "/assets", label: t("nav.assets"), hint: "Registry" },
+    { to: "/priority", label: "Priority", hint: "Risk board" },
+    { to: "/map", label: t("nav.map"), hint: "Corridor" },
+    { to: "/alerts", label: t("nav.alerts"), hint: "SLA / ack" },
+    { to: "/evidence", label: t("nav.evidence"), hint: "Objects" },
+    { to: "/admin", label: t("nav.admin"), hint: "Ops health" },
+  ];
+}
 
 export function AppShell() {
   const { pathname } = useLocation();
   const isHome = pathname === "/";
+  const primary = navItems();
 
   return (
     <div className={`shell${isHome ? " shell--home" : " shell--ops"}`}>
@@ -21,7 +25,7 @@ export function AppShell() {
         <header className="topbar">
           <NavLink to="/" className="topbar__mark" end>
             <span className="topbar__mark-glyph" aria-hidden="true" />
-            <span className="topbar__mark-text">VoltPulse</span>
+            <span className="topbar__mark-text">{t("app.name")}</span>
           </NavLink>
           <nav className="topbar__nav" aria-label="Primary">
             {primary
@@ -44,7 +48,7 @@ export function AppShell() {
           <NavLink to="/" className="rail__brand" end>
             <span className="rail__glyph" aria-hidden="true" />
             <span className="rail__brand-text">
-              <strong>VoltPulse</strong>
+              <strong>{t("app.name")}</strong>
               <span>Energy inspection OS</span>
             </span>
           </NavLink>
@@ -76,9 +80,10 @@ export function AppShell() {
         {!isHome ? (
           <header className="opsbar">
             <p className="opsbar__crumb">
-              VoltPulse <span>/</span> {pathname.replace(/^\//, "") || "home"}
+              {t("app.name")} <span>/</span>{" "}
+              {pathname.replace(/^\//, "") || "home"}
             </p>
-            <p className="opsbar__tag">Industrial preview · mock bus</p>
+            <p className="opsbar__tag">Industrial preview · live-by-default</p>
           </header>
         ) : null}
         <main className="shell__main">

@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
+import { AuditService } from '../audit/audit.service';
 import type { PulseApiSettings } from '../config/settings';
 import { MemoryStore } from '../domain/memory.store';
 import { AlertsController } from './alerts.controller';
@@ -17,13 +18,17 @@ function disabledAuth(): AuthService {
   return new AuthService(settings);
 }
 
+function stubAudit(): AuditService {
+  return { append: async () => undefined } as AuditService;
+}
+
 describe('AlertsController', () => {
   let controller: AlertsController;
   let store: MemoryStore;
 
   beforeEach(() => {
     store = new MemoryStore();
-    controller = new AlertsController(store, disabledAuth());
+    controller = new AlertsController(store, disabledAuth(), stubAudit());
   });
 
   it('acks alert and is idempotent', async () => {

@@ -1,7 +1,7 @@
 import type { GatewaySession, PerceptionHandoff } from './types.js';
 
 const HANDOFF_NOTES =
-  'C01 scaffold: grid-perception should pull this URL on the shared inference path. Real MediaMTX + DeepStream wiring is a later card.';
+  'C01 hold: record-upload is primary for grid-perception. Optional HLS sim from sample MP4 (infra/media/hls-hold). True RTSP/MediaMTX camera path deferred — see docs/c01-ingest-hold.md.';
 
 /** Build handoff note for grid-perception from a registered session. */
 export function buildPerceptionHandoff(session: GatewaySession): PerceptionHandoff {

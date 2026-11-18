@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { initLocale } from "./i18n";
 import { AppShell } from "./components/AppShell";
 import { AdminPage } from "./pages/AdminPage";
 import { AlertsPage } from "./pages/AlertsPage";
@@ -11,6 +12,8 @@ import { InspectionsPage } from "./pages/InspectionsPage";
 import { PriorityBoardPage } from "./pages/PriorityBoardPage";
 import { ScheduleIndexPage } from "./pages/ScheduleIndexPage";
 import { ScheduleWizardPage } from "./pages/ScheduleWizardPage";
+
+initLocale();
 
 export default function App() {
   return (

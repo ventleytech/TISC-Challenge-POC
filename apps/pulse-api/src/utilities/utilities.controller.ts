@@ -15,12 +15,14 @@ import { Roles } from '../auth/roles.decorator';
 import { DomainStore } from '../domain/domain.store';
 import type {
   Asset,
+  Criticality,
   Site,
   Utility,
   UtilityCreate,
   UtilityMembership,
   UtilitySeed,
 } from '../domain/types';
+import { parseAssetsCsv } from '../import/csv-assets';
 
 @Controller('utilities')
 export class UtilitiesController {
@@ -161,5 +163,92 @@ export class UtilitiesController {
     }
 
     return { site_ids, asset_ids };
+  }
+
+  @Post(':utilityId/import-csv')
+  @Roles('platform_admin', 'utility_admin')
+  async importCsv(
+    @Param('utilityId') utilityId: string,
+    @Body()
+    body: { csv?: string; dry_run?: boolean },
+    @CurrentUser() user?: AuthPrincipal,
+  ): Promise<{
+    dry_run: boolean;
+    row_count: number;
+    errors: string[];
+    site_ids: string[];
+    asset_ids: string[];
+  }> {
+    const utility = await this.store.getUtility(utilityId);
+    if (!utility) {
+      throw new NotFoundException(`utility ${utilityId} not found`);
+    }
+    this.auth.assertUtilityAccess(user, utilityId);
+    const csv = body?.csv ?? '';
+    const parsed = parseAssetsCsv(csv);
+    const dryRun = body?.dry_run !== false;
+    if (parsed.errors.length > 0) {
+      if (dryRun) {
+        return {
+          dry_run: true,
+          row_count: parsed.rows.length,
+          errors: parsed.errors,
+          site_ids: [],
+          asset_ids: [],
+        };
+      }
+      throw new BadRequestException({
+        message: 'CSV validation failed',
+        errors: parsed.errors,
+      });
+    }
+    if (dryRun) {
+      return {
+        dry_run: true,
+        row_count: parsed.rows.length,
+        errors: [],
+        site_ids: [],
+        asset_ids: [],
+      };
+    }
+    const siteByName = new Map<string, string>();
+    const site_ids: string[] = [];
+    const asset_ids: string[] = [];
+    for (const row of parsed.rows) {
+      let siteId: string | null = null;
+      if (row.site_name) {
+        const existing = siteByName.get(row.site_name);
+        if (existing) {
+          siteId = existing;
+        } else {
+          siteId = this.store.nextId();
+          await this.store.createSite({
+            id: siteId,
+            utility_id: utilityId,
+            name: row.site_name,
+          });
+          siteByName.set(row.site_name, siteId);
+          site_ids.push(siteId);
+        }
+      }
+      const assetId = this.store.nextId();
+      const asset: Asset = {
+        id: assetId,
+        utility_id: utilityId,
+        name: row.name,
+        site_id: siteId,
+        criticality: row.criticality as Criticality | undefined,
+        voltage_class: row.voltage_class ?? null,
+      };
+      await this.store.createAsset(asset);
+      asset_ids.push(assetId);
+    }
+    return {
+      dry_run: false,
+      row_count: parsed.rows.length,
+      errors: [],
+      site_ids,
+      asset_ids,
+    };
   }
 }

@@ -11,11 +11,14 @@ import { EvidenceModule } from './evidence/evidence.module';
 import { IngestModule } from './ingest/ingest.module';
 import { UtilitiesModule } from './utilities/utilities.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
+import { ReportsModule } from './reports/reports.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
     SettingsModule,
     DomainModule,
+    AuditModule,
     AuthModule,
     HealthModule,
     UtilitiesModule,
@@ -26,6 +29,7 @@ import { WorkOrdersModule } from './work-orders/work-orders.module';
     EvidenceModule,
     IngestModule,
     WorkOrdersModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

@@ -13,6 +13,7 @@ export default defineConfig({
         rootDir,
         "../../packages/ui-tokens",
       ),
+      "@voltpulse/i18n": path.resolve(rootDir, "../../packages/i18n/src/index.js"),
     },
   },
   server: {

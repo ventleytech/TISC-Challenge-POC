@@ -13,6 +13,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthPrincipal } from '../auth/principal';
 import { Roles } from '../auth/roles.decorator';
 import { WRITE_ROLES } from '../auth/roles';
+import { AuditService } from '../audit/audit.service';
 import { DomainStore } from '../domain/domain.store';
 import { SEVERITIES, type Alert, type AlertCreate } from '../domain/types';
 
@@ -21,6 +22,7 @@ export class AlertsController {
   constructor(
     private readonly store: DomainStore,
     private readonly auth: AuthService,
+    private readonly audit: AuditService,
   ) {}
 
   @Get()
@@ -89,6 +91,12 @@ export class AlertsController {
     if (!acked) {
       throw new NotFoundException(`alert ${alertId} not found`);
     }
+    await this.audit.append({
+      action: 'alert.ack',
+      actor: user?.keyId,
+      utility_id: acked.utility_id,
+      resource_id: acked.id,
+    });
     return acked;
   }
 }

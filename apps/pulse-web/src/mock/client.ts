@@ -521,3 +521,53 @@ export async function listOpsMetrics(): Promise<ListResult<OpsMetric>> {
 export function assetName(assetId: string): string {
   return assetsDb.find((a) => a.id === assetId)?.name ?? assetId;
 }
+
+export type CsvImportResult = {
+  dry_run: boolean;
+  row_count: number;
+  errors: string[];
+  site_ids: string[];
+  asset_ids: string[];
+};
+
+/** M03 CSV import (T406). Default dry_run=true. */
+export async function importAssetsCsv(
+  utilityId: string,
+  csv: string,
+  dryRun = true,
+): Promise<CsvImportResult> {
+  if (!liveApiEnabled()) {
+    // mock dry-run counts non-empty lines minus header
+    const lines = csv.split(/\r?\n/).filter((l) => l.trim() && !l.startsWith("#"));
+    return {
+      dry_run: dryRun,
+      row_count: Math.max(0, lines.length - 1),
+      errors: [],
+      site_ids: [],
+      asset_ids: dryRun ? [] : [`ast-mock-${nextSeq++}`],
+    };
+  }
+  const res = await apiFetch(
+    `/utilities/${encodeURIComponent(utilityId)}/import-csv`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ csv, dry_run: dryRun }),
+    },
+  );
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(detail || `CSV import failed (${res.status})`);
+  }
+  return (await res.json()) as CsvImportResult;
+}
+
+/** W06 compliance HTML (printable → PDF). */
+export function complianceReportUrl(
+  utilityId: string,
+  inspectionId?: string,
+): string {
+  const q = new URLSearchParams({ utility_id: utilityId });
+  if (inspectionId) q.set("inspection_id", inspectionId);
+  return `${apiBase()}/reports/compliance?${q.toString()}`;
+}
