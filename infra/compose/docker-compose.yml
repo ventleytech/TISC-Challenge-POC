@@ -290,20 +290,34 @@ services:
 
   pulse-prometheus:
     profiles: [obs]
-    image: alpine:3.20
+    image: prom/prometheus:v2.54.1
     container_name: vp-pulse-prometheus
-    command: ["sleep", "infinity"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ../obs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "${PULSE_PROM_PORT:-9090}:9090"
     restart: "no"
 
   pulse-grafana:
     profiles: [obs]
-    image: alpine:3.20
+    image: grafana/grafana:11.2.0
     container_name: vp-pulse-grafana
-    command: ["sleep", "infinity"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${PULSE_GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${PULSE_GRAFANA_ADMIN_PASSWORD:-voltpulse}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ../obs/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
       - "${PULSE_GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - pulse-prometheus
     restart: "no"
 
   # MinIO object store (architecture: pulse-store). App client: apps/pulse-store.

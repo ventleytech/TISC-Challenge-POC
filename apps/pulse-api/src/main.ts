@@ -14,7 +14,7 @@ async function bootstrap() {
   if (settings.corsOrigins?.length) {
     app.enableCors({ origin: settings.corsOrigins });
   }
-  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
+  app.setGlobalPrefix('api/v1', { exclude: ['health', 'metrics'] });
   mountOpenApi(app, settings);
   await app.listen(settings.port);
 }

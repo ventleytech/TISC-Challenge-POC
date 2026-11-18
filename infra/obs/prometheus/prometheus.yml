@@ -1,5 +1,5 @@
-# VoltPulse Prometheus stub — profile obs
-# shortcut: static targets only; replace with service discovery when multi-host
+# VoltPulse Prometheus — profile obs (P0-T404)
+# shortcut: static targets on Compose network; upgrade to SD later
 
 global:
   scrape_interval: 15s
@@ -22,10 +22,18 @@ scrape_configs:
           plane: data
           service: pulse-notify
 
+  - job_name: vp_pulse_gateway
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["pulse-gateway:3020"]
+        labels:
+          plane: media
+          service: pulse-gateway
+
   - job_name: vp_grid_perception
     metrics_path: /metrics
     static_configs:
-      - targets: ["grid-perception:9100"]
+      - targets: ["grid-perception:8081"]
         labels:
           plane: sense
           service: grid-perception
@@ -33,7 +41,7 @@ scrape_configs:
   - job_name: vp_grid_rules
     metrics_path: /metrics
     static_configs:
-      - targets: ["grid-rules:9101"]
+      - targets: ["grid-rules:8080"]
         labels:
           plane: stream
           service: grid-rules

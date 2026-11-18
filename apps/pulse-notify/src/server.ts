@@ -44,6 +44,20 @@ export function createNotifyServer(runtime: NotifyRuntime): http.Server {
       const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
       const path = url.pathname;
 
+      if (req.method === 'GET' && path === '/metrics') {
+        const body = [
+          '# HELP vp_up VoltPulse process up',
+          '# TYPE vp_up gauge',
+          'vp_up{service="pulse-notify",plane="data"} 1',
+          '',
+        ].join('\n');
+        res.writeHead(200, {
+          'content-type': 'text/plain; version=0.0.4; charset=utf-8',
+        });
+        res.end(body);
+        return;
+      }
+
       if (req.method === 'GET' && path === '/health') {
         sendJson(res, 200, {
           status: 'ok',

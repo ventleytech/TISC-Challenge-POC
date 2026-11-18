@@ -17,8 +17,18 @@ if (!Number.isInteger(port) || port <= 0) {
 
 const loop = await startLoop(settings);
 
+function metricsText(): string {
+  return [
+    '# HELP vp_up VoltPulse process up',
+    '# TYPE vp_up gauge',
+    'vp_up{service="grid-rules",plane="stream"} 1',
+    '',
+  ].join('\n');
+}
+
 const server = createServer((req, res) => {
-  if (req.url === '/health') {
+  const path = req.url?.split('?')[0] ?? '';
+  if (path === '/health') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(
       JSON.stringify({
@@ -28,6 +38,13 @@ const server = createServer((req, res) => {
         loop: loop.stats,
       }),
     );
+    return;
+  }
+  if (path === '/metrics') {
+    res.writeHead(200, {
+      'content-type': 'text/plain; version=0.0.4; charset=utf-8',
+    });
+    res.end(metricsText());
     return;
   }
   res.writeHead(404).end();

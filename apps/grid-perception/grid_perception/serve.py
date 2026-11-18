@@ -38,7 +38,29 @@ def main() -> None:
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
-            if self.path != "/health":
+            path = self.path.split("?", 1)[0]
+            if path == "/metrics":
+                with stats.lock:
+                    text = (
+                        "# HELP vp_up VoltPulse process up\n"
+                        "# TYPE vp_up gauge\n"
+                        'vp_up{service="grid-perception",plane="sense"} 1\n'
+                        "# HELP vp_perception_processed_total Inbox files processed\n"
+                        "# TYPE vp_perception_processed_total counter\n"
+                        f"vp_perception_processed_total {stats.processed}\n"
+                        "# HELP vp_perception_detections_total Detections emitted\n"
+                        "# TYPE vp_perception_detections_total counter\n"
+                        f"vp_perception_detections_total {stats.detections}\n"
+                    )
+                body = text.encode()
+                self.send_response(200)
+                self.send_header(
+                    "content-type", "text/plain; version=0.0.4; charset=utf-8"
+                )
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            if path != "/health":
                 self.send_error(404)
                 return
             with stats.lock:

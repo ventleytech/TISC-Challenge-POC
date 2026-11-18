@@ -84,6 +84,24 @@ export function createGatewayServer(runtime: GatewayRuntime): http.Server {
         return;
       }
 
+      if (req.method === 'GET' && path === '/metrics') {
+        const sessions = await runtime.registry.list();
+        const body = [
+          '# HELP vp_up VoltPulse process up',
+          '# TYPE vp_up gauge',
+          'vp_up{service="pulse-gateway",plane="media"} 1',
+          '# HELP vp_gateway_sessions Sessions registered',
+          '# TYPE vp_gateway_sessions gauge',
+          `vp_gateway_sessions ${sessions.length}`,
+          '',
+        ].join('\n');
+        res.writeHead(200, {
+          'content-type': 'text/plain; version=0.0.4; charset=utf-8',
+        });
+        res.end(body);
+        return;
+      }
+
       if (req.method === 'POST' && path === '/sessions') {
         const input = parseRegisterBody(await readJson(req));
         const session = await runtime.registry.register(input);
