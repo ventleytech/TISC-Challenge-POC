@@ -16,6 +16,27 @@ services:
       PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
       PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC}
       GP_HEALTH_PORT: ${GP_HEALTH_PORT:-8081}
+      # File ingest: images dropped in GP_INBOX_DIR -> one vp.detect.v1 JSON line each on GP_DETECT_FILE.
+      GP_INBOX_DIR: ${GP_INBOX_DIR_CONTAINER:-/data/inbox}
+      GP_DETECT_FILE: ${GP_DETECT_FILE_CONTAINER:-/data/bus/vp.detect.v1.jsonl}
+      GP_DETECTORS: ${GP_DETECTORS:-sag,thermal_hotspot}
+      GP_POLL_MS: ${GP_POLL_MS:-1000}
+      GP_INGEST_SOURCE: ${GP_INGEST_SOURCE:-upload}
+      GP_FALLBACK_SENTINEL: ${GP_FALLBACK_SENTINEL:-0}
+      GP_DEVICE: ${GP_DEVICE_CONTAINER:-cpu}
+      GP_CONF: ${GP_CONF:-0.25}
+      GP_IMGSZ: ${GP_IMGSZ:-640}
+      # Gate0 weights: mount GP_MODELS_HOST_DIR at /models, then point GP_WEIGHTS_*_CONTAINER at files under it.
+      # Needs ultralytics in the image (CPU stub image has none -> those detectors fail the file, it lands in failed/).
+      GP_WEIGHTS_CORROSION: ${GP_WEIGHTS_CORROSION_CONTAINER:-}
+      GP_WEIGHTS_CRACK: ${GP_WEIGHTS_CRACK_CONTAINER:-}
+      GP_WEIGHTS_VEGETATION: ${GP_WEIGHTS_VEGETATION_CONTAINER:-}
+    ports:
+      - "${GP_HEALTH_PORT:-8081}:${GP_HEALTH_PORT:-8081}"
+    volumes:
+      - pulse_bus_files:/data/bus
+      - pulse_perception_inbox:/data/inbox
+      - ${GP_MODELS_HOST_DIR:-../../local-notes/models-experiments}:/models:ro
     restart: "no"
 
   pulse-gateway:
@@ -331,5 +352,6 @@ volumes:
   pulse_pg_data:
   pulse_store_data:
   pulse_kafka_data:
-  # File-bus shared by pulse-gateway + grid-rules (images chown /data/bus to node).
+  # File bus shared by grid-perception, pulse-gateway, grid-rules (T384/T385; images chown /data/bus to node).
   pulse_bus_files:
+  pulse_perception_inbox:
