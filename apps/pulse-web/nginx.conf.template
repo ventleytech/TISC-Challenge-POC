@@ -1,0 +1,7 @@
+server {
+  listen ${PULSE_WEB_PORT};
+  root /usr/share/nginx/html;
+  location / {
+    try_files $uri /index.html;
+  }
+}
