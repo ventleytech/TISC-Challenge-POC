@@ -12,5 +12,6 @@ export { slaDueAt } from './policy/sla.js';
 export { loadDetectFixture } from './bus/fixture-source.js';
 export { KafkaSink, kafkaSinkEnabled, recordKey } from './bus/kafka-sink.js';
 export type { ProducerLike } from './bus/kafka-sink.js';
+export { HttpSink, httpSinkEnabled } from './bus/http-sink.js';
 export { MemorySink } from './bus/memory-sink.js';
 export type * from './types.js';

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { appendRecords, FileTail } from './bus/file-bus.js';
 import { assertDetectShape } from './bus/fixture-source.js';
+import { HttpSink, httpSinkEnabled } from './bus/http-sink.js';
 import { KafkaSink, kafkaSinkEnabled } from './bus/kafka-sink.js';
 import { kafkaSourceEnabled, startKafkaSource } from './bus/kafka-source.js';
 import { MemorySink } from './bus/memory-sink.js';
@@ -10,11 +11,13 @@ import type { AssetContext } from './types.js';
 
 export type LoopStats = {
   inputs: { file: boolean; kafka: boolean };
-  outputs: { file: boolean; kafka: boolean };
+  outputs: { file: boolean; kafka: boolean; http: boolean };
   detects: number;
   findings: number;
   alerts: number;
   rejected: number;
+  /** pulse-api HTTP sink: records accepted / failed (failures never stop the loop). */
+  http: { posted: number; failed: number };
 };
 
 export type Loop = {
@@ -33,14 +36,16 @@ export async function startLoop(settings: Settings): Promise<Loop> {
   if (settings.kafkaProducer.enabled && !kafkaOut) {
     console.error('[grid-rules] producer flag on but KAFKA_BROKERS unset — kafka publish skipped');
   }
+  const httpOut = httpSinkEnabled(settings) ? new HttpSink(settings) : null;
   const sink = new MemorySink(settings);
   const stats: LoopStats = {
     inputs: { file: false, kafka: false },
-    outputs: { file: loop.outDir !== null, kafka: kafkaOut !== null },
+    outputs: { file: loop.outDir !== null, kafka: kafkaOut !== null, http: httpOut !== null },
     detects: 0,
     findings: 0,
     alerts: 0,
     rejected: 0,
+    http: { posted: 0, failed: 0 },
   };
 
   // Serialize processing: file poll + kafka consumer share the loop.
@@ -62,6 +67,11 @@ export async function startLoop(settings: Settings): Promise<Loop> {
       sink.records.length = 0; // loop is long-running; do not accumulate
       if (loop.outDir) await appendRecords(loop.outDir, emitted);
       if (kafkaOut) await kafkaOut.publish(emitted);
+      if (httpOut) {
+        const r = await httpOut.post(emitted);
+        stats.http.posted += r.posted;
+        stats.http.failed += r.failed;
+      }
       stats.detects++;
       stats.findings += result.findings.length;
       stats.alerts += result.alerts.length;

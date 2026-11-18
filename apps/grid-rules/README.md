@@ -47,6 +47,9 @@ Smoke prints JSON: findings (`severity`, `risk_score`, optional `extensions.part
 | `GRID_RULES_KAFKA_CONSUMER_ENABLED` | `false` | Consume `VP_TOPIC_DETECT` (also needs `KAFKA_BROKERS`) |
 | `GRID_RULES_KAFKA_GROUP_ID` | `grid-rules` | Consumer group |
 | `GRID_RULES_KAFKA_FROM_BEGINNING` | `false` | Consumer starts at earliest offset on a new group |
+| `GRID_RULES_API_BASE_URL` | unset | pulse-api base (e.g. `http://pulse-api:3000`); unset → HTTP sink off |
+| `GRID_RULES_API_KEY` | unset | Sent as `X-API-Key`; needs a write role |
+| `GRID_RULES_API_TIMEOUT_MS` | `5000` | Per-request timeout (≥100) |
 
 No secrets. Brokers only via env. SLA/channels are **not** hardcoded in grid-rules — they load from `packages/alert-policy`.
 
@@ -79,6 +82,9 @@ fixtures/     # synthetic vp.detect.v1
 | in: Kafka | `GRID_RULES_KAFKA_CONSUMER_ENABLED=true` + `KAFKA_BROKERS` | Group consumer on `VP_TOPIC_DETECT` |
 | out: file | `GRID_RULES_OUT_DIR` | `<VP_TOPIC_FINDINGS>.jsonl`, `<VP_TOPIC_ALERTS>.jsonl` |
 | out: Kafka | `GRID_RULES_KAFKA_PRODUCER_ENABLED=true` + `KAFKA_BROKERS` | Same records as file out |
+| out: HTTP | `GRID_RULES_API_BASE_URL` | `POST /api/v1/findings` then `POST /api/v1/alerts` on pulse-api (see below) |
+
+**HTTP sink (T393).** `src/bus/http-sink.ts` posts each emitted finding (id = rules `finding_id`) then alert to pulse-api, so no host script is needed to land bus output in the API/Postgres. Findings without `utility_id` (no asset context) and alerts whose tenant is unknown are skipped + logged. A non-2xx, timeout or network error is logged and counted in `/health` → `loop.http.failed`; it never stops the loop or blocks file/Kafka out. Alerts get their id from pulse-api. Don't run it alongside the pulse-api Kafka consumer for the same stream (duplicate finding ids are rejected with 400, logged).
 
 Malformed lines/messages are logged and counted (`rejected` in `/health` → `loop`), not fatal. With no inputs set it only serves `/health`.
 

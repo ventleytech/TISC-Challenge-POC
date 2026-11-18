@@ -159,6 +159,11 @@ services:
       GRID_RULES_KAFKA_FROM_BEGINNING: ${GRID_RULES_KAFKA_FROM_BEGINNING:-false}
       GRID_RULES_KAFKA_PRODUCER_ENABLED: ${GRID_RULES_KAFKA_PRODUCER_ENABLED:-false}
       GRID_RULES_KAFKA_CLIENT_ID: ${GRID_RULES_KAFKA_CLIENT_ID:-grid-rules}
+      # HTTP sink (T393): POST findings/alerts to pulse-api. Empty base URL = off.
+      # Needs profile `data` (pulse-api); don't combine with pulse-api Kafka consumer (duplicate ids).
+      GRID_RULES_API_BASE_URL: ${GRID_RULES_API_BASE_URL:-}
+      GRID_RULES_API_KEY: ${GRID_RULES_API_KEY:-}
+      GRID_RULES_API_TIMEOUT_MS: ${GRID_RULES_API_TIMEOUT_MS:-5000}
     volumes:
       # Same volume as pulse-gateway; reads detect jsonl, writes findings/alerts jsonl here.
       - pulse_bus_files:/data/bus

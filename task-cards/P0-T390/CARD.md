@@ -30,7 +30,7 @@ File bus + HTTP glue (T300 style). **Not** Kafka (no `pulse-bus` in vp390); Kafk
 
 ## Follow-ups
 
-- No in-container bus→API bridge: the script does the POST from the host. A pulse-api file-bus reader or grid-rules HTTP sink would remove the glue.
+- ~~No in-container bus→API bridge~~ — done in P0-T393 (grid-rules HTTP sink; script now project `vp393`, no host POST).
 - `grid-perception` image-inbox variant not exercised (CPU stub image has no detector weights; T384).
 - Full-Kafka compose variant (`GRID_RULES_KAFKA_*` + `PULSE_KAFKA_CONSUMER_ENABLED`) in one project: not done.
 
