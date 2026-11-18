@@ -23,3 +23,6 @@ All four `Up (healthy)`. Existing `vp-pulse-bus`, `vp-pulse-postgres`, MinIO unt
 Sizes: pulse-api 293MB, grid-rules 247MB, pulse-web 74MB, grid-perception 83MB.
 
 Rebased onto main `28f6269` (T335/T336): no conflicts; `cli.ts` Kafka producer and `serve.ts` coexist.
+
+## Re-verify on main (post-merge)
+`docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env.template --profile data --profile sense --profile stream build pulse-api pulse-web` → both images built (cached).
