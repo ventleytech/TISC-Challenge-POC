@@ -1,0 +1,11 @@
+✔ parseVpAlertsV1 accepts contract-shaped payload (1.74562ms)
+✔ parseVpAlertsV1 rejects bad severity (0.54492ms)
+✔ processAlertEvent delivers push+sms and log-acks (1.973187ms)
+✔ sendAck http posts receipt URL (33.348102ms)
+✔ config: webhook/file adapters require target (1.683502ms)
+✔ file adapter appends one JSON line per sent channel (13.493539ms)
+✔ webhook adapter POSTs; non-2xx and network errors mark failed (63.942947ms)
+ℹ tests 7
+ℹ pass 7
+ℹ fail 0
+legacy smoke (adapter=log): ok

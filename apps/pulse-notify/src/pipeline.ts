@@ -17,7 +17,7 @@ export async function processAlertEvent(
   fetchImpl?: typeof fetch,
 ): Promise<ProcessResult> {
   consumeAlert(bus, event);
-  const deliveries = deliverChannels(event.alert, settings.adapter);
+  const deliveries = await deliverChannels(event.alert, settings, fetchImpl);
   const receipt = buildReceipt(event.alert.alert_id, settings.alertsTopic, deliveries);
   const ack = await sendAck(settings, receipt, fetchImpl);
   return { event, deliveries, ack };

@@ -1,4 +1,4 @@
-# pulse-notify (mock)
+# pulse-notify
 
 VoltPulse notify worker stub for P0.
 
@@ -20,3 +20,18 @@ npm run dev   # listens PULSE_NOTIFY_PORT (default 3010)
 ## Health
 
 `GET /health` → `{ status: "ok", service: "pulse-notify", topic: "vp.alerts.v1", ... }`
+
+## Real sink (P0-T360)
+
+`PULSE_NOTIFY_ADAPTER` = `log` (default mock) | `webhook` | `file`.
+
+```bash
+# webhook: POST one JSON message per channel
+PULSE_NOTIFY_ADAPTER=webhook PULSE_NOTIFY_WEBHOOK_URL=http://127.0.0.1:9000/hook npm run dev
+# file: JSON lines
+PULSE_NOTIFY_ADAPTER=file PULSE_NOTIFY_FILE_PATH=./out/alerts.jsonl npm run dev
+curl -X POST localhost:3010/internal/consume -H 'content-type: application/json' -d @alert.json
+npm run smoke:sink   # self-contained webhook + file proof
+```
+
+Sink errors mark that delivery `failed` (response `deliveries[].status`); they do not 500.

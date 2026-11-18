@@ -1,0 +1,90 @@
+[pulse-notify] push mock delivered alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb severity=critical
+[pulse-notify] SMS mock delivered alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb severity=critical
+[pulse-notify] webhook sink ok alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb channel=push
+[pulse-notify] webhook sink ok alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb channel=sms
+[pulse-notify] ack receipt alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb deliveries=2
+[pulse-notify] push mock delivered alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb severity=critical
+[pulse-notify] SMS mock delivered alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb severity=critical
+[pulse-notify] file sink ok alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb channel=push
+[pulse-notify] file sink ok alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb channel=sms
+[pulse-notify] ack receipt alert=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb deliveries=2
+{
+  "ok": true,
+  "webhook": {
+    "response": {
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "topic": "vp.alerts.v1",
+      "deliveries": [
+        {
+          "channel": "push",
+          "status": "sent"
+        },
+        {
+          "channel": "sms",
+          "status": "sent"
+        }
+      ],
+      "ack": {
+        "mode": "log",
+        "ok": true
+      }
+    },
+    "received": [
+      {
+        "alert_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "finding_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "severity": "critical",
+        "sla_due_at": "2026-11-18T01:15:10.274Z",
+        "channel": "push",
+        "delivered_at": "2026-11-18T00:15:10.332Z"
+      },
+      {
+        "alert_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "finding_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "severity": "critical",
+        "sla_due_at": "2026-11-18T01:15:10.274Z",
+        "channel": "sms",
+        "delivered_at": "2026-11-18T00:15:10.332Z"
+      }
+    ]
+  },
+  "file": {
+    "path": "/tmp/vp-notify-G0f8T0/alerts.jsonl",
+    "response": {
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "topic": "vp.alerts.v1",
+      "deliveries": [
+        {
+          "channel": "push",
+          "status": "sent"
+        },
+        {
+          "channel": "sms",
+          "status": "sent"
+        }
+      ],
+      "ack": {
+        "mode": "log",
+        "ok": true
+      }
+    },
+    "lines": [
+      {
+        "alert_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "finding_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "severity": "critical",
+        "sla_due_at": "2026-11-18T01:15:10.274Z",
+        "channel": "push",
+        "delivered_at": "2026-11-18T00:15:10.368Z"
+      },
+      {
+        "alert_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "finding_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "severity": "critical",
+        "sla_due_at": "2026-11-18T01:15:10.274Z",
+        "channel": "sms",
+        "delivered_at": "2026-11-18T00:15:10.368Z"
+      }
+    ]
+  }
+}
