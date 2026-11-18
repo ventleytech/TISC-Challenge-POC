@@ -45,6 +45,14 @@ class Settings:
     venv_path: str = ""
     # When true, fallback detectors emit one ≤0.01 conf row (plumbing only).
     fallback_sentinel: bool = False
+    # Serve loop (P0-T384): watch inbox_dir for images, append vp.detect.v1 JSON lines to detect_file.
+    inbox_dir: str = ""
+    detect_file: str = ""
+    detectors: tuple[str, ...] = ("sag", "thermal_hotspot")
+    poll_ms: int = 1000
+    ingest_source: str = "upload"
+    inspection_id: str = ""
+    asset_id: str = ""
 
 
 def _env(key: str, default: str = "") -> str:
@@ -83,4 +91,15 @@ def load_settings(repo_root: Path | None = None) -> Settings:
         weights=weights,
         venv_path=_env("GP_VENV", "local-notes/models-experiments/_scratch/venv"),
         fallback_sentinel=_env_bool("GP_FALLBACK_SENTINEL", False),
+        inbox_dir=_env("GP_INBOX_DIR"),
+        detect_file=_env("GP_DETECT_FILE"),
+        detectors=tuple(
+            d.strip()
+            for d in _env("GP_DETECTORS", "sag,thermal_hotspot").split(",")
+            if d.strip()
+        ),
+        poll_ms=int(_env("GP_POLL_MS", "1000")),
+        ingest_source=_env("GP_INGEST_SOURCE", "upload"),
+        inspection_id=_env("GP_INSPECTION_ID"),
+        asset_id=_env("GP_ASSET_ID"),
     )
