@@ -1,0 +1,7 @@
+$ docker pull (before)
+minio/minio:RELEASE.2025-04-22T22-12-26Z -> pull access denied
+quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -> 401 UNAUTHORIZED
+minio/mc:RELEASE.2025-04-16T18-13-26Z -> pull access denied
+$ docker pull (after)
+bitnamilegacy/minio:2025.4.22 -> sha256:50cec18a…da01 (minio 2025-04-22 build)
+bitnamilegacy/minio-client:2025.4.16 -> sha256:8a86e441…1dd1
