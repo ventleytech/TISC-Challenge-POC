@@ -1,5 +1,5 @@
 # VoltPulse Compose skeleton — project name voltpulse
-# Profiles: sense | media | stream | data | obs | store
+# Profiles: sense | sense-cuda | media | stream | data | obs | store
 # Stub images except: store → MinIO (T110); stream/data bus → Apache Kafka KRaft (T210).
 
 name: voltpulse
@@ -45,6 +45,45 @@ services:
       - pulse_perception_inbox:/data/inbox
       - ${GP_MODELS_HOST_DIR:-../../local-notes/models-experiments}:/models:ro
     restart: "no"
+
+  # CUDA Gate0 path (P0-T405). Mount host ultralytics venv — avoids baking multi-GB torch into the image.
+  grid-perception-cuda:
+    profiles: [sense-cuda]
+    build:
+      context: ../..
+      dockerfile: apps/grid-perception/Dockerfile.cuda
+    image: voltpulse/grid-perception:cuda
+    container_name: vp-grid-perception-cuda
+    gpus: all
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP:-}
+      PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC:-vp.detect.v1}
+      GP_HEALTH_PORT: ${GP_HEALTH_PORT:-8081}
+      GP_INBOX_DIR: ${GP_INBOX_DIR_CONTAINER:-/data/inbox}
+      GP_DETECT_FILE: ${GP_DETECT_FILE_CONTAINER:-/data/bus/vp.detect.v1.jsonl}
+      GP_DETECTORS: ${GP_CUDA_DETECTORS:-corrosion}
+      GP_POLL_MS: ${GP_POLL_MS:-1000}
+      GP_INGEST_SOURCE: ${GP_INGEST_SOURCE:-upload}
+      GP_DEVICE: ${GP_DEVICE_CUDA:-0}
+      GP_CONF: ${GP_CONF:-0.25}
+      GP_IMGSZ: ${GP_IMGSZ:-640}
+      GP_WEIGHTS_CORROSION: ${GP_WEIGHTS_CORROSION_CONTAINER:-/models/corrosion/weights/Basic_YOLO11_v1.pt}
+      GP_WEIGHTS_CRACK: ${GP_WEIGHTS_CRACK_CONTAINER:-}
+      GP_WEIGHTS_VEGETATION: ${GP_WEIGHTS_VEGETATION_CONTAINER:-}
+      GP_EVIDENCE_ENABLED: ${GP_EVIDENCE_ENABLED:-0}
+      GP_UTILITY_ID: ${GP_UTILITY_ID:-util-demo-01}
+      GP_EVIDENCE_API_BASE: ${GP_EVIDENCE_API_BASE:-http://pulse-api:3000/api/v1}
+      GP_EVIDENCE_API_KEY: ${GP_EVIDENCE_API_KEY:-dev-operator}
+    ports:
+      - "${GP_CUDA_HEALTH_PORT:-8082}:${GP_HEALTH_PORT:-8081}"
+    volumes:
+      - pulse_bus_files:/data/bus
+      - pulse_perception_inbox:/data/inbox
+      - ${GP_MODELS_HOST_DIR:-../../local-notes/models-experiments}:/models:ro
+      - ${GP_CUDA_VENV_HOST:-../../local-notes/models-experiments/_scratch/venv}:/opt/gp-venv:ro
+    restart: "no"
+
 
   pulse-gateway:
     profiles: [media]

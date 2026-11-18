@@ -70,3 +70,16 @@ When `GP_EVIDENCE_ENABLED=1`, each detection with a bbox is POSTed to pulse-api
 `POST /api/v1/evidence` (`kind=crop`). Nest stores bytes in MinIO/fs. Detection
 rows gain `evidence_object_id` on success. Without Pillow (CPU alpine), the
 source frame is uploaded with bbox metadata (real pixel crop on CUDA/ultralytics images).
+
+## CUDA image (P0-T405)
+
+```bash
+# build
+docker compose -p voltpulse -f infra/compose/docker-compose.yml --profile sense-cuda build grid-perception-cuda
+# smoke one Gate0 class (corrosion)
+./apps/grid-perception/scripts/cuda-corrosion-smoke.sh
+```
+
+Image `voltpulse/grid-perception:cuda` is nvidia/cuda base + code. Mount host
+`local-notes/models-experiments/_scratch/venv` at `/opt/gp-venv` (torch+ultralytics)
+and weights under `/models`. Default `sense` profile stays CPU alpine.

@@ -6,7 +6,8 @@ Docker Compose project **`voltpulse`**.
 
 | Profile | Services |
 |---------|----------|
-| `sense` | `grid-perception` |
+| `sense` | `grid-perception` (CPU alpine stub) |
+| `sense-cuda` | `grid-perception-cuda` (nvidia + host Gate0 venv/weights) |
 | `media` | `pulse-gateway` |
 | `stream` | `pulse-bus` (Kafka), `pulse-kafka-topics`, `grid-rules` |
 | `data` | `pulse-bus` (Kafka), `pulse-kafka-topics`, `pulse-postgres` (healthchecked), `pulse-api`, `pulse-web`, `pulse-notify`, `pulse-train` |
