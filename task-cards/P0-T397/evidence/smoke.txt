@@ -1,0 +1,23 @@
+# POST evidence
+{"key":"util_demo/insp_t397/evidence/ev_ea80334363ee.png"}
+# PUT object
+{"key":"util_demo/insp_t397/evidence/ev_demo.txt"} 201
+# GET
+hello-minio
+# MinIO side (mc ls)
+[2026-11-18 01:08:46 UTC]    11B STANDARD util_demo/insp_t397/evidence/ev_demo.txt
+[2026-11-18 01:08:46 UTC]     9B STANDARD util_demo/insp_t397/evidence/ev_ea80334363ee.png
+# hold on
+{"key":"util_demo/insp_t397/evidence/ev_demo.txt","legal_hold":true}
+# delete under hold
+{"error":{"code":"LEGAL_HOLD","message":"legal hold blocks delete: util_demo/insp_t397/evidence/ev_demo.txt"}} 409
+# retention
+{"key":"util_demo/insp_t397/evidence/ev_demo.txt","created_at":"2026-11-18T01:08:46.681Z","legal_hold":true,"tier":"hot"}
+# restart api
+# retention after restart
+{"key":"util_demo/insp_t397/evidence/ev_demo.txt","created_at":"2026-11-18T01:08:46.681Z","legal_hold":true,"tier":"hot"}
+# hold off + delete
+{"key":"util_demo/insp_t397/evidence/ev_demo.txt","legal_hold":false}
+204
+# GET after delete
+{"error":{"code":"NOT_FOUND","message":"object not found: util_demo/insp_t397/evidence/ev_demo.txt"}} 404

@@ -19,3 +19,5 @@ export {
 } from './retention-policy.js';
 export { LegalHoldError, RetentionStore, type RetentionStatus } from './retention-store.js';
 export type { GetResult, ObjectStore, PutResult, StoreBackend } from './types.js';
+export { loadHttpSettings, type HttpSettings } from './http-config.js';
+export { createStoreServer } from './server.js';
