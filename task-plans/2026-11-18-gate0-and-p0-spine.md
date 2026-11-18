@@ -136,6 +136,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 27 | P0-T384 | grid-perception compose runs file-ingest loop (not health-only) | T010, T240, T340 | no vs compose | done |
 | 27 | P0-T385 | shared `pulse_bus_files` volume: pulse-gateway ↔ grid-rules file bus | T381, T382 | no vs compose | done |
 | 28 | P0-T390 | compose file-bus E2E smoke (`-p vp390`): gateway → bus → rules → api+pg | T385, T300 | yes | done |
+| 28 | P0-T394 | compose perception E2E (`-p vp394`): inbox → fallback detectors → bus → rules counters | T384, T385, T390 | yes | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**; web via **T060 → T170 → T230**.
 
@@ -179,5 +180,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-T384 grid-perception compose file-ingest loop
 - [x] P0-T385 shared compose file-bus volume (gateway ↔ rules)
 - [x] P0-T390 compose file-bus E2E smoke (file bus + HTTP glue; Kafka not in path)
+- [x] P0-T394 compose perception inbox → bus → rules E2E (CPU fallbacks; findings only, no alerts)
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes

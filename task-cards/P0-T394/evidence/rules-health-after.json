@@ -1,0 +1,1 @@
+{"status":"ok","service":"grid-rules","detect_topic":"vp.detect.v1","loop":{"inputs":{"file":true,"kafka":false},"outputs":{"file":true,"kafka":false},"detects":1,"findings":2,"alerts":0,"rejected":0}}

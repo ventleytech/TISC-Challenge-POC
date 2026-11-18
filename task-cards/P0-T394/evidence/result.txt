@@ -1,0 +1,1 @@
+PASS inspection=4cb40a56-68c2-4812-ac9f-0cb48798b15e perception=processed=1 detections=2 rules=detects=1 findings=2 alerts=0 rejected=0
