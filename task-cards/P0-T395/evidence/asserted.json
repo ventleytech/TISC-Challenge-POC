@@ -1,0 +1,14 @@
+{
+  "inspection_id": "91efe3f2-03c8-44ca-b1ea-a6dd8613774c",
+  "finding_ids": [
+    "ae029bc5-5043-4866-9dff-abc91fa60535"
+  ],
+  "alert_ids": [
+    "ce2f4e5e-2459-490f-bac2-682b7c98a3ae"
+  ],
+  "notify_lines": 2,
+  "notify_channels": [
+    "push",
+    "sms"
+  ]
+}
