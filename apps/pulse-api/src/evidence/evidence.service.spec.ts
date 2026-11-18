@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { PulseApiSettings } from '../config/settings';
 import { loadEvidenceSettings } from '../config/settings';
 import { EvidenceService } from './evidence.service';
@@ -18,7 +22,10 @@ function svc(env: NodeJS.ProcessEnv = {}): EvidenceService {
     swaggerPath: '/api/docs',
     authEnabled: false,
     authPrincipals: new Map(),
-    evidence: loadEvidenceSettings({ PULSE_EVIDENCE_SIGNING_SECRET: 's3cret', ...env }),
+    evidence: loadEvidenceSettings({
+      PULSE_EVIDENCE_SIGNING_SECRET: 's3cret',
+      ...env,
+    }),
   } as PulseApiSettings;
   return new EvidenceService(settings);
 }
@@ -45,7 +52,9 @@ describe('EvidenceService', () => {
     const s = svc();
     const meta = await s.create(body());
     expect(meta.id).toMatch(/^ev_[0-9a-f]{12}$/);
-    expect(meta.object_key).toBe(`util-demo-01/insp_insp-1/evidence/${meta.id}.png`);
+    expect(meta.object_key).toBe(
+      `util-demo-01/insp_insp-1/evidence/${meta.id}.png`,
+    );
 
     const { items } = { items: await s.list({ utilityId: 'util-demo-01' }) };
     expect(items).toHaveLength(1);
@@ -69,23 +78,41 @@ describe('EvidenceService', () => {
     const s = svc({ PULSE_EVIDENCE_URL_TTL_SECONDS: '1' });
     const meta = await s.create(body());
     const { exp, sig } = parseSigned((await s.getView(meta.id)).content_path);
-    await expect(s.readSigned(meta.id, exp, 'ab'.repeat(32))).rejects.toThrow(UnauthorizedException);
-    await expect(s.readSigned(meta.id, undefined, undefined)).rejects.toThrow(UnauthorizedException);
+    await expect(s.readSigned(meta.id, exp, 'ab'.repeat(32))).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(s.readSigned(meta.id, undefined, undefined)).rejects.toThrow(
+      UnauthorizedException,
+    );
     const old = String(Math.floor(Date.now() / 1000) - 5);
-    await expect(s.readSigned(meta.id, old, sig)).rejects.toThrow(UnauthorizedException);
+    await expect(s.readSigned(meta.id, old, sig)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('validates input and size', async () => {
     const s = svc({ PULSE_EVIDENCE_MAX_BYTES: '16' });
-    await expect(s.create(body({ kind: 'nope' as never }))).rejects.toThrow(BadRequestException);
-    await expect(s.create(body({ content_type: 'text/html' }))).rejects.toThrow(BadRequestException);
-    await expect(s.create(body({ class_id: 'ufo' as never }))).rejects.toThrow(BadRequestException);
-    await expect(s.create(body({ confidence: 2 }))).rejects.toThrow(BadRequestException);
-    await expect(s.create(body({ utility_id: '../x' }))).rejects.toThrow(BadRequestException);
+    await expect(s.create(body({ kind: 'nope' as never }))).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(s.create(body({ content_type: 'text/html' }))).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(s.create(body({ class_id: 'ufo' as never }))).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(s.create(body({ confidence: 2 }))).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(s.create(body({ utility_id: '../x' }))).rejects.toThrow(
+      BadRequestException,
+    );
     await expect(s.create(body())).rejects.toThrow(/MAX_BYTES/);
   });
 
   it('404s unknown id', async () => {
-    await expect(svc().getView('ev_000000000000')).rejects.toThrow(NotFoundException);
+    await expect(svc().getView('ev_000000000000')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

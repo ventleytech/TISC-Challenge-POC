@@ -70,7 +70,9 @@ export class EvidenceService {
         'PULSE_EVIDENCE_SIGNING_SECRET unset — signed URLs die on restart',
       );
     }
-    this.log.log(`evidence backend=${this.backend.name} bucket=${this.cfg.bucket}`);
+    this.log.log(
+      `evidence backend=${this.backend.name} bucket=${this.cfg.bucket}`,
+    );
   }
 
   get backendName(): string {
@@ -104,7 +106,9 @@ export class EvidenceService {
       bad('inspection_id required (alphanumeric ._-)');
     }
     if (!EVIDENCE_KINDS.includes(body.kind)) bad(`invalid kind: ${body.kind}`);
-    if (!(EVIDENCE_CONTENT_TYPES as readonly string[]).includes(body.content_type)) {
+    if (
+      !(EVIDENCE_CONTENT_TYPES as readonly string[]).includes(body.content_type)
+    ) {
       bad(`unsupported content_type: ${body.content_type}`);
     }
     if (body.class_id != null && !DETECTION_CLASSES.includes(body.class_id)) {
@@ -112,13 +116,21 @@ export class EvidenceService {
     }
     if (
       body.confidence != null &&
-      !(typeof body.confidence === 'number' && body.confidence >= 0 && body.confidence <= 1)
+      !(
+        typeof body.confidence === 'number' &&
+        body.confidence >= 0 &&
+        body.confidence <= 1
+      )
     ) {
       bad('confidence must be a number in [0,1]');
     }
     if (
       body.bbox != null &&
-      !(Array.isArray(body.bbox) && body.bbox.length === 4 && body.bbox.every((n) => Number.isFinite(n)))
+      !(
+        Array.isArray(body.bbox) &&
+        body.bbox.length === 4 &&
+        body.bbox.every((n) => Number.isFinite(n))
+      )
     ) {
       bad('bbox must be [x,y,w,h] numbers');
     }

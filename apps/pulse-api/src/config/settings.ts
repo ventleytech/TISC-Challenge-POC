@@ -1,9 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import * as path from 'node:path';
-import {
-  isEnergyRole,
-  type EnergyRole,
-} from '../auth/roles';
+import { isEnergyRole, type EnergyRole } from '../auth/roles';
 import type { AuthPrincipal } from '../auth/principal';
 
 export type PulseApiSettings = {
@@ -134,12 +131,18 @@ export function loadEvidenceSettings(
   }
   const endpoint = env.PULSE_STORE_ENDPOINT?.trim() || 'http://127.0.0.1:9000';
   const ttl = Number(env.PULSE_EVIDENCE_URL_TTL_SECONDS ?? '300');
-  const maxBytes = Number(env.PULSE_EVIDENCE_MAX_BYTES ?? String(5 * 1024 * 1024));
+  const maxBytes = Number(
+    env.PULSE_EVIDENCE_MAX_BYTES ?? String(5 * 1024 * 1024),
+  );
   if (!Number.isInteger(ttl) || ttl <= 0) {
-    throw new Error(`Invalid PULSE_EVIDENCE_URL_TTL_SECONDS: ${env.PULSE_EVIDENCE_URL_TTL_SECONDS}`);
+    throw new Error(
+      `Invalid PULSE_EVIDENCE_URL_TTL_SECONDS: ${env.PULSE_EVIDENCE_URL_TTL_SECONDS}`,
+    );
   }
   if (!Number.isInteger(maxBytes) || maxBytes <= 0) {
-    throw new Error(`Invalid PULSE_EVIDENCE_MAX_BYTES: ${env.PULSE_EVIDENCE_MAX_BYTES}`);
+    throw new Error(
+      `Invalid PULSE_EVIDENCE_MAX_BYTES: ${env.PULSE_EVIDENCE_MAX_BYTES}`,
+    );
   }
   const secretRaw = env.PULSE_EVIDENCE_SIGNING_SECRET?.trim() ?? '';
   return {
@@ -150,7 +153,9 @@ export function loadEvidenceSettings(
     secretKey: env.PULSE_STORE_SECRET_KEY?.trim() || 'change-me-local-only',
     region: env.PULSE_STORE_REGION?.trim() || 'us-east-1',
     useSSL: parseBool(env.PULSE_STORE_USE_SSL, endpoint.startsWith('https://')),
-    fsRoot: path.resolve(env.PULSE_STORE_FS_ROOT?.trim() || './.pulse-store-data'),
+    fsRoot: path.resolve(
+      env.PULSE_STORE_FS_ROOT?.trim() || './.pulse-store-data',
+    ),
     signingSecret: secretRaw || randomBytes(32).toString('hex'),
     signingSecretEphemeral: secretRaw.length === 0,
     urlTtlSeconds: ttl,
@@ -201,9 +206,7 @@ export function parseStubKeys(raw: string): Map<string, AuthPrincipal> {
     }
     const role: EnergyRole = roleRaw;
     if (!utilityId && role !== 'platform_admin') {
-      throw new Error(
-        `Stub key ${key}: utility_id required for role ${role}`,
-      );
+      throw new Error(`Stub key ${key}: utility_id required for role ${role}`);
     }
     if (utilityId && role === 'platform_admin') {
       // platform may optionally bind a home utility; still cross-scope

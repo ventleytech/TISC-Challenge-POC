@@ -14,16 +14,19 @@ export class MemoryBackend implements ObjectBackend {
   readonly name = 'memory';
   private readonly blobs = new Map<string, Buffer>();
 
-  async put(key: string, body: Buffer): Promise<void> {
+  put(key: string, body: Buffer): Promise<void> {
     this.blobs.set(key, Buffer.from(body));
+    return Promise.resolve();
   }
 
-  async get(key: string): Promise<Buffer | undefined> {
-    return this.blobs.get(key);
+  get(key: string): Promise<Buffer | undefined> {
+    return Promise.resolve(this.blobs.get(key));
   }
 
-  async list(prefix: string): Promise<string[]> {
-    return [...this.blobs.keys()].filter((k) => k.startsWith(prefix));
+  list(prefix: string): Promise<string[]> {
+    return Promise.resolve(
+      [...this.blobs.keys()].filter((k) => k.startsWith(prefix)),
+    );
   }
 }
 
