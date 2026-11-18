@@ -1,0 +1,23 @@
+
+> @voltpulse/pulse-gateway@0.1.0 test
+> tsx --test test/*.test.ts
+
+✔ loadSettings reads gateway ports from env (2.066347ms)
+✔ buildPullUrl constructs rtsp and rtmp URLs (0.633117ms)
+✔ FileSessionRegistry persists RTSP session and handoff targets grid-perception (23.383082ms)
+✔ FileSessionRegistry rejects bad protocol (2.888143ms)
+✔ config: bad sink mode, kafka without brokers, bad pull url all throw (2.516296ms)
+✔ pull/sync registers configured URLs once (idempotent) (131.724852ms)
+✔ frames: sink off → 409 (18.522935ms)
+✔ frames: file sink writes contract-shaped vp.detect.v1 line (27.331996ms)
+✔ frames: kafka sink sends to topic keyed by inspection_id (14.017827ms)
+✔ GET /health returns pulse-gateway ok (64.739942ms)
+✔ POST /sessions registers RTMP URL and handoff is available (44.156738ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 646.284972
