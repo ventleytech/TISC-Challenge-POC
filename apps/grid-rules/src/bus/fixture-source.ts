@@ -14,7 +14,7 @@ export async function loadDetectFixture(path: string): Promise<VpDetectV1> {
   return parsed;
 }
 
-function assertDetectShape(v: unknown, path: string): asserts v is VpDetectV1 {
+export function assertDetectShape(v: unknown, path: string): asserts v is VpDetectV1 {
   if (!v || typeof v !== 'object') {
     throw new Error(`Fixture ${path}: expected object`);
   }

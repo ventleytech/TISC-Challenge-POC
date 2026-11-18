@@ -40,6 +40,13 @@ Smoke prints JSON: findings (`severity`, `risk_score`, optional `extensions.part
 | `GRID_RULES_KAFKA_PRODUCER_ENABLED` | `false` | Publish findings/alerts to Kafka (also needs `KAFKA_BROKERS`) |
 | `KAFKA_BROKERS` | unset | Comma-separated bootstrap list; unset → Kafka publish is a no-op |
 | `GRID_RULES_KAFKA_CLIENT_ID` | `grid-rules` | Producer client id |
+| `GRID_RULES_DETECT_FILE` | unset | Loop input: JSONL of `vp.detect.v1` to tail |
+| `GRID_RULES_OUT_DIR` | unset | Loop output: writes `<topic>.jsonl` (findings, alerts) |
+| `GRID_RULES_ASSETS_FILE` | unset | Asset context JSON (`fixtures/assets.json` shape) |
+| `GRID_RULES_POLL_MS` | `1000` | File tail poll interval (≥50) |
+| `GRID_RULES_KAFKA_CONSUMER_ENABLED` | `false` | Consume `VP_TOPIC_DETECT` (also needs `KAFKA_BROKERS`) |
+| `GRID_RULES_KAFKA_GROUP_ID` | `grid-rules` | Consumer group |
+| `GRID_RULES_KAFKA_FROM_BEGINNING` | `false` | Consumer starts at earliest offset on a new group |
 
 No secrets. Brokers only via env. SLA/channels are **not** hardcoded in grid-rules — they load from `packages/alert-policy`.
 
@@ -62,6 +69,19 @@ src/
 fixtures/     # synthetic vp.detect.v1
 ```
 
+## Service loop (`serve.ts` / container)
+
+`dist/serve.js` serves `/health` **and** runs the rules loop (`src/loop.ts`). Inputs/outputs are env-gated and combine freely:
+
+| Direction | Gate | Notes |
+|-----------|------|-------|
+| in: file | `GRID_RULES_DETECT_FILE` | Tails JSONL (byte offset, partial-line safe); pairs with `pulse-gateway` file sink |
+| in: Kafka | `GRID_RULES_KAFKA_CONSUMER_ENABLED=true` + `KAFKA_BROKERS` | Group consumer on `VP_TOPIC_DETECT` |
+| out: file | `GRID_RULES_OUT_DIR` | `<VP_TOPIC_FINDINGS>.jsonl`, `<VP_TOPIC_ALERTS>.jsonl` |
+| out: Kafka | `GRID_RULES_KAFKA_PRODUCER_ENABLED=true` + `KAFKA_BROKERS` | Same records as file out |
+
+Malformed lines/messages are logged and counted (`rejected` in `/health` → `loop`), not fatal. With no inputs set it only serves `/health`.
+
 ## Compose note
 
-Profile target: `stream`. This card does **not** rewrite root Compose — run locally via `npm run smoke` until a tiny service fragment is owned by a compose card.
+Profile `stream`. Compose defaults: tail `/data/bus/vp.detect.v1.jsonl`, write `/data/bus/vp.findings.v1.jsonl` + `vp.alerts.v1.jsonl` (container-local, no volume). Kafka in/out stay off until flagged in `.env`.

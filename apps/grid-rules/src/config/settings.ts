@@ -33,6 +33,22 @@ export type Settings = {
     enabled: boolean;
     clientId: string;
   };
+  /** Long-running loop (serve.ts). Each input/output is env-gated; unset → off. */
+  loop: {
+    /** JSONL of vp.detect.v1 to tail (file bus input). */
+    detectFile: string | null;
+    /** Dir for findings/alerts JSONL (`<topic>.jsonl`); null → no file output. */
+    outDir: string | null;
+    /** Asset context JSON (asset_id → AssetContext); null → engine defaults. */
+    assetsFile: string | null;
+    pollMs: number;
+    /** Kafka consumer on vp.detect.* — needs flag AND KAFKA_BROKERS. */
+    kafkaConsumer: {
+      enabled: boolean;
+      groupId: string;
+      fromBeginning: boolean;
+    };
+  };
 };
 
 /** Map legacy GRID_RULES_SLA_* into VP_ALERT_SLA_* when modern keys unset. */
@@ -59,6 +75,14 @@ function withLegacyAlertEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return out;
 }
 
+function parsePollMs(raw: string | undefined): number {
+  const n = Number(raw ?? '1000');
+  if (!Number.isInteger(n) || n < 50) {
+    throw new Error(`Invalid GRID_RULES_POLL_MS: ${raw}`);
+  }
+  return n;
+}
+
 export function loadSettings(
   env: NodeJS.ProcessEnv = process.env,
 ): Settings {
@@ -79,6 +103,17 @@ export function loadSettings(
     kafkaProducer: {
       enabled: env.GRID_RULES_KAFKA_PRODUCER_ENABLED === 'true',
       clientId: env.GRID_RULES_KAFKA_CLIENT_ID ?? 'grid-rules',
+    },
+    loop: {
+      detectFile: env.GRID_RULES_DETECT_FILE?.trim() || null,
+      outDir: env.GRID_RULES_OUT_DIR?.trim() || null,
+      assetsFile: env.GRID_RULES_ASSETS_FILE?.trim() || null,
+      pollMs: parsePollMs(env.GRID_RULES_POLL_MS),
+      kafkaConsumer: {
+        enabled: env.GRID_RULES_KAFKA_CONSUMER_ENABLED === 'true',
+        groupId: env.GRID_RULES_KAFKA_GROUP_ID ?? 'grid-rules',
+        fromBeginning: env.GRID_RULES_KAFKA_FROM_BEGINNING === 'true',
+      },
     },
   };
 }

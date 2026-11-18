@@ -131,6 +131,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 23 | P0-T371 | MinIO image re-pin (`bitnamilegacy` tag+digest) | T110, T350 | no vs compose | done |
 | 24 | P0-T380 | pulse-gateway pull targets + env-gated synthetic `vp.detect.v1` | T040 | ok vs compose | done |
 | 25 | P0-T381 | pulse-gateway real Docker image + compose service | T380, T371 | no vs compose | done |
+| 26 | P0-T382 | grid-rules compose runs real rules loop (file/Kafka) | T340, T381 | no vs compose | done |
 | 26 | P0-T383 | pulse-notify real Docker image + compose service | T360, T365, T381 | no vs compose | done |
 | 27 | P0-T384 | grid-perception compose runs file-ingest loop (not health-only) | T010, T240, T340 | no vs compose | done |
 
@@ -171,6 +172,7 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-T371 MinIO image re-pin
 - [x] P0-T380 pulse-gateway pull stub + detect sink
 - [x] P0-T381 pulse-gateway Docker image + compose
+- [x] P0-T382 grid-rules compose rules loop
 - [x] P0-T383 pulse-notify Docker image + compose
 - [x] P0-T384 grid-perception compose file-ingest loop
 - [ ] No secrets / internal brands in tracked diffs
