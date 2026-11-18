@@ -57,6 +57,7 @@ cd apps/pulse-api && npm run db:migrate
 |-------|------|
 | Compose `pulse-store` | MinIO server; API `${PULSE_STORE_API_PORT:-9000}`, console `${PULSE_STORE_CONSOLE_PORT:-9001}` |
 | Compose `pulse-store-buckets` | One-shot `mc` create of `PULSE_STORE_BUCKETS` |
+| Compose `pulse-store-api` | T397: built Node HTTP app (`voltpulse/pulse-store:dev`) over MinIO — `/health`, `/v1/objects/*`, `/v1/evidence`, `/v1/legal-hold/*`, `/v1/retention/*`; port `PULSE_STORE_HTTP_PORT` (3030); meta volume `pulse_store_api_data` |
 | Env | Root `.env.template` — `PULSE_STORE_*` (placeholder secrets only) |
 | Client | `apps/pulse-store` with `PULSE_STORE_BACKEND=minio` and `PULSE_STORE_ENDPOINT=http://pulse-store:9000` (or `http://127.0.0.1:9000` from host) |
 
@@ -70,7 +71,7 @@ docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env 
 ```
 
 **Real images:** `store` → MinIO/mc; `stream`/`data` → Apache Kafka; `data` → Postgres (`pulse-postgres`).
-**Built from repo (T340, context = repo root, tag `voltpulse/<svc>:dev`):** `pulse-api` (migrate + Nest), `pulse-web` (nginx; `PULSE_WEB_API_URL` baked at build), `grid-rules` + `grid-perception` (`/health` entrypoints only; no live consume loop / weights yet), `pulse-train` (T396, Node multi-stage, `/health` on `PULSE_TRAIN_PORT`, queue volume `pulse_train_data`). `pulse-gateway`, `pulse-notify`, obs remain alpine stubs.
+**Built from repo (T340, context = repo root, tag `voltpulse/<svc>:dev`):** `pulse-api` (migrate + Nest), `pulse-web` (nginx; `PULSE_WEB_API_URL` baked at build), `grid-rules` + `grid-perception` (`/health` entrypoints only; no live consume loop / weights yet), `pulse-store-api` (T397, Node multi-stage, `/health`), `pulse-train` (T396, Node multi-stage, `/health` on `PULSE_TRAIN_PORT`, queue volume `pulse_train_data`). `pulse-gateway`, `pulse-notify`, obs remain alpine stubs.
 
 ```bash
 docker compose -p voltpulse -f infra/compose/docker-compose.yml --env-file .env --profile data --profile stream --profile sense build

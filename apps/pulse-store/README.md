@@ -24,6 +24,20 @@ Compose profile `store` runs **MinIO** as service `pulse-store` (T110). This pac
 
 M07 thin = env policy only.
 
+## HTTP app (T397)
+
+`npm run build && npm start` (or compose service `pulse-store-api`, profile `store`). Listens on `PULSE_STORE_HTTP_PORT` (default 3030).
+
+| Route | Role |
+|-------|------|
+| `GET /health` | liveness (`backend`, `bucket`) |
+| `PUT\|GET\|HEAD\|DELETE /v1/objects/{key}` | raw object bytes; `PUT ?legal_hold=true`; delete → 409 under hold |
+| `POST /v1/evidence?utility_id=&inspection_id=&ext=` | content-addressed key derived server-side → `{ key }` |
+| `PUT\|DELETE /v1/legal-hold/{key}` | set / clear hold |
+| `GET /v1/retention/{key}` | `created_at`, `legal_hold`, `tier` |
+
+Retention meta index lives under `PULSE_STORE_FS_ROOT` (`/data/store` volume in compose).
+
 ## Evidence keys
 
 See `docs/storage-retention.md`:

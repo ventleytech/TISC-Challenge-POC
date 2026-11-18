@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
     "test": "tsx --test test/*.test.ts",
     "smoke": "tsx scripts/smoke.ts",
     "smoke:retention": "tsx scripts/smoke-retention.ts"

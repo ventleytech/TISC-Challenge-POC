@@ -366,9 +366,43 @@ services:
         echo "pulse-store-buckets done"
     restart: "no"
 
+  # HTTP app over MinIO (T397): evidence put/get, retention status, legal hold. Source: apps/pulse-store.
+  pulse-store-api:
+    profiles: [store]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-store/Dockerfile
+    image: voltpulse/pulse-store:dev
+    container_name: vp-pulse-store-api
+    depends_on:
+      pulse-store:
+        condition: service_started
+      pulse-store-buckets:
+        condition: service_completed_successfully
+    ports:
+      - "${PULSE_STORE_HTTP_PORT:-3030}:${PULSE_STORE_HTTP_PORT:-3030}"
+    environment:
+      PULSE_STORE_HTTP_HOST: ${PULSE_STORE_HTTP_HOST:-0.0.0.0}
+      PULSE_STORE_HTTP_PORT: ${PULSE_STORE_HTTP_PORT:-3030}
+      PULSE_STORE_HTTP_MAX_BYTES: ${PULSE_STORE_HTTP_MAX_BYTES:-26214400}
+      # Always MinIO inside compose (root PULSE_STORE_BACKEND stays fs for host smokes).
+      PULSE_STORE_BACKEND: ${PULSE_STORE_API_BACKEND:-minio}
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT:-http://pulse-store:9000}
+      PULSE_STORE_BUCKET: ${PULSE_STORE_BUCKET:-voltpulse-evidence}
+      PULSE_STORE_ACCESS_KEY: ${PULSE_STORE_ACCESS_KEY}
+      PULSE_STORE_SECRET_KEY: ${PULSE_STORE_SECRET_KEY}
+      PULSE_STORE_REGION: ${PULSE_STORE_REGION:-us-east-1}
+      PULSE_STORE_FS_ROOT: ${PULSE_STORE_API_FS_ROOT_CONTAINER:-/data/store}
+      PULSE_STORE_HOT_DAYS: ${PULSE_STORE_HOT_DAYS:-30}
+      PULSE_STORE_WARM_DAYS: ${PULSE_STORE_WARM_DAYS:-365}
+    volumes:
+      - pulse_store_api_data:/data/store
+    restart: "no"
+
 volumes:
   pulse_pg_data:
   pulse_store_data:
+  pulse_store_api_data:
   pulse_kafka_data:
   # File bus shared by grid-perception, pulse-gateway, grid-rules (T384/T385; images chown /data/bus to node).
   pulse_bus_files:
