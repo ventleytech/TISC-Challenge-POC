@@ -9,10 +9,11 @@ WORKDIR /srv/apps/pulse-web
 COPY apps/pulse-web/package.json apps/pulse-web/package-lock.json ./
 RUN npm ci
 COPY apps/pulse-web/ ./
-# Browser-facing API base (baked at build time). Empty → mock client.
-ARG PULSE_WEB_API_URL=""
-ARG PULSE_WEB_API_KEY=""
-ENV VITE_PULSE_API_URL=${PULSE_WEB_API_URL} VITE_PULSE_API_KEY=${PULSE_WEB_API_KEY}
+# Browser-facing API base (baked at build time). Live-by-default (T400).
+ARG PULSE_WEB_API_URL="http://127.0.0.1:3000/api/v1"
+ARG PULSE_WEB_API_KEY="dev-operator"
+ARG PULSE_WEB_MOCK=""
+ENV VITE_PULSE_API_URL=${PULSE_WEB_API_URL} VITE_PULSE_API_KEY=${PULSE_WEB_API_KEY} VITE_PULSE_MOCK=${PULSE_WEB_MOCK}
 RUN npm run build
 
 FROM ${NGINX_IMAGE}

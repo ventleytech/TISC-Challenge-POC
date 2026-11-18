@@ -27,24 +27,19 @@ Routes:
 
 ## Data mode
 
-Default: mock client in `src/mock/` (offline demo).
+**Live-by-default** (P0-T400): `npm run dev` uses `.env.development` → Nest at `http://127.0.0.1:3000/api/v1`. List reads fall back to mock if API unreachable; **writes** (inspection/asset create) fail loudly when live.
 
-Live Nest (opt-in):
+Mock-only opt-out:
 
 ```bash
-# URL form
-VITE_PULSE_API_URL=http://127.0.0.1:3000/api/v1 \
-VITE_PULSE_API_KEY=dev-operator \
-npm run dev
-
-# or shorthand base flag (same default URL)
-VITE_PULSE_API_BASE=1 VITE_PULSE_API_KEY=dev-operator npm run dev
+VITE_PULSE_MOCK=1 npm run dev
 ```
 
 | Env | Role |
 |-----|------|
-| `VITE_PULSE_API_URL` | Base `/api/v1` URL — enables live mode |
-| `VITE_PULSE_API_BASE=1` | Enables live mode at `http://127.0.0.1:3000/api/v1` |
+| `VITE_PULSE_API_URL` | Base `/api/v1` URL (default in `.env.development`) |
 | `VITE_PULSE_API_KEY` | Optional → `X-API-Key` (needed when Nest auth on) |
+| `VITE_PULSE_MOCK=1` | Force mock client (offline demo) |
+| `VITE_PULSE_API_BASE=1` | Legacy shorthand (same default URL) |
 
-Live surfaces: inspections / assets / alerts / findings list + inspection create + alert ack (`POST …/alerts/{id}/ack`). On unset env or fetch failure → mock fallback. Evidence (`/evidence`) also goes live via `GET /evidence` + signed image URLs (needs pulse-api `PULSE_API_CORS_ORIGINS` to include the dev origin); empty/unreachable → rich mock vault. Ops metrics stay mock.
+Live surfaces: inspections / assets / alerts / findings list + inspection create + asset create + alert ack (`POST …/alerts/{id}/ack`). Evidence (`/evidence`) also goes live via `GET /evidence` + signed image URLs (needs pulse-api `PULSE_API_CORS_ORIGINS` to include the dev origin); empty/unreachable → rich mock vault. Ops metrics stay mock.

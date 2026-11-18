@@ -220,8 +220,8 @@ services:
       dockerfile: apps/pulse-web/Dockerfile
       args:
         # Browser-facing API base (host port), baked at build time.
-        PULSE_WEB_API_URL: ${PULSE_WEB_API_URL:-}
-        PULSE_WEB_API_KEY: ${PULSE_WEB_API_KEY:-}
+        PULSE_WEB_API_URL: ${PULSE_WEB_API_URL:-http://127.0.0.1:3000/api/v1}
+        PULSE_WEB_API_KEY: ${PULSE_WEB_API_KEY:-dev-operator}
     image: voltpulse/pulse-web:dev
     container_name: vp-pulse-web
     ports:

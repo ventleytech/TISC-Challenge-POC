@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   AssetFilters,
   type AssetFilterState,
 } from "../components/AssetFilters";
-import { listAssets } from "../mock/client";
-import type { Asset } from "../types/domain";
+import { createAsset, listAssets, liveApiEnabled } from "../mock/client";
+import { DEMO_UTILITY_ID } from "../mock/data";
+import type { Asset, AssetKind, Criticality } from "../types/domain";
+import { ASSET_KINDS, CRITICALITIES } from "../types/domain";
 
 const emptyFilters: AssetFilterState = {
   kind: "",
@@ -17,6 +19,14 @@ export function AssetsPage() {
   const [filters, setFilters] = useState<AssetFilterState>(emptyFilters);
   const [items, setItems] = useState<Asset[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
+  const [name, setName] = useState("");
+  const [kind, setKind] = useState<AssetKind>("tower");
+  const [criticality, setCriticality] = useState<Criticality>("medium");
+  const [voltage, setVoltage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,7 +46,34 @@ export function AssetsPage() {
     return () => {
       cancelled = true;
     };
-  }, [filters]);
+  }, [filters, reloadTick]);
+
+  async function onCreate(e: FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) {
+      setFormError("Name required");
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      const { id } = await createAsset({
+        utility_id: DEMO_UTILITY_ID,
+        name: name.trim(),
+        kind,
+        criticality,
+        voltage_class: voltage.trim() || null,
+      });
+      setCreatedId(id);
+      setName("");
+      setVoltage("");
+      setReloadTick((n) => n + 1);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Create failed");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const stats = useMemo(() => {
     const critical = items.filter((a) => a.criticality === "critical").length;
@@ -51,10 +88,73 @@ export function AssetsPage() {
         <p className="catalog__eyebrow">VoltPulse · A01</p>
         <h1 className="catalog__title">Asset registry</h1>
         <p className="catalog__summary">
-          Dense corridor registry — criticality, voltage, circuit, OEM. Filters
-          live; map panel is a layout stub for demo density.
+          Dense corridor registry — create writes through
+          {liveApiEnabled() ? " live pulse-api" : " mock client"}; filters apply
+          to the loaded set.
         </p>
       </header>
+
+      <form className="wizard-panel wizard-panel--rich" onSubmit={onCreate}>
+        <h2 className="catalog__subtitle">Add asset</h2>
+        <div className="filters">
+          <label className="filters__field">
+            <span className="filters__label">Name</span>
+            <input
+              className="filters__input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tower T-12"
+              required
+            />
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Kind</span>
+            <select
+              className="filters__select"
+              value={kind}
+              onChange={(e) => setKind(e.target.value as AssetKind)}
+            >
+              {ASSET_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Criticality</span>
+            <select
+              className="filters__select"
+              value={criticality}
+              onChange={(e) => setCriticality(e.target.value as Criticality)}
+            >
+              {CRITICALITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Voltage</span>
+            <input
+              className="filters__input"
+              value={voltage}
+              onChange={(e) => setVoltage(e.target.value)}
+              placeholder="132kV"
+            />
+          </label>
+          <button type="submit" className="btn btn--primary" disabled={saving}>
+            {saving ? "Saving…" : "Create asset"}
+          </button>
+        </div>
+        {formError ? <p className="catalog__error">{formError}</p> : null}
+        {createdId ? (
+          <p className="catalog__summary">
+            Created <strong className="mono">{createdId}</strong>
+          </p>
+        ) : null}
+      </form>
 
       <div className="stat-band">
         <div className="stat-band__cell">

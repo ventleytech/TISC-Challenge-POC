@@ -84,6 +84,18 @@ type VitePulseEnv = {
   VITE_PULSE_API_BASE?: string;
   VITE_PULSE_API_URL?: string;
   VITE_PULSE_API_KEY?: string;
+  /** Explicit mock-only mode (T400). Live is default. */
+  VITE_PULSE_MOCK?: string;
+};
+
+export type AssetCreate = {
+  utility_id: string;
+  name: string;
+  site_id?: string | null;
+  criticality?: Criticality;
+  voltage_class?: string | null;
+  /** UI-only hint; Nest AssetCreate has no kind yet. */
+  kind?: AssetKind;
 };
 
 /** C09 sort: risk desc → severity → criticality → occurred_at desc → id. */
@@ -105,7 +117,10 @@ function pulseEnv(): VitePulseEnv | undefined {
 
 export function liveApiEnabled(): boolean {
   const env = pulseEnv();
-  return env?.VITE_PULSE_API_BASE === "1" || Boolean(env?.VITE_PULSE_API_URL);
+  const mock = env?.VITE_PULSE_MOCK?.trim().toLowerCase();
+  if (mock === "1" || mock === "true") return false;
+  // T400: live-by-default. Opt out with VITE_PULSE_MOCK=1.
+  return true;
 }
 
 function apiBase(): string {
@@ -190,7 +205,9 @@ export async function listAssets(
   const live = await tryFetchJson<ListResult<Asset>>(
     `/assets?utility_id=${encodeURIComponent(utilityId)}`,
   );
-  let items = live?.items ?? assetsDb.filter((a) => a.utility_id === utilityId);
+  let items = (live?.items ?? assetsDb.filter((a) => a.utility_id === utilityId)).map(
+    (a) => ({ ...a, kind: a.kind ?? ("tower" as AssetKind) }),
+  );
 
   if (filters.kind) {
     items = items.filter((a) => a.kind === filters.kind);
@@ -241,16 +258,16 @@ export async function createInspection(
   body: InspectionCreate,
 ): Promise<{ id: string }> {
   if (liveApiEnabled()) {
-    try {
-      const res = await apiFetch(`/inspections`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) return (await res.json()) as { id: string };
-    } catch {
-      // fall through to mock
+    const res = await apiFetch(`/inspections`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error(detail || `create inspection failed (${res.status})`);
     }
+    return (await res.json()) as { id: string };
   }
   const id = `insp-mock-${nextSeq++}`;
   inspectionsDb.unshift({
@@ -267,10 +284,55 @@ export async function createInspection(
   return { id };
 }
 
+export async function createAsset(body: AssetCreate): Promise<{ id: string }> {
+  if (liveApiEnabled()) {
+    const res = await apiFetch(`/assets`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        utility_id: body.utility_id,
+        name: body.name,
+        site_id: body.site_id ?? null,
+        criticality: body.criticality,
+        voltage_class: body.voltage_class ?? null,
+      }),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error(detail || `create asset failed (${res.status})`);
+    }
+    return (await res.json()) as { id: string };
+  }
+  const id = `ast-mock-${nextSeq++}`;
+  assetsDb.unshift({
+    id,
+    utility_id: body.utility_id,
+    name: body.name,
+    kind: body.kind ?? "tower",
+    criticality: body.criticality,
+    voltage_class: body.voltage_class ?? null,
+    parent_id: null,
+    oem: null,
+    install_year: null,
+    circuit: null,
+  });
+  return { id };
+}
+
+/** Sync mock helper kept for offline fixtures. Prefer listAssetsForScheduleKind. */
 export function assetsForScheduleKind(kind: ScheduleKind): Asset[] {
   return assetsDb.filter(
     (a) => a.utility_id === DEMO_UTILITY_ID && a.kind === kind,
   );
+}
+
+/** Live-aware schedule candidates (T401). */
+export async function listAssetsForScheduleKind(
+  kind: ScheduleKind,
+): Promise<Asset[]> {
+  const { items } = await listAssets({ utilityId: DEMO_UTILITY_ID });
+  const matched = items.filter((a) => a.kind === kind);
+  return matched.length > 0 ? matched : items;
 }
 
 export async function listFindings(

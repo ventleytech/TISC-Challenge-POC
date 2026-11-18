@@ -1,12 +1,14 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import {
-  assetsForScheduleKind,
   createInspection,
+  listAssetsForScheduleKind,
+  liveApiEnabled,
 } from "../mock/client";
 import { DEMO_UTILITY_ID } from "../mock/data";
 import {
   SCHEDULE_KINDS,
+  type Asset,
   type ScheduleKind,
 } from "../types/domain";
 
@@ -22,15 +24,36 @@ export function ScheduleWizardPage() {
   const kind: ScheduleKind = kindOk ? kindParam : "line";
   const navigate = useNavigate();
 
-  const candidates = useMemo(() => assetsForScheduleKind(kind), [kind]);
+  const [candidates, setCandidates] = useState<Asset[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
-  const [assetId, setAssetId] = useState(() => candidates[0]?.id ?? "");
+  const [assetId, setAssetId] = useState("");
   const [plannedAt, setPlannedAt] = useState("");
   const [notes, setNotes] = useState("");
   const [payload, setPayload] = useState<"rgb" | "rgb_ir">("rgb_ir");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const items = await listAssetsForScheduleKind(kind);
+        if (cancelled) return;
+        setCandidates(items);
+        setAssetId((prev) => prev || items[0]?.id || "");
+        setLoadError(null);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : "Failed to load assets");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [kind]);
 
   if (!kindOk) {
     return <Navigate to="/inspections/schedule" replace />;
@@ -67,8 +90,8 @@ export function ScheduleWizardPage() {
       </p>
       <h1 className="catalog__title">{kind} wizard</h1>
       <p className="catalog__summary">
-        Three-step shell with payload + notes for demo density. Mock create —
-        T060 flow preserved.
+        Three-step schedule — posts planned inspection
+        {liveApiEnabled() ? " to live pulse-api" : " via mock client"}.
       </p>
 
       <ol className="wizard-steps wizard-steps--rich" aria-label="Wizard steps">
@@ -83,6 +106,7 @@ export function ScheduleWizardPage() {
         ))}
       </ol>
 
+      {loadError ? <p className="catalog__error">{loadError}</p> : null}
       {error ? <p className="catalog__error">{error}</p> : null}
 
       {step === 0 ? (
@@ -101,7 +125,7 @@ export function ScheduleWizardPage() {
           <fieldset className="wizard-fieldset">
             <legend>Select {kind} asset</legend>
             {candidates.length === 0 ? (
-              <p className="catalog__empty">No mock assets for this kind.</p>
+              <p className="catalog__empty">No assets available for this kind.</p>
             ) : (
               candidates.map((a) => (
                 <label key={a.id} className="wizard-option wizard-option--rich">
@@ -198,8 +222,11 @@ export function ScheduleWizardPage() {
               className="btn btn--primary"
               onClick={() => void navigate("/inspections")}
             >
-              Back to inspections
+              Open inspections
             </button>
+            <Link className="btn btn--ghost" to="/inspections/schedule">
+              Schedule another
+            </Link>
           </div>
         </div>
       ) : null}
