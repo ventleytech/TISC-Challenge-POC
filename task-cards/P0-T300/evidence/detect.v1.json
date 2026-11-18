@@ -1,12 +1,12 @@
 {
-  "event_id": "7f87e093-5afd-49d8-ab76-e980a5649e00",
-  "occurred_at": "2026-11-17T23:34:01Z",
+  "event_id": "cd58234c-dbd6-4018-a8b6-c176f20dc5ce",
+  "occurred_at": "2026-11-18T10:54:02Z",
   "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
   "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
   "source": "upload",
   "detections": [
     {
-      "detection_id": "26c1e51a-ee82-42c0-9682-09ab5d9e02a4",
+      "detection_id": "89fbbd26-2950-435f-8f4c-d07dae6d74b2",
       "class_id": "corrosion",
       "confidence": 0.7138081789016724,
       "bbox": [
@@ -17,7 +17,7 @@
       ]
     },
     {
-      "detection_id": "84e55949-b377-489d-80ce-919f4e9734e4",
+      "detection_id": "5bd586b2-304d-4358-a1b6-cd8d2b6f0fe4",
       "class_id": "corrosion",
       "confidence": 0.29573893547058105,
       "bbox": [
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "detection_id": "4ccd743e-8a09-46ea-a23f-bddaf7d1862d",
+      "detection_id": "3fb11bc7-74f9-4b2e-ad13-25a679f605c4",
       "class_id": "corrosion",
       "confidence": 0.6939865946769714,
       "bbox": [
@@ -39,7 +39,7 @@
       ]
     },
     {
-      "detection_id": "da2aa46f-fb44-4248-9957-6345ec501310",
+      "detection_id": "725190ee-1641-4c60-bc58-717a4860c07a",
       "class_id": "corrosion",
       "confidence": 0.5876360535621643,
       "bbox": [
@@ -50,7 +50,7 @@
       ]
     },
     {
-      "detection_id": "56255426-a282-460a-8064-1811da0ca118",
+      "detection_id": "d8b3cdce-0c9b-419d-a4dd-be783dbe9876",
       "class_id": "corrosion",
       "confidence": 0.2776682376861572,
       "bbox": [
