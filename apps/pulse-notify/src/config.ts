@@ -14,6 +14,17 @@ export interface NotifySettings {
   webhookTimeoutMs: number;
   /** adapter=file: JSON-lines sink path. */
   filePath: string;
+  kafka: NotifyKafkaSettings;
+}
+
+export interface NotifyKafkaSettings {
+  /** PULSE_NOTIFY_KAFKA_ENABLED=true. Consumer starts only if brokers also set. */
+  enabled: boolean;
+  /** Comma-separated KAFKA_BROKERS; null when unset. */
+  brokers: string | null;
+  clientId: string;
+  groupId: string;
+  fromBeginning: boolean;
 }
 
 function requireNonEmpty(name: string, value: string | undefined, fallback: string): string {
@@ -92,5 +103,12 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): NotifySettin
       '/api/v1/alerts',
     ),
     ackMode: parseAckMode(env.PULSE_NOTIFY_ACK_MODE),
+    kafka: {
+      enabled: env.PULSE_NOTIFY_KAFKA_ENABLED === 'true',
+      brokers: env.KAFKA_BROKERS?.trim() || null,
+      clientId: requireNonEmpty('PULSE_NOTIFY_KAFKA_CLIENT_ID', env.PULSE_NOTIFY_KAFKA_CLIENT_ID, 'pulse-notify'),
+      groupId: requireNonEmpty('PULSE_NOTIFY_KAFKA_GROUP_ID', env.PULSE_NOTIFY_KAFKA_GROUP_ID, 'pulse-notify'),
+      fromBeginning: env.PULSE_NOTIFY_KAFKA_FROM_BEGINNING === 'true',
+    },
   };
 }
