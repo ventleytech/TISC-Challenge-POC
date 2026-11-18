@@ -35,3 +35,15 @@ npm run smoke:sink   # self-contained webhook + file proof
 ```
 
 Sink errors mark that delivery `failed` (response `deliveries[].status`); they do not 500.
+
+## Kafka consumer (P0-T365)
+
+Off by default. Starts only when **both** are set:
+
+```bash
+PULSE_NOTIFY_KAFKA_ENABLED=true KAFKA_BROKERS=localhost:9094 npm run dev
+```
+
+Subscribes `PULSE_ALERTS_TOPIC` (default `vp.alerts.v1`), group `PULSE_NOTIFY_KAFKA_GROUP_ID` (default `pulse-notify`), `PULSE_NOTIFY_KAFKA_FROM_BEGINNING` (default false). Each message goes through the same pipeline + T360 sinks as `POST /internal/consume` (which keeps working). Malformed messages are logged and skipped; sink failures are recorded as `failed` deliveries.
+
+`KAFKA_BROKERS=localhost:9094 npm run smoke:kafka` — live check against pulse-bus (skips if unset).

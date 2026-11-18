@@ -1,0 +1,56 @@
+
+> @voltpulse/pulse-notify@0.1.0 test
+> tsx --test test/*.test.ts
+
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+✔ kafka gate needs flag AND brokers (1.884116ms)
+[pulse-notify] file sink ok alert=22222222-2222-2222-2222-222222222222 channel=push
+[pulse-notify] file sink ok alert=22222222-2222-2222-2222-222222222222 channel=sms
+[pulse-notify] kafka skip malformed message: Unexpected token 'o', "not json" is not valid JSON
+[pulse-notify] kafka skip malformed message: occurred_at required
+✔ handleAlertMessage routes valid message to file sink (18.482549ms)
+✔ handleAlertMessage skips malformed without throwing (3.093943ms)
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] ack receipt alert=22222222-2222-2222-2222-222222222222 deliveries=2
+[pulse-notify] ack http ok alert=a1 url=http://api.test/api/v1/alerts/a1/receipts
+✔ parseVpAlertsV1 accepts contract-shaped payload (2.869042ms)
+✔ parseVpAlertsV1 rejects bad severity (0.868315ms)
+✔ processAlertEvent delivers push+sms and log-acks (4.171193ms)
+✔ sendAck http posts receipt URL (40.401741ms)
+✔ config: webhook/file adapters require target (2.191057ms)
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] email skipped alert=22222222-2222-2222-2222-222222222222
+[pulse-notify] file sink ok alert=22222222-2222-2222-2222-222222222222 channel=push
+[pulse-notify] file sink ok alert=22222222-2222-2222-2222-222222222222 channel=sms
+[pulse-notify] ack receipt alert=22222222-2222-2222-2222-222222222222 deliveries=3
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] email skipped alert=22222222-2222-2222-2222-222222222222
+✔ file adapter appends one JSON line per sent channel (21.328999ms)
+[pulse-notify] webhook sink ok alert=22222222-2222-2222-2222-222222222222 channel=push
+[pulse-notify] webhook sink ok alert=22222222-2222-2222-2222-222222222222 channel=sms
+[pulse-notify] ack receipt alert=22222222-2222-2222-2222-222222222222 deliveries=3
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] email skipped alert=22222222-2222-2222-2222-222222222222
+[pulse-notify] webhook sink failed alert=22222222-2222-2222-2222-222222222222 channel=push: http 500
+[pulse-notify] webhook sink failed alert=22222222-2222-2222-2222-222222222222 channel=sms: http 500
+[pulse-notify] ack receipt alert=22222222-2222-2222-2222-222222222222 deliveries=3
+[pulse-notify] push mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] SMS mock delivered alert=22222222-2222-2222-2222-222222222222 severity=high
+[pulse-notify] email skipped alert=22222222-2222-2222-2222-222222222222
+[pulse-notify] webhook sink failed alert=22222222-2222-2222-2222-222222222222 channel=push: fetch failed
+[pulse-notify] webhook sink failed alert=22222222-2222-2222-2222-222222222222 channel=sms: fetch failed
+[pulse-notify] ack receipt alert=22222222-2222-2222-2222-222222222222 deliveries=3
+✔ webhook adapter POSTs; non-2xx and network errors mark failed (91.35616ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 484.935019
