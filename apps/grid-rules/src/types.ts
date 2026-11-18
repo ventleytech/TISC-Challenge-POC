@@ -64,6 +64,8 @@ export type VpFindingsV1 = {
   event_id: string;
   occurred_at: string;
   inspection_id: string;
+  /** Optional tenant; set when asset context knows it. */
+  utility_id?: string;
   finding: FindingPayload;
 };
 

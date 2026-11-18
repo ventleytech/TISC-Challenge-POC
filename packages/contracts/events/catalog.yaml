@@ -16,7 +16,7 @@ topics:
     family: vp.findings.*
     producer: grid-rules
     schema_ref: events/findings/vp.findings.v1.schema.json
-    notes: Ranked findings; Nest persists authoritative rows.
+    notes: Ranked findings; Nest persists authoritative rows. Optional top-level utility_id (additive).
 
   - name: vp.alerts.v1
     family: vp.alerts.*

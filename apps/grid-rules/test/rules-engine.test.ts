@@ -219,3 +219,21 @@ describe('processDetectEvent', () => {
     );
   });
 });
+
+describe('findings utility_id', () => {
+  const settings = loadSettings({});
+  const UTIL = '11111111-1111-4111-8111-111111111111';
+  it('sets utility_id from asset context; omits when unknown', () => {
+    const assets: Record<string, AssetContext> = {
+      [DETECT.asset_id!]: {
+        asset_id: DETECT.asset_id!,
+        criticality: 'high',
+        utility_id: UTIL,
+      },
+    };
+    const withUtil = processDetectEvent(DETECT, { settings, assets });
+    assert.ok(withUtil.findings.every((f) => f.utility_id === UTIL));
+    const without = processDetectEvent(DETECT, { settings });
+    assert.ok(without.findings.every((f) => !('utility_id' in f)));
+  });
+});

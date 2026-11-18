@@ -9,6 +9,11 @@
     "event_id": { "type": "string", "format": "uuid" },
     "occurred_at": { "type": "string", "format": "date-time" },
     "inspection_id": { "type": "string", "format": "uuid" },
+    "utility_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Optional (additive, v1-compatible). Tenant of the finding; lets pulse-api persist when the inspection row is unknown. Producers set it when resolvable (asset context)."
+    },
     "finding": {
       "type": "object",
       "additionalProperties": false,
