@@ -1,3 +1,6 @@
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { MemoryStore } from '../domain/memory.store';
 import {
   IngestRejectedError,
@@ -5,6 +8,7 @@ import {
   type AlertsEvent,
   type FindingsEvent,
 } from './ingest.service';
+import { fileSink, type DeadLetterRecord } from './dead-letter';
 import { KafkaConsumerService } from './kafka-consumer.service';
 import { loadSettings } from '../config/settings';
 
@@ -70,7 +74,10 @@ describe('IngestService', () => {
   });
 
   it('event.utility_id beats default; inspection row beats event', async () => {
-    await svc.ingestFinding({ ...findingEvent, utility_id: 'event-util' }, UTIL);
+    await svc.ingestFinding(
+      { ...findingEvent, utility_id: 'event-util' },
+      UTIL,
+    );
     expect((await store.getFinding(FID))?.utility_id).toBe('event-util');
     const s2 = new MemoryStore();
     await s2.createInspection({
@@ -125,6 +132,82 @@ describe('KafkaConsumerService.handle', () => {
     await expect(
       svc.handle(cfg, 'vp.findings.v1', JSON.stringify(findingEvent)),
     ).rejects.toThrow('db down');
+  });
+
+  it('dead-letters non-JSON + rejected messages, still advances', async () => {
+    const svc = new KafkaConsumerService(
+      settings,
+      new IngestService(new MemoryStore()),
+    );
+    const recs: DeadLetterRecord[] = [];
+    svc.setDeadLetterSink((r) => {
+      recs.push(r);
+      return Promise.resolve();
+    });
+    const meta = { partition: 0, offset: '7' };
+    await svc.handle(cfg, 'vp.findings.v1', '{not json', meta);
+    await svc.handle(cfg, 'vp.findings.v1', '{"finding":{}}');
+    await svc.handle(cfg, 'vp.findings.v1', JSON.stringify(findingEvent));
+    expect(recs.map((r) => r.reason)).toEqual(['non_json', 'rejected']);
+    expect(recs[0]).toMatchObject({
+      dlq_version: 1,
+      source_topic: 'vp.findings.v1',
+      partition: 0,
+      offset: '7',
+      payload: '{not json',
+    });
+
+    // unknown utility: no default, no inspection row (fresh store)
+    const noDefault = loadSettings({}).kafka!;
+    const svc2 = new KafkaConsumerService(
+      settings,
+      new IngestService(new MemoryStore()),
+    );
+    svc2.setDeadLetterSink((r) => {
+      recs.push(r);
+      return Promise.resolve();
+    });
+    await svc2.handle(
+      noDefault,
+      'vp.findings.v1',
+      JSON.stringify(findingEvent),
+    );
+    expect(recs).toHaveLength(3);
+    expect(recs[2].reason).toBe('rejected');
+    expect(recs[2].detail).toMatch(/utility/i);
+
+    // sink failure must not throw (offset advances)
+    svc.setDeadLetterSink(() => Promise.reject(new Error('sink down')));
+    await expect(
+      svc.handle(cfg, 'vp.findings.v1', '{not json'),
+    ).resolves.toBeUndefined();
+  });
+
+  it('fileSink appends JSONL', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'vp-dlq-'));
+    const file = join(dir, 'dlq.jsonl');
+    const svc = new KafkaConsumerService(
+      settings,
+      new IngestService(new MemoryStore()),
+    );
+    svc.setDeadLetterSink(fileSink(file));
+    await svc.handle(cfg, 'vp.alerts.v1', 'nope');
+    await svc.handle(cfg, 'vp.alerts.v1', 'nope2');
+    const lines = readFileSync(file, 'utf8').trim().split('\n');
+    expect(lines).toHaveLength(2);
+    expect((JSON.parse(lines[1]) as DeadLetterRecord).payload).toBe('nope2');
+    rmSync(dir, { recursive: true });
+  });
+
+  it('DLQ settings default off, topic vp.dlq.v1', () => {
+    expect(loadSettings({}).kafka?.dlq).toEqual({
+      enabled: false,
+      topic: 'vp.dlq.v1',
+      file: '',
+    });
+    expect(
+      loadSettings({ PULSE_KAFKA_DLQ_ENABLED: 'true' }).kafka?.dlq.enabled,
+    ).toBe(true);
   });
 
   it('is disabled by default', () => {

@@ -35,6 +35,7 @@ Environment:
   PULSE_TOPIC_CATALOG     Override catalog path
   PULSE_TOPIC_PARTITIONS  Default partitions
   PULSE_TOPIC_REPLICATION Default replication factor
+  PULSE_KAFKA_DLQ_TOPIC   Extra DLQ topic (default vp.dlq.v1; must start with vp.)
 
 Requires: python3 + PyYAML **or** awk (catalog parse). For live create:
 kafka-topics.sh / kafka-topics on PATH (Apache Kafka image tools).
@@ -127,6 +128,14 @@ if [[ ${#TOPICS[@]} -eq 0 || -z "${TOPICS[0]:-}" ]]; then
   echo "error: catalog produced zero topics" >&2
   exit 1
 fi
+
+# Operational topic (not a contract event): pulse-api dead-letter (P0-T391).
+DLQ_TOPIC="${PULSE_KAFKA_DLQ_TOPIC:-vp.dlq.v1}"
+if [[ "$DLQ_TOPIC" != vp.* ]]; then
+  echo "error: refusing non-VoltPulse DLQ topic (must start with vp.): $DLQ_TOPIC" >&2
+  exit 1
+fi
+case " ${TOPICS[*]} " in *" $DLQ_TOPIC "*) ;; *) TOPICS+=("$DLQ_TOPIC") ;; esac
 
 if [[ "$LIST_ONLY" -eq 1 ]]; then
   printf '%s\n' "${TOPICS[@]}"
