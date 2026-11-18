@@ -24,6 +24,11 @@ export function AssetsPage() {
   const [kind, setKind] = useState<AssetKind>("tower");
   const [criticality, setCriticality] = useState<Criticality>("medium");
   const [voltage, setVoltage] = useState("");
+  const [oem, setOem] = useState("");
+  const [warranty, setWarranty] = useState("");
+  const [circuit, setCircuit] = useState("");
+  const [antiCorrosion, setAntiCorrosion] = useState("");
+  const [installYear, setInstallYear] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -63,10 +68,20 @@ export function AssetsPage() {
         kind,
         criticality,
         voltage_class: voltage.trim() || null,
+        oem: oem.trim() || null,
+        circuit: circuit.trim() || null,
+        warranty_until: warranty.trim() || null,
+        anti_corrosion_sla: antiCorrosion.trim() || null,
+        install_year: installYear ? Number(installYear) : null,
       });
       setCreatedId(id);
       setName("");
       setVoltage("");
+      setOem("");
+      setWarranty("");
+      setCircuit("");
+      setAntiCorrosion("");
+      setInstallYear("");
       setReloadTick((n) => n + 1);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Create failed");
@@ -85,7 +100,7 @@ export function AssetsPage() {
   return (
     <section className="catalog catalog--wide">
       <header className="catalog__header">
-        <p className="catalog__eyebrow">VoltPulse · A01</p>
+        <p className="catalog__eyebrow">TPulse · A01</p>
         <h1 className="catalog__title">Asset registry</h1>
         <p className="catalog__summary">
           Dense corridor registry — create writes through
@@ -144,14 +159,64 @@ export function AssetsPage() {
               placeholder="132kV"
             />
           </label>
+          <label className="filters__field">
+            <span className="filters__label">OEM</span>
+            <input
+              className="filters__input"
+              value={oem}
+              onChange={(e) => setOem(e.target.value)}
+              placeholder="LatticeForge"
+            />
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Warranty until</span>
+            <input
+              className="filters__input"
+              type="date"
+              value={warranty}
+              onChange={(e) => setWarranty(e.target.value)}
+            />
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Circuit</span>
+            <input
+              className="filters__input"
+              value={circuit}
+              onChange={(e) => setCircuit(e.target.value)}
+            />
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Anti-corrosion SLA</span>
+            <input
+              className="filters__input"
+              value={antiCorrosion}
+              onChange={(e) => setAntiCorrosion(e.target.value)}
+              placeholder="annual"
+            />
+          </label>
+          <label className="filters__field">
+            <span className="filters__label">Install year</span>
+            <input
+              className="filters__input"
+              value={installYear}
+              onChange={(e) => setInstallYear(e.target.value)}
+              placeholder="2011"
+            />
+          </label>
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? "Saving…" : "Create asset"}
           </button>
         </div>
+        <p className="catalog__summary">
+          CSV import lives under{" "}
+          <Link to="/admin/config">Admin · Config</Link>. Map deep-link from
+          each row or the corridor sketch.
+        </p>
         {formError ? <p className="catalog__error">{formError}</p> : null}
         {createdId ? (
           <p className="catalog__summary">
-            Created <strong className="mono">{createdId}</strong>
+            Created <strong className="mono">{createdId}</strong> ·{" "}
+            <Link to={`/map?asset=${createdId}`}>Open on map</Link>
           </p>
         ) : null}
       </form>
@@ -203,6 +268,12 @@ export function AssetsPage() {
                   <td>
                     <Link to={`/assets/${asset.id}`}>{asset.name}</Link>
                     <div className="mono muted-id">{asset.id}</div>
+                    <Link
+                      className="btn btn--ghost btn--sm"
+                      to={`/map?asset=${encodeURIComponent(asset.id)}`}
+                    >
+                      Map
+                    </Link>
                   </td>
                   <td>{asset.kind}</td>
                   <td>

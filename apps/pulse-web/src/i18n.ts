@@ -4,8 +4,8 @@ export const LOCALES = ["en", "hi"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 const en: Record<string, string> = {
-  "app.name": "VoltPulse",
-  "app.tagline": "Energy inspection operating system",
+  "app.name": "TPulse",
+  "app.tagline": "Transmission Pulse — energy corridor inspection OS",
   "nav.inspections": "Inspections",
   "nav.assets": "Assets",
   "nav.alerts": "Alerts",
@@ -19,7 +19,7 @@ const en: Record<string, string> = {
 };
 
 const hi: Record<string, string> = {
-  "app.name": "VoltPulse",
+  "app.name": "TPulse",
   "app.tagline": "ऊर्जा निरीक्षण ऑपरेटिंग सिस्टम",
   "nav.inspections": "निरीक्षण",
   "nav.assets": "संपत्ति",

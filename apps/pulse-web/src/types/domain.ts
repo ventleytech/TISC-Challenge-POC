@@ -39,7 +39,13 @@ export type Asset = {
   oem?: string | null;
   install_year?: number | null;
   circuit?: string | null;
+  site_id?: string | null;
+  warranty_until?: string | null;
+  anti_corrosion_sla?: string | null;
 };
+
+export const INSPECTION_MODES = ["live_pull", "record_upload"] as const;
+export type InspectionMode = (typeof INSPECTION_MODES)[number];
 
 export type Inspection = {
   id: string;
@@ -51,6 +57,11 @@ export type Inspection = {
   assignee?: string | null;
   finding_count?: number;
   sla_hours_left?: number | null;
+  mode?: InspectionMode | null;
+  site_id?: string | null;
+  payload?: "rgb" | "rgb_ir" | null;
+  outage_window?: string | null;
+  clearance?: string | null;
 };
 
 export type InspectionCreate = {
@@ -58,6 +69,10 @@ export type InspectionCreate = {
   asset_ids?: string[];
   schedule_kind?: ScheduleKind;
   planned_at?: string | null;
+  mode?: InspectionMode;
+  payload?: "rgb" | "rgb_ir";
+  outage_window?: string | null;
+  clearance?: string | null;
 };
 
 /** Aligns with packages/contracts/enums/severity.json */
@@ -79,6 +94,8 @@ export const DETECTION_CLASSES = [
 ] as const;
 export type DetectionClass = (typeof DETECTION_CLASSES)[number];
 
+export type LabelVerdict = "tp" | "fp" | "unlabeled";
+
 /** C09 board row — risk_score from W01 severity × criticality stub. */
 export type Finding = {
   id: string;
@@ -90,6 +107,12 @@ export type Finding = {
   risk_score: number;
   recommendation: string;
   occurred_at: string;
+  inspection_id?: string | null;
+  label?: LabelVerdict;
+  severity_override?: Severity | null;
+  audit_note?: string | null;
+  vendor_hint?: string | null;
+  warranty_hint?: string | null;
 };
 
 /** C07 alert row — SLA + ack stub (OpenAPI Alert shape + UI fields). */
@@ -102,6 +125,50 @@ export type Alert = {
   title: string;
   sla_due_at: string | null;
   ack_at: string | null;
+  dept_code?: string | null;
+  escalated_at?: string | null;
+};
+
+export type TaskStatus = "open" | "assigned" | "done";
+
+export type Task = {
+  id: string;
+  utility_id: string;
+  title: string;
+  finding_id?: string | null;
+  alert_id?: string | null;
+  assignee: string;
+  due_at: string | null;
+  status: TaskStatus;
+  created_at: string;
+};
+
+export type IncidentStatus = "open" | "mitigating" | "closed";
+
+export type Incident = {
+  id: string;
+  utility_id: string;
+  title: string;
+  finding_ids: string[];
+  severity: Severity;
+  status: IncidentStatus;
+  created_at: string;
+  dept_code?: string | null;
+};
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  role: string;
+  dept_code: string;
+  utility_id: string;
+  api_key_hint: string;
+};
+
+export type UtilityRow = {
+  id: string;
+  name: string;
+  created_at?: string;
 };
 
 export type EvidenceKind = "crop" | "rgb_frame" | "ir_frame" | "clip" | "report";

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { EvidenceArt } from "../components/EvidenceArt";
+import { EvidenceLightbox } from "../components/EvidenceLightbox";
 import { listEvidence, listInspections } from "../mock/client";
 import type {
   DetectionClass,
@@ -116,6 +117,7 @@ export function EvidencePage() {
   const [retention, setRetention] = useState<EvidenceObject["retention"] | "">("");
   const [classId, setClassId] = useState<DetectionClass | "">("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [tick, setTick] = useState(0);
@@ -247,9 +249,9 @@ export function EvidencePage() {
       <header className="evx-hero">
         <div className="evx-hero__mesh" aria-hidden="true" />
         <div className="evx-hero__copy">
-          <p className="evx-eyebrow">VoltPulse · evidence vault</p>
+          <p className="evx-eyebrow">TPulse · evidence vault</p>
           <h1 className="evx-title">
-            Every finding, <em>on the record.</em>
+            Evidence vault
           </h1>
           <p className="evx-sub">
             Detection crops and frames land in the object store, content-addressed
@@ -470,7 +472,12 @@ export function EvidencePage() {
                 <div>
                   <dt>Retention</dt>
                   <dd>
-                    <span className={`chip chip--retention-${selected.retention}`}>{pretty(selected.retention)}</span>
+                    <span className={`chip chip--retention-${selected.retention}`}>
+                      {pretty(selected.retention)}
+                    </span>
+                    {selected.retention === "legal_hold" ? (
+                      <span className="evx-hold-note"> Legal hold — retention freeze</span>
+                    ) : null}
                   </dd>
                 </div>
                 <div>
@@ -495,13 +502,22 @@ export function EvidencePage() {
                   <div>
                     <dt>Finding</dt>
                     <dd>
-                      <Link to="/priority" className="mono">
+                      <Link to={`/findings/${selected.finding_id}`} className="mono">
                         {selected.finding_id}
                       </Link>
                     </dd>
                   </div>
                 ) : null}
               </dl>
+              <div className="wizard-actions">
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  onClick={() => setLightbox(true)}
+                >
+                  Open lightbox
+                </button>
+              </div>
 
               {selected.object_key ? (
                 <div className="evx-uri">
@@ -529,6 +545,18 @@ export function EvidencePage() {
         <p className="catalog__empty">
           No evidence in this view. Post a crop to <code>/api/v1/evidence</code> or clear filters.
         </p>
+      ) : null}
+
+      {lightbox && visible.length > 0 ? (
+        <EvidenceLightbox
+          items={visible}
+          index={Math.max(
+            0,
+            visible.findIndex((e) => e.id === selectedId),
+          )}
+          onClose={() => setLightbox(false)}
+          onIndex={(i) => setSelectedId(visible[i]?.id ?? null)}
+        />
       ) : null}
     </section>
   );

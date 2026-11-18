@@ -1,7 +1,7 @@
 /** Hindi keyset — same keys as en (W08 stub). */
 /** @type {Readonly<Record<string, string>>} */
 export const hi = Object.freeze({
-  "app.name": "VoltPulse",
+  "app.name": "TPulse",
   "app.tagline": "ऊर्जा निरीक्षण ऑपरेटिंग सिस्टम",
   "nav.inspections": "निरीक्षण",
   "nav.assets": "संपत्तियाँ",

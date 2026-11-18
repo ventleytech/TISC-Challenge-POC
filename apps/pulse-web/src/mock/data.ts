@@ -1,10 +1,13 @@
 import type {
   Alert,
   Asset,
+  AdminUser,
   EvidenceObject,
   Finding,
+  Incident,
   Inspection,
   OpsMetric,
+  Task,
 } from "../types/domain";
 import { riskScore } from "./risk";
 
@@ -23,6 +26,9 @@ export const MOCK_ASSETS: Asset[] = [
     oem: "GridSpan OEM",
     install_year: 2009,
     circuit: "NR-132-A",
+    site_id: "site-north",
+    warranty_until: "2028-06-01",
+    anti_corrosion_sla: "annual",
   },
   {
     id: "ast-feeder-01",
@@ -35,6 +41,9 @@ export const MOCK_ASSETS: Asset[] = [
     oem: "FeederCo",
     install_year: 2016,
     circuit: "F14",
+    site_id: "site-north",
+    warranty_until: "2027-01-15",
+    anti_corrosion_sla: "18mo",
   },
   {
     id: "ast-feeder-02",
@@ -119,6 +128,9 @@ export const MOCK_ASSETS: Asset[] = [
     oem: "LatticeForge",
     install_year: 2003,
     circuit: "SB-220-B",
+    site_id: "site-south",
+    warranty_until: "2024-12-01",
+    anti_corrosion_sla: "expired",
   },
   {
     id: "ast-tower-03",
@@ -169,6 +181,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Crew North",
     finding_count: 0,
     sla_hours_left: 48,
+    mode: "record_upload",
+    site_id: "site-north",
   },
   {
     id: "insp-02",
@@ -180,6 +194,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Drone Pod A",
     finding_count: 4,
     sla_hours_left: 6,
+    mode: "live_pull",
+    site_id: "site-north",
   },
   {
     id: "insp-03",
@@ -191,6 +207,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Analyst Mira",
     finding_count: 7,
     sla_hours_left: 2,
+    mode: "record_upload",
+    site_id: "site-west",
   },
   {
     id: "insp-04",
@@ -202,6 +220,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Pipeline",
     finding_count: 2,
     sla_hours_left: 12,
+    mode: "record_upload",
+    site_id: "site-north",
   },
   {
     id: "insp-05",
@@ -213,6 +233,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Crew South",
     finding_count: 3,
     sla_hours_left: null,
+    mode: "record_upload",
+    site_id: "site-south",
   },
   {
     id: "insp-06",
@@ -224,6 +246,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Drone Pod B",
     finding_count: 5,
     sla_hours_left: 4,
+    mode: "live_pull",
+    site_id: "site-south",
   },
   {
     id: "insp-07",
@@ -235,6 +259,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Crew East",
     finding_count: 0,
     sla_hours_left: 72,
+    mode: "record_upload",
+    site_id: "site-east",
   },
   {
     id: "insp-08",
@@ -246,6 +272,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Analyst Kai",
     finding_count: 4,
     sla_hours_left: 1,
+    mode: "record_upload",
+    site_id: "site-east",
   },
   {
     id: "insp-09",
@@ -257,6 +285,8 @@ export const MOCK_INSPECTIONS: Inspection[] = [
     assignee: "Pipeline",
     finding_count: 1,
     sla_hours_left: 9,
+    mode: "record_upload",
+    site_id: "site-south",
   },
 ];
 
@@ -291,6 +321,10 @@ export const MOCK_FINDINGS: Finding[] = [
     criticality: "high",
     recommendation: "Isolate span; engineer review before next energisation.",
     occurred_at: "2026-11-18T06:48:00Z",
+    inspection_id: "insp-02",
+    label: "unlabeled",
+    vendor_hint: "LatticeForge · warranty review",
+    warranty_hint: "Structural OEM through 2027",
   }),
   finding({
     id: "fnd-03",
@@ -309,6 +343,10 @@ export const MOCK_FINDINGS: Finding[] = [
     criticality: "critical",
     recommendation: "IR recheck bus coupler; open work order.",
     occurred_at: "2026-11-18T05:05:00Z",
+    inspection_id: "insp-03",
+    label: "tp",
+    vendor_hint: "BayWorks · thermal SLA",
+    warranty_hint: "Bay gear covered to 2029",
   }),
   finding({
     id: "fnd-05",
@@ -336,6 +374,10 @@ export const MOCK_FINDINGS: Finding[] = [
     criticality: "critical",
     recommendation: "Structural engineer hold; ground patrol before dusk.",
     occurred_at: "2026-11-18T05:22:00Z",
+    inspection_id: "insp-06",
+    label: "unlabeled",
+    vendor_hint: "LatticeForge · expired warranty",
+    warranty_hint: "Warranty ended 2024-12",
   }),
   finding({
     id: "fnd-08",
@@ -399,6 +441,7 @@ export const MOCK_ALERTS: Alert[] = [
     title: "Crack on Tower T-108",
     sla_due_at: dueIn(18),
     ack_at: null,
+    dept_code: "NR-OPS",
   },
   {
     id: "alt-02",
@@ -409,6 +452,7 @@ export const MOCK_ALERTS: Alert[] = [
     title: "Thermal hotspot — West Gate",
     sla_due_at: dueIn(45),
     ack_at: null,
+    dept_code: "WG-YARD",
   },
   {
     id: "alt-03",
@@ -426,7 +470,8 @@ export const MOCK_ALERTS: Alert[] = [
     finding_id: "fnd-03",
     inspection_id: "insp-02",
     severity: "medium",
-    title: "Vegetation encroachment — North Ridge",
+   
+    dept_code: "NR-OPS", title: "Vegetation encroachment — North Ridge",
     sla_due_at: dueIn(120),
     ack_at: "2026-11-18T08:00:00Z",
   },
@@ -456,7 +501,8 @@ export const MOCK_ALERTS: Alert[] = [
     finding_id: "fnd-08",
     inspection_id: "insp-06",
     severity: "high",
-    title: "Vegetation — South Basin",
+   
+    dept_code: "SB-OPS", title: "Vegetation — South Basin",
     sla_due_at: dueIn(55),
     ack_at: null,
   },
@@ -748,3 +794,121 @@ export const MOCK_OPS_METRICS: OpsMetric[] = [
     tone: "ok",
   },
 ];
+
+
+export const MOCK_TASKS: Task[] = [
+  {
+    id: "tsk-01",
+    utility_id: DEMO_UTILITY_ID,
+    title: "Climb review · crack on T-108",
+    finding_id: "fnd-02",
+    alert_id: "alt-01",
+    assignee: "Crew North",
+    due_at: "2026-11-19T18:00:00Z",
+    status: "assigned",
+    created_at: "2026-11-18T08:00:00Z",
+  },
+  {
+    id: "tsk-02",
+    utility_id: DEMO_UTILITY_ID,
+    title: "IR recheck bus coupler",
+    finding_id: "fnd-04",
+    alert_id: null,
+    assignee: "Analyst Mira",
+    due_at: "2026-11-20T12:00:00Z",
+    status: "open",
+    created_at: "2026-11-18T09:00:00Z",
+  },
+  {
+    id: "tsk-03",
+    utility_id: DEMO_UTILITY_ID,
+    title: "Corridor trim SB-220",
+    finding_id: "fnd-08",
+    alert_id: null,
+    assignee: "Crew South",
+    due_at: "2026-11-19T22:00:00Z",
+    status: "assigned",
+    created_at: "2026-11-18T06:00:00Z",
+  },
+  {
+    id: "tsk-04",
+    utility_id: DEMO_UTILITY_ID,
+    title: "Close vegetation watch NR-132",
+    finding_id: "fnd-03",
+    alert_id: null,
+    assignee: "Crew North",
+    due_at: "2026-11-25T00:00:00Z",
+    status: "done",
+    created_at: "2026-11-17T16:30:00Z",
+  },
+];
+
+export const MOCK_INCIDENTS: Incident[] = [
+  {
+    id: "inc-01",
+    utility_id: DEMO_UTILITY_ID,
+    title: "South Basin structural risk cluster",
+    finding_ids: ["fnd-07", "fnd-08"],
+    severity: "critical",
+    status: "open",
+    created_at: "2026-11-18T05:30:00Z",
+    dept_code: "SB-OPS",
+  },
+  {
+    id: "inc-02",
+    utility_id: DEMO_UTILITY_ID,
+    title: "West Gate thermal + corrosion",
+    finding_ids: ["fnd-04", "fnd-01"],
+    severity: "high",
+    status: "mitigating",
+    created_at: "2026-11-18T07:00:00Z",
+    dept_code: "WG-YARD",
+  },
+];
+
+export const MOCK_ADMIN_USERS: AdminUser[] = [
+  {
+    id: "usr-01",
+    name: "Mira Chen",
+    role: "energy_supervisor",
+    dept_code: "NR-OPS",
+    utility_id: DEMO_UTILITY_ID,
+    api_key_hint: "dev-supervisor",
+  },
+  {
+    id: "usr-02",
+    name: "Kai Okonkwo",
+    role: "energy_operator",
+    dept_code: "NR-OPS",
+    utility_id: DEMO_UTILITY_ID,
+    api_key_hint: "dev-operator",
+  },
+  {
+    id: "usr-03",
+    name: "Sam Rivera",
+    role: "viewer",
+    dept_code: "COMPLIANCE",
+    utility_id: DEMO_UTILITY_ID,
+    api_key_hint: "dev-viewer",
+  },
+  {
+    id: "usr-04",
+    name: "Jordan Hale",
+    role: "utility_admin",
+    dept_code: "IT",
+    utility_id: DEMO_UTILITY_ID,
+    api_key_hint: "dev-admin",
+  },
+];
+
+export const ONBOARDING_STEPS = [
+  "Create / accept utility",
+  "Departments + roles",
+  "Sites",
+  "Assets CSV",
+  "Stream / drone endpoints",
+  "Alert channels",
+  "Severity + SLA timers",
+  "Retention + legal-hold role",
+  "Smoke: upload → finding → alert ack",
+] as const;

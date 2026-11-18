@@ -1,26 +1,38 @@
+import type { MePrincipal } from "../auth/session";
+import { getStoredApiKey, mockPrincipalFromKey } from "../auth/session";
 import type {
   Alert,
   Asset,
   AssetKind,
+  AdminUser,
   Criticality,
   DetectionClass,
   EvidenceObject,
   Finding,
+  Incident,
   Inspection,
   InspectionCreate,
+  InspectionMode,
   InspectionStatus,
+  LabelVerdict,
   OpsMetric,
   ScheduleKind,
   Severity,
+  Task,
+  TaskStatus,
+  UtilityRow,
 } from "../types/domain";
 import {
   DEMO_UTILITY_ID,
+  MOCK_ADMIN_USERS,
   MOCK_ALERTS,
   MOCK_ASSETS,
   MOCK_EVIDENCE,
   MOCK_FINDINGS,
+  MOCK_INCIDENTS,
   MOCK_INSPECTIONS,
   MOCK_OPS_METRICS,
+  MOCK_TASKS,
 } from "./data";
 import { criticalityRank, severityRank } from "./risk";
 
@@ -35,6 +47,11 @@ export type InspectionFilters = {
   utilityId?: string;
   status?: InspectionStatus | "";
   scheduleKind?: ScheduleKind | "";
+  siteId?: string | "";
+  severity?: Severity | "";
+  assignee?: string | "";
+  slaBreach?: boolean;
+  mode?: InspectionMode | "";
 };
 
 export type FindingFilters = {
@@ -48,6 +65,7 @@ export type AlertFilters = {
   utilityId?: string;
   severity?: Severity | "";
   openOnly?: boolean;
+  deptCode?: string | "";
 };
 
 type ListResult<T> = { items: T[] };
@@ -76,11 +94,24 @@ type ApiAlert = {
 
 const assetsDb = [...MOCK_ASSETS];
 const inspectionsDb = [...MOCK_INSPECTIONS];
-const findingsDb = [...MOCK_FINDINGS];
+const findingsDb = MOCK_FINDINGS.map((f) => ({ ...f }));
 const alertsDb = MOCK_ALERTS.map((a) => ({ ...a }));
+const tasksDb = MOCK_TASKS.map((t) => ({ ...t }));
+const incidentsDb = MOCK_INCIDENTS.map((i) => ({ ...i }));
+const usersDb = MOCK_ADMIN_USERS.map((u) => ({ ...u }));
 /** Live asset names (API rows lack registry mock ids). */
 const assetNameCache = new Map<string, string>();
 let nextSeq = 100;
+/** Runtime session key (login); falls back to env / localStorage. */
+let sessionApiKey: string | null = null;
+
+export function setSessionApiKey(key: string | null): void {
+  sessionApiKey = key;
+}
+
+export function getSessionApiKey(): string | null {
+  return sessionApiKey ?? getStoredApiKey();
+}
 
 function rememberAssets(rows: Asset[]): void {
   for (const a of rows) {
@@ -104,6 +135,11 @@ export type AssetCreate = {
   voltage_class?: string | null;
   /** UI-only hint; Nest AssetCreate has no kind yet. */
   kind?: AssetKind;
+  oem?: string | null;
+  install_year?: number | null;
+  circuit?: string | null;
+  warranty_until?: string | null;
+  anti_corrosion_sla?: string | null;
 };
 
 /** C09 sort: risk desc → severity → criticality → occurred_at desc → id. */
@@ -141,11 +177,39 @@ function apiHeaders(extra?: HeadersInit): Headers {
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json");
   }
-  const key = pulseEnv()?.VITE_PULSE_API_KEY?.trim();
+  const key =
+    getSessionApiKey()?.trim() || pulseEnv()?.VITE_PULSE_API_KEY?.trim();
   if (key && !headers.has("X-API-Key")) {
     headers.set("X-API-Key", key);
   }
   return headers;
+}
+
+/** GET /me — live or mock principal from stored key. */
+export async function fetchMe(): Promise<MePrincipal | null> {
+  const key = getSessionApiKey();
+  if (!key) return null;
+  if (!liveApiEnabled()) {
+    return mockPrincipalFromKey(key);
+  }
+  try {
+    const res = await apiFetch("/me");
+    if (!res.ok) return null;
+    const body = (await res.json()) as {
+      role: string;
+      utility_id: string | null;
+      auth_enabled: boolean;
+    };
+    return {
+      role: body.role,
+      utility_id: body.utility_id,
+      auth_enabled: body.auth_enabled,
+      api_key: key,
+      display_name: body.role,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function apiFetch(
@@ -286,7 +350,55 @@ export async function listInspections(
   if (filters.scheduleKind) {
     items = items.filter((i) => i.schedule_kind === filters.scheduleKind);
   }
+  if (filters.siteId) {
+    items = items.filter((i) => i.site_id === filters.siteId);
+  }
+  if (filters.assignee) {
+    const a = filters.assignee.toLowerCase();
+    items = items.filter((i) => (i.assignee ?? "").toLowerCase().includes(a));
+  }
+  if (filters.mode) {
+    items = items.filter((i) => i.mode === filters.mode);
+  }
+  if (filters.slaBreach) {
+    items = items.filter(
+      (i) =>
+        typeof i.sla_hours_left === "number" && i.sla_hours_left <= 0,
+    );
+  }
   return { items };
+}
+
+export async function getInspection(
+  id: string,
+): Promise<Inspection | null> {
+  const live = await tryFetchJson<Inspection>(
+    `/inspections/${encodeURIComponent(id)}`,
+  );
+  if (live) return live;
+  return inspectionsDb.find((i) => i.id === id) ?? null;
+}
+
+export async function patchInspectionStatus(
+  id: string,
+  status: InspectionStatus,
+): Promise<Inspection | null> {
+  if (liveApiEnabled()) {
+    try {
+      const res = await apiFetch(`/inspections/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) return (await res.json()) as Inspection;
+    } catch {
+      /* mock */
+    }
+  }
+  const row = inspectionsDb.find((i) => i.id === id);
+  if (!row) return null;
+  row.status = status;
+  return { ...row };
 }
 
 export async function createInspection(
@@ -315,6 +427,10 @@ export async function createInspection(
     assignee: "Scheduler",
     finding_count: 0,
     sla_hours_left: 72,
+    mode: body.mode ?? "record_upload",
+    payload: body.payload ?? "rgb_ir",
+    outage_window: body.outage_window ?? null,
+    clearance: body.clearance ?? null,
   });
   return { id };
 }
@@ -347,9 +463,12 @@ export async function createAsset(body: AssetCreate): Promise<{ id: string }> {
     criticality: body.criticality,
     voltage_class: body.voltage_class ?? null,
     parent_id: null,
-    oem: null,
-    install_year: null,
-    circuit: null,
+    oem: body.oem ?? null,
+    install_year: body.install_year ?? null,
+    circuit: body.circuit ?? null,
+    site_id: body.site_id ?? null,
+    warranty_until: body.warranty_until ?? null,
+    anti_corrosion_sla: body.anti_corrosion_sla ?? null,
   });
   return { id };
 }
@@ -386,7 +505,19 @@ export async function listFindings(
   }
 
   let items: Finding[] = live?.items
-    ? live.items.map(toUiFinding)
+    ? live.items.map((row) => {
+        const ui = toUiFinding(row);
+        const seed = findingsDb.find((f) => f.id === row.id);
+        return {
+          ...ui,
+          inspection_id: row.inspection_id ?? seed?.inspection_id,
+          label: seed?.label ?? "unlabeled",
+          vendor_hint: seed?.vendor_hint,
+          warranty_hint: seed?.warranty_hint,
+          recommendation: seed?.recommendation ?? ui.recommendation,
+          asset_id: row.asset_id ?? seed?.asset_id ?? "",
+        };
+      })
     : findingsDb.filter((f) => f.utility_id === utilityId);
 
   if (filters.classId) {
@@ -422,6 +553,9 @@ export async function listAlerts(
   }
   if (filters.openOnly) {
     items = items.filter((a) => !a.ack_at);
+  }
+  if (filters.deptCode) {
+    items = items.filter((a) => a.dept_code === filters.deptCode);
   }
 
   items = items.slice().sort((a, b) => {
@@ -616,4 +750,285 @@ export function complianceReportUrl(
   const q = new URLSearchParams({ utility_id: utilityId });
   if (inspectionId) q.set("inspection_id", inspectionId);
   return `${apiBase()}/reports/compliance?${q.toString()}`;
+}
+
+export async function getFinding(id: string): Promise<Finding | null> {
+  const live = await tryFetchJson<ApiFinding>(
+    `/findings/${encodeURIComponent(id)}`,
+  );
+  if (live) {
+    const ui = toUiFinding(live);
+    const seed = findingsDb.find((f) => f.id === id);
+    return {
+      ...ui,
+      recommendation: seed?.recommendation ?? ui.recommendation,
+      inspection_id: live.inspection_id ?? seed?.inspection_id,
+      label: seed?.label ?? "unlabeled",
+      vendor_hint: seed?.vendor_hint ?? null,
+      warranty_hint: seed?.warranty_hint ?? null,
+      severity_override: seed?.severity_override ?? null,
+      audit_note: seed?.audit_note ?? null,
+      asset_id: live.asset_id ?? seed?.asset_id ?? "",
+    };
+  }
+  return findingsDb.find((f) => f.id === id) ?? null;
+}
+
+export type FindingPatch = {
+  label?: LabelVerdict;
+  severity_override?: Severity | null;
+  audit_note?: string | null;
+};
+
+export async function patchFinding(
+  id: string,
+  patch: FindingPatch,
+): Promise<Finding | null> {
+  // Nest has no PATCH yet — mock-local + optimistic.
+  const row = findingsDb.find((f) => f.id === id);
+  if (row) {
+    if (patch.label !== undefined) row.label = patch.label;
+    if (patch.severity_override !== undefined) {
+      row.severity_override = patch.severity_override;
+      if (patch.severity_override) row.severity = patch.severity_override;
+    }
+    if (patch.audit_note !== undefined) row.audit_note = patch.audit_note;
+    return { ...row };
+  }
+  const live = await getFinding(id);
+  if (!live) return null;
+  const merged = { ...live, ...patch };
+  findingsDb.push(merged);
+  return merged;
+}
+
+export async function escalateAlert(alertId: string): Promise<Alert | null> {
+  const row = alertsDb.find((a) => a.id === alertId);
+  if (!row) return null;
+  row.escalated_at = new Date().toISOString();
+  return { ...row };
+}
+
+export async function listTasks(
+  utilityId = DEMO_UTILITY_ID,
+): Promise<{ items: Task[] }> {
+  return {
+    items: tasksDb
+      .filter((t) => t.utility_id === utilityId)
+      .slice()
+      .sort((a, b) => (a.due_at ?? "").localeCompare(b.due_at ?? "")),
+  };
+}
+
+export async function createTask(input: {
+  title: string;
+  assignee: string;
+  finding_id?: string | null;
+  alert_id?: string | null;
+  due_at?: string | null;
+}): Promise<Task> {
+  const row: Task = {
+    id: `tsk-mock-${nextSeq++}`,
+    utility_id: DEMO_UTILITY_ID,
+    title: input.title,
+    finding_id: input.finding_id ?? null,
+    alert_id: input.alert_id ?? null,
+    assignee: input.assignee,
+    due_at: input.due_at ?? null,
+    status: "assigned",
+    created_at: new Date().toISOString(),
+  };
+  tasksDb.unshift(row);
+  return row;
+}
+
+export async function patchTask(
+  id: string,
+  patch: { status?: TaskStatus; assignee?: string },
+): Promise<Task | null> {
+  const row = tasksDb.find((t) => t.id === id);
+  if (!row) return null;
+  if (patch.status) row.status = patch.status;
+  if (patch.assignee) row.assignee = patch.assignee;
+  return { ...row };
+}
+
+export async function listIncidents(
+  utilityId = DEMO_UTILITY_ID,
+): Promise<{ items: Incident[] }> {
+  return {
+    items: incidentsDb.filter((i) => i.utility_id === utilityId),
+  };
+}
+
+export async function listAdminUsers(): Promise<{ items: AdminUser[] }> {
+  return { items: [...usersDb] };
+}
+
+export async function upsertAdminUser(
+  user: Omit<AdminUser, "id"> & { id?: string },
+): Promise<AdminUser> {
+  if (user.id) {
+    const idx = usersDb.findIndex((u) => u.id === user.id);
+    if (idx >= 0) {
+      usersDb[idx] = { ...usersDb[idx], ...user, id: user.id };
+      return usersDb[idx];
+    }
+  }
+  const row: AdminUser = {
+    id: `usr-mock-${nextSeq++}`,
+    name: user.name,
+    role: user.role,
+    dept_code: user.dept_code,
+    utility_id: user.utility_id,
+    api_key_hint: user.api_key_hint,
+  };
+  usersDb.push(row);
+  return row;
+}
+
+export type HealthSnapshot = {
+  api_ok: boolean;
+  metrics_text: string | null;
+  source: "live" | "mock";
+};
+
+export async function fetchHealth(): Promise<HealthSnapshot> {
+  if (!liveApiEnabled()) {
+    return {
+      api_ok: false,
+      metrics_text: 'vp_up{service="pulse-api"} 0 # mock',
+      source: "mock",
+    };
+  }
+  try {
+    const base = apiBase().replace(/\/api\/v1\/?$/, "");
+    const [h, m] = await Promise.all([
+      fetch(`${base}/health`).catch(() => null),
+      fetch(`${base}/metrics`).catch(() => null),
+    ]);
+    const api_ok = Boolean(h?.ok);
+    const metrics_text = m?.ok ? await m.text() : null;
+    return {
+      api_ok,
+      metrics_text,
+      source: api_ok || metrics_text ? "live" : "mock",
+    };
+  } catch {
+    return { api_ok: false, metrics_text: null, source: "mock" };
+  }
+}
+
+export async function listUtilities(): Promise<{ items: UtilityRow[] }> {
+  const live = await tryFetchJson<{ items: UtilityRow[] }>("/utilities");
+  if (live?.items) return live;
+  return {
+    items: [
+      {
+        id: DEMO_UTILITY_ID,
+        name: "Demo Energy Cooperative",
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+  };
+}
+
+export async function createUtility(name: string): Promise<{
+  id: string;
+  admin?: { api_key: string; role: string };
+}> {
+  if (liveApiEnabled()) {
+    const res = await apiFetch("/utilities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) {
+      throw new Error((await res.text()) || `create utility failed (${res.status})`);
+    }
+    return (await res.json()) as {
+      id: string;
+      admin?: { api_key: string; role: string };
+    };
+  }
+  return { id: `util-mock-${nextSeq++}`, admin: { api_key: `ua-mock-${nextSeq}`, role: "utility_admin" } };
+}
+
+export async function exportWorkOrder(finding: Finding): Promise<string> {
+  const body = {
+    format: "json",
+    items: [
+      {
+        finding: {
+          id: finding.id,
+          class_id: finding.class_id,
+          severity: finding.severity,
+          risk_score: finding.risk_score,
+          asset_id: finding.asset_id,
+        },
+        party_hint: {
+          vendor: finding.vendor_hint ?? "unknown",
+        },
+      },
+    ],
+  };
+  if (liveApiEnabled()) {
+    try {
+      const res = await apiFetch("/work-orders/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) return await res.text();
+    } catch {
+      /* mock */
+    }
+  }
+  return JSON.stringify(body, null, 2);
+}
+
+const configStoreKey = "vp.admin_config";
+
+export type AdminConfig = {
+  sla_critical_min: number;
+  sla_high_min: number;
+  channels: string;
+  retention_hot_days: number;
+  severity_default: Severity;
+};
+
+export function loadAdminConfig(): AdminConfig {
+  try {
+    const raw = localStorage.getItem(configStoreKey);
+    if (raw) return JSON.parse(raw) as AdminConfig;
+  } catch {
+    /* */
+  }
+  return {
+    sla_critical_min: 30,
+    sla_high_min: 120,
+    channels: "push,sms",
+    retention_hot_days: 14,
+    severity_default: "medium",
+  };
+}
+
+export function saveAdminConfig(cfg: AdminConfig): void {
+  localStorage.setItem(configStoreKey, JSON.stringify(cfg));
+}
+
+const onboardKey = "vp.onboarding";
+
+export function loadOnboarding(): boolean[] {
+  try {
+    const raw = localStorage.getItem(onboardKey);
+    if (raw) return JSON.parse(raw) as boolean[];
+  } catch {
+    /* */
+  }
+  return [true, true, true, false, false, true, true, false, false];
+}
+
+export function saveOnboarding(steps: boolean[]): void {
+  localStorage.setItem(onboardKey, JSON.stringify(steps));
 }

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { EvidenceLightbox } from "../components/EvidenceLightbox";
 import { EvidenceThumb } from "../components/EvidenceThumb";
 import { RingGauge } from "../components/RingGauge";
 import {
@@ -13,6 +15,7 @@ import {
 import {
   ackAlert,
   assetName,
+  escalateAlert,
   listAlerts,
   listEvidence,
   listFindings,
@@ -61,7 +64,9 @@ function remainingLabel(a: Alert, now: number): string {
 }
 
 export function AlertsPage() {
+  const { canWrite } = useAuth();
   const [severity, setSeverity] = useState<Severity | "">("");
+  const [dept, setDept] = useState("");
   const [openOnly, setOpenOnly] = useState(false);
   const [sort, setSort] = useState<SortKey>("due");
   const [q, setQ] = useState("");
@@ -76,6 +81,8 @@ export function AlertsPage() {
   const [acking, setAcking] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [tick, setTick] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
   const now = useNow(1000);
 
   useEffect(() => {
@@ -109,6 +116,10 @@ export function AlertsPage() {
   }, [openOnly, tick]);
 
   const onAck = useCallback(async (alertId: string) => {
+    if (!canWrite) {
+      setError("Viewer cannot acknowledge alerts");
+      return;
+    }
     setAcking(alertId);
     try {
       const updated = await ackAlert(alertId);
@@ -122,7 +133,13 @@ export function AlertsPage() {
     } finally {
       setAcking(null);
     }
-  }, []);
+  }, [canWrite]);
+
+  const onEscalate = useCallback(async (alertId: string) => {
+    if (!canWrite) return;
+    await escalateAlert(alertId);
+    setTick((n) => n + 1);
+  }, [canWrite]);
 
   const sevCounts = useMemo(() => {
     const m = new Map<Severity, number>();
@@ -139,6 +156,7 @@ export function AlertsPage() {
     const needle = q.trim().toLowerCase();
     const rows = items.filter((a) => {
       if (severity && a.severity !== severity) return false;
+      if (dept && a.dept_code !== dept) return false;
       if (!needle) return true;
       const f = findings.get(a.finding_id);
       const hay = [
@@ -146,6 +164,7 @@ export function AlertsPage() {
         a.id,
         a.finding_id,
         a.inspection_id ?? "",
+        a.dept_code ?? "",
         f?.class_id ?? "",
         f ? assetName(f.asset_id) : "",
       ]
@@ -162,7 +181,7 @@ export function AlertsPage() {
       if (sort === "risk") return risk(b) - risk(a) || byDue(a, b);
       return byDue(a, b);
     });
-  }, [items, severity, q, sort, findings, risk]);
+  }, [items, severity, dept, q, sort, findings, risk]);
 
   const lanes = useMemo(
     () =>
@@ -218,13 +237,13 @@ export function AlertsPage() {
       } else if (e.key === "ArrowUp" || e.key === "k") {
         e.preventDefault();
         step(-1);
-      } else if (e.key === "a" && selected && !selected.ack_at) {
+      } else if (e.key === "a" && canWrite && selected && !selected.ack_at) {
         void onAck(selected.id);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, selected, onAck]);
+  }, [step, selected, onAck, canWrite]);
 
   const live = liveApiEnabled();
   const healthTone =
@@ -250,9 +269,9 @@ export function AlertsPage() {
         <div className="evx-hero__mesh" aria-hidden="true" />
         <div className="alx-hero__sweep" aria-hidden="true" />
         <div className="evx-hero__copy">
-          <p className="evx-eyebrow">VoltPulse · alert desk</p>
+          <p className="evx-eyebrow">TPulse · alert desk</p>
           <h1 className="evx-title">
-            Beat the clock, <em>not the outage.</em>
+            Alert desk
           </h1>
           <p className="evx-sub">
             Every critical finding opens a timed alert. Watch the SLA burn down,
@@ -376,6 +395,20 @@ export function AlertsPage() {
                   {s.label}
                 </option>
               ))}
+            </select>
+          </label>
+          <label>
+            <span>Dept</span>
+            <select
+              className="filters__select"
+              value={dept}
+              onChange={(e) => setDept(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="NR-OPS">NR-OPS</option>
+              <option value="SB-OPS">SB-OPS</option>
+              <option value="WG-YARD">WG-YARD</option>
+              <option value="COMPLIANCE">COMPLIANCE</option>
             </select>
           </label>
           <label className="evx-toggle">
@@ -503,8 +536,8 @@ export function AlertsPage() {
                     selected.ack_at
                       ? "ok"
                       : (({ none: "steel", ok: "volt", warn: "warn", breach: "breach" }) as const)[
-                          slaTone(selected.sla_due_at, now)
-                        ]
+                      slaTone(selected.sla_due_at, now)
+                      ]
                   }
                   label={selected.ack_at ? "ACK" : remainingLabel(selected, now)}
                   sub={
@@ -537,9 +570,9 @@ export function AlertsPage() {
                       "Due",
                       selected.sla_due_at
                         ? new Date(selected.sla_due_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "no SLA",
                       slaTone(selected.sla_due_at, now) === "breach",
                     ],
@@ -547,9 +580,9 @@ export function AlertsPage() {
                       "Ack",
                       selected.ack_at
                         ? new Date(selected.ack_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "pending",
                       Boolean(selected.ack_at),
                     ],
@@ -620,10 +653,19 @@ export function AlertsPage() {
                 <div className="alx-evid">
                   <p className="alx-sub">Triggering evidence</p>
                   <ul>
-                    {selEvidence.map((ev) => (
+                    {selEvidence.map((ev, i) => (
                       <li key={ev.id} data-class={ev.class_id ?? ev.kind}>
-                        <EvidenceThumb ev={ev} className="alx-evid__img" />
-                        <span>{ev.label}</span>
+                        <button
+                          type="button"
+                          className="alx-evid__btn"
+                          onClick={() => {
+                            setLbIndex(i);
+                            setLightbox(true);
+                          }}
+                        >
+                          <EvidenceThumb ev={ev} className="alx-evid__img" />
+                          <span>{ev.label}</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -634,11 +676,29 @@ export function AlertsPage() {
                 <button
                   type="button"
                   className="btn btn--primary"
-                  disabled={Boolean(selected.ack_at) || acking === selected.id}
+                  disabled={
+                    !canWrite ||
+                    Boolean(selected.ack_at) ||
+                    acking === selected.id
+                  }
                   onClick={() => void onAck(selected.id)}
                 >
                   {selected.ack_at ? "Acknowledged" : "Acknowledge"}
                 </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  disabled={!canWrite || Boolean(selected.escalated_at)}
+                  onClick={() => void onEscalate(selected.id)}
+                >
+                  {selected.escalated_at ? "Escalated" : "Escalate"}
+                </button>
+                <Link
+                  className="btn btn--ghost btn--sm alx-ghost"
+                  to={`/findings/${selected.finding_id}`}
+                >
+                  Finding detail
+                </Link>
                 {selFinding ? (
                   <Link
                     className="btn btn--ghost btn--sm alx-ghost"
@@ -647,12 +707,10 @@ export function AlertsPage() {
                     Locate on map
                   </Link>
                 ) : null}
-                <Link className="btn btn--ghost btn--sm alx-ghost" to="/evidence">
-                  Evidence
-                </Link>
               </div>
               <p className="evx-inspector__foot">
                 ↑/↓ or j/k to browse · a to acknowledge
+                {selected.dept_code ? ` · dept ${selected.dept_code}` : ""}
               </p>
             </div>
           ) : (
@@ -662,6 +720,15 @@ export function AlertsPage() {
           )}
         </aside>
       </div>
+
+      {lightbox && selEvidence.length > 0 ? (
+        <EvidenceLightbox
+          items={selEvidence}
+          index={lbIndex}
+          onClose={() => setLightbox(false)}
+          onIndex={setLbIndex}
+        />
+      ) : null}
     </section>
   );
 }

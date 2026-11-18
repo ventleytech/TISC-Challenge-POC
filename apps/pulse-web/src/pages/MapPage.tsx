@@ -124,8 +124,21 @@ export function MapPage() {
 
   const [layers, setLayers] = useState<Set<AssetKind>>(new Set(ASSET_KINDS));
   const [classId, setClassId] = useState<DetectionClass | "">("");
-  const [heatMode, setHeatMode] = useState<HeatMode>("risk");
-  const [pulses, setPulses] = useState(true);
+  const [heatMode, setHeatMode] = useState<HeatMode>(() => {
+    try {
+      const v = localStorage.getItem("vp.map_heat");
+      return v === "criticality" || v === "risk" ? v : "risk";
+    } catch {
+      return "risk";
+    }
+  });
+  const [pulses, setPulses] = useState(() => {
+    try {
+      return localStorage.getItem("vp.map_pulses") !== "0";
+    } catch {
+      return true;
+    }
+  });
   const [labels, setLabels] = useState(false);
   const [q, setQ] = useState("");
   const [hover, setHover] = useState<string | null>(null);
@@ -415,10 +428,10 @@ export function MapPage() {
     () =>
       selected
         ? inspections.filter(
-            (i) =>
-              i.asset_ids.includes(selected.id) ||
-              selChildren.some((c) => i.asset_ids.includes(c.id)),
-          )
+          (i) =>
+            i.asset_ids.includes(selected.id) ||
+            selChildren.some((c) => i.asset_ids.includes(c.id)),
+        )
         : [],
     [inspections, selected, selChildren],
   );
@@ -426,12 +439,12 @@ export function MapPage() {
     () =>
       selected
         ? evidence
-            .filter(
-              (e) =>
-                e.asset_id === selected.id ||
-                (e.finding_id && selHeat?.findings.some((f) => f.id === e.finding_id)),
-            )
-            .slice(0, 4)
+          .filter(
+            (e) =>
+              e.asset_id === selected.id ||
+              (e.finding_id && selHeat?.findings.some((f) => f.id === e.finding_id)),
+          )
+          .slice(0, 4)
         : [],
     [evidence, selected, selHeat],
   );
@@ -461,9 +474,9 @@ export function MapPage() {
       <header className="evx-hero mpx-hero">
         <div className="evx-hero__mesh" aria-hidden="true" />
         <div className="evx-hero__copy">
-          <p className="evx-eyebrow">VoltPulse · corridor map</p>
+          <p className="evx-eyebrow">TPulse · corridor map</p>
           <h1 className="evx-title">
-            The corridor, <em>read as risk.</em>
+            Corridor map
           </h1>
           <p className="evx-sub">
             Substations, lines, feeders and towers coloured by their worst open
@@ -566,14 +579,33 @@ export function MapPage() {
             <select
               className="filters__select"
               value={heatMode}
-              onChange={(e) => setHeatMode(e.target.value as HeatMode)}
+              onChange={(e) => {
+                const next = e.target.value as HeatMode;
+                setHeatMode(next);
+                try {
+                  localStorage.setItem("vp.map_heat", next);
+                } catch {
+                  /* */
+                }
+              }}
             >
               <option value="risk">Open-finding risk</option>
               <option value="criticality">Asset criticality</option>
             </select>
           </label>
           <label className="evx-toggle">
-            <input type="checkbox" checked={pulses} onChange={(e) => setPulses(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={pulses}
+              onChange={(e) => {
+                setPulses(e.target.checked);
+                try {
+                  localStorage.setItem("vp.map_pulses", e.target.checked ? "1" : "0");
+                } catch {
+                  /* */
+                }
+              }}
+            />
             <span>Alert pulses</span>
           </label>
           <label className="evx-toggle">
@@ -864,13 +896,13 @@ export function MapPage() {
                     {selChildren.length === 0
                       ? "—"
                       : selChildren.slice(0, 3).map((c, i) => (
-                          <span key={c.id}>
-                            {i ? ", " : ""}
-                            <button type="button" className="mpx-linkbtn" onClick={() => select(c.id)}>
-                              {c.name}
-                            </button>
-                          </span>
-                        ))}
+                        <span key={c.id}>
+                          {i ? ", " : ""}
+                          <button type="button" className="mpx-linkbtn" onClick={() => select(c.id)}>
+                            {c.name}
+                          </button>
+                        </span>
+                      ))}
                     {selChildren.length > 3 ? ` +${selChildren.length - 3}` : ""}
                   </dd>
                 </div>

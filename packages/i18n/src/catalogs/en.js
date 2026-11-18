@@ -1,7 +1,7 @@
 /** @type {Readonly<Record<string, string>>} */
 export const en = Object.freeze({
-  "app.name": "VoltPulse",
-  "app.tagline": "Energy inspection operating system",
+  "app.name": "TPulse",
+  "app.tagline": "Transmission Pulse — energy corridor inspection OS",
   "nav.inspections": "Inspections",
   "nav.assets": "Assets",
   "nav.alerts": "Alerts",

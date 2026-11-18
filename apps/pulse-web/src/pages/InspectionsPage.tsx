@@ -114,6 +114,10 @@ function SlaHours({ h }: { h?: number | null }) {
 export function InspectionsPage() {
   const [status, setStatus] = useState<InspectionStatus | "">("");
   const [kind, setKind] = useState<ScheduleKind | "">("");
+  const [siteId, setSiteId] = useState("");
+  const [mode, setMode] = useState<"" | "live_pull" | "record_upload">("");
+  const [assignee, setAssignee] = useState("");
+  const [slaBreach, setSlaBreach] = useState(false);
   const [q, setQ] = useState("");
   const [view, setView] = useState<View>("table");
   const [all, setAll] = useState<Inspection[]>([]);
@@ -122,6 +126,7 @@ export function InspectionsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [evidence, setEvidence] = useState<EvidenceObject[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pane, setPane] = useState<"runs" | "detail">("runs");
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [tick, setTick] = useState(0);
@@ -182,10 +187,25 @@ export function InspectionsPage() {
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    const assigneeNeedle = assignee.trim().toLowerCase();
     return all
       .filter((i) => {
         if (status && i.status !== status) return false;
         if (kind && i.schedule_kind !== kind) return false;
+        if (siteId && i.site_id !== siteId) return false;
+        if (mode && i.mode !== mode) return false;
+        if (
+          assigneeNeedle &&
+          !(i.assignee ?? "").toLowerCase().includes(assigneeNeedle)
+        ) {
+          return false;
+        }
+        if (
+          slaBreach &&
+          !(typeof i.sla_hours_left === "number" && i.sla_hours_left <= 0)
+        ) {
+          return false;
+        }
         if (!needle) return true;
         const hay = [i.id, i.assignee ?? "", ...i.asset_ids.map(name)]
           .join(" ")
@@ -197,7 +217,7 @@ export function InspectionsPage() {
           WORK_ORDER.indexOf(a.status) - WORK_ORDER.indexOf(b.status) ||
           (a.sla_hours_left ?? 1e9) - (b.sla_hours_left ?? 1e9),
       );
-  }, [all, status, kind, q, name]);
+  }, [all, status, kind, siteId, mode, assignee, slaBreach, q, name]);
 
   const selected = useMemo(
     () => visible.find((i) => i.id === selectedId) ?? visible[0] ?? null,
@@ -246,7 +266,6 @@ export function InspectionsPage() {
   }, [step]);
 
   const live = liveApiEnabled();
-  const maxStage = Math.max(1, ...PIPELINE.map((s) => statusCounts.get(s) ?? 0));
 
   const selAssets = useMemo(() => selected?.asset_ids ?? [], [selected]);
   const selFindings = useMemo(
@@ -271,11 +290,15 @@ export function InspectionsPage() {
       data-status={insp.status}
       style={{ animationDelay: `${Math.min(index, 14) * 40}ms` }}
       className={`dense-table__row dense-table__row--click inx-row${selected?.id === insp.id ? " is-selected" : ""}`}
-      onClick={() => setSelectedId(insp.id)}
+      onClick={() => {
+        setSelectedId(insp.id);
+        setPane("detail");
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           setSelectedId(insp.id);
+          setPane("detail");
         }
       }}
       tabIndex={0}
@@ -307,14 +330,14 @@ export function InspectionsPage() {
       <td>
         {insp.planned_at
           ? new Date(insp.planned_at).toLocaleDateString([], {
-              month: "short",
-              day: "numeric",
-            }) +
-            " " +
-            new Date(insp.planned_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            month: "short",
+            day: "numeric",
+          }) +
+          " " +
+          new Date(insp.planned_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
           : "—"}
       </td>
       <td>
@@ -327,83 +350,76 @@ export function InspectionsPage() {
   );
 
   return (
-    <section className="evx inx">
-      <header className="evx-hero">
-        <div className="evx-hero__mesh" aria-hidden="true" />
-        <div className="evx-hero__copy">
-          <p className="evx-eyebrow">VoltPulse · inspection control</p>
-          <h1 className="evx-title">
-            Every run, <em>plan to close.</em>
-          </h1>
-          <p className="evx-sub">
-            Follow each corridor inspection through capture, perception and
-            analyst review. Spot SLA pressure early and open any run for its
-            findings, alerts and stored evidence.
+    <section className="evx inx evx--compact">
+      <header className="page-chrome">
+        <div className="page-chrome__lead">
+          <p className="evx-eyebrow">TPulse · inspections</p>
+          <h1 className="page-chrome__title">Inspection runs</h1>
+          <p className="page-chrome__sub">
+            Capture → perception → review. Filter the queue, open a run for
+            detail.
           </p>
-          <div className="evx-hero__actions">
-            <span className={`evx-source evx-source--${live ? "live" : "mock"}`}>
-              <i aria-hidden="true" />
-              {live ? "Live · pulse-api" : "Mock registry · offline"}
-            </span>
-            <Link className="btn btn--primary btn--sm" to="/inspections/schedule">
-              Schedule wizard
-            </Link>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => setTick((n) => n + 1)}
-            >
-              Refresh
-            </button>
-            <Link className="btn btn--ghost btn--sm" to="/map">
-              Corridor map
-            </Link>
+        </div>
+        <div className="page-chrome__metrics" aria-label="Inspection summary">
+          <div className="page-chrome__metric">
+            <b>{visible.length}</b>
+            <span>In view</span>
+          </div>
+          <div className="page-chrome__metric">
+            <b>{stats.active}</b>
+            <span>Live</span>
+          </div>
+          <div className="page-chrome__metric is-hot">
+            <b>{stats.hot}</b>
+            <span>SLA ≤ {SLA_HOT_H}h</span>
+          </div>
+          <div className="page-chrome__metric">
+            <b>{stats.linked}</b>
+            <span>Findings</span>
           </div>
         </div>
-
-        <div className="inx-hero__side">
-          <ol className="inx-funnel" aria-label="Lifecycle funnel">
-            {PIPELINE.map((s, i) => {
-              const n = statusCounts.get(s) ?? 0;
-              return (
-                <li key={s} style={{ animationDelay: `${i * 70}ms` }}>
-                  <button
-                    type="button"
-                    data-status={s}
-                    className={`inx-funnel__stage${status === s ? " is-on" : ""}`}
-                    onClick={() => setStatus(status === s ? "" : s)}
-                    title={STAGE_NOTE[s]}
-                  >
-                    <span className="inx-funnel__n">{n}</span>
-                    <span className="inx-funnel__l">{pretty(s)}</span>
-                    <span className="inx-funnel__bar">
-                      <i style={{ width: `${(n / maxStage) * 100}%` }} />
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-          <div className="evx-metrics inx-metrics" aria-label="Inspection summary">
-            <div className="evx-metric">
-              <span className="evx-metric__n">{visible.length}</span>
-              <span className="evx-metric__l">In view</span>
-            </div>
-            <div className="evx-metric">
-              <span className="evx-metric__n">{stats.active}</span>
-              <span className="evx-metric__l">Live runs</span>
-            </div>
-            <div className="evx-metric evx-metric--bad">
-              <span className="evx-metric__n">{stats.hot}</span>
-              <span className="evx-metric__l">SLA ≤ {SLA_HOT_H}h</span>
-            </div>
-            <div className="evx-metric">
-              <span className="evx-metric__n">{stats.linked}</span>
-              <span className="evx-metric__l">Findings linked</span>
-            </div>
-          </div>
+        <div className="page-chrome__actions">
+          <span className={`evx-source evx-source--${live ? "live" : "mock"}`}>
+            <i aria-hidden="true" />
+            {live ? "Live" : "Mock · offline"}
+          </span>
+          <Link className="btn btn--primary btn--sm" to="/inspections/schedule">
+            Schedule
+          </Link>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => setTick((n) => n + 1)}
+          >
+            Refresh
+          </button>
+          <Link className="btn btn--ghost btn--sm" to="/map">
+            Map
+          </Link>
         </div>
       </header>
+
+      <div className="pane-tabs" role="tablist" aria-label="Inspection panes">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={pane === "runs"}
+          className={pane === "runs" ? "is-on" : undefined}
+          onClick={() => setPane("runs")}
+        >
+          Runs
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={pane === "detail"}
+          className={pane === "detail" ? "is-on" : undefined}
+          onClick={() => setPane("detail")}
+          disabled={!selected}
+        >
+          Detail{selected ? ` · ${selected.id}` : ""}
+        </button>
+      </div>
 
       <div className="evx-toolbar" role="group" aria-label="Inspection filters">
         <div className="evx-pills">
@@ -439,6 +455,51 @@ export function InspectionsPage() {
             />
           </label>
           <label>
+            <span>Site</span>
+            <select
+              className="filters__select"
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="site-north">North Ridge</option>
+              <option value="site-south">South Basin</option>
+              <option value="site-west">West Gate</option>
+              <option value="site-east">East Pier</option>
+            </select>
+          </label>
+          <label>
+            <span>Mode</span>
+            <select
+              className="filters__select"
+              value={mode}
+              onChange={(e) =>
+                setMode(e.target.value as "" | "live_pull" | "record_upload")
+              }
+            >
+              <option value="">All</option>
+              <option value="live_pull">live pull</option>
+              <option value="record_upload">record upload</option>
+            </select>
+          </label>
+          <label>
+            <span>Assignee</span>
+            <input
+              className="filters__select"
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              placeholder="Crew…"
+            />
+          </label>
+          <label className="filters__field--check">
+            <span>SLA breach</span>
+            <input
+              type="checkbox"
+              checked={slaBreach}
+              onChange={(e) => setSlaBreach(e.target.checked)}
+            />
+          </label>
+          <label>
             <span>Schedule kind</span>
             <select
               className="filters__select"
@@ -470,8 +531,10 @@ export function InspectionsPage() {
 
       {error ? <p className="catalog__error">{error}</p> : null}
 
-      <div className="evx-stage">
-        {view === "table" ? (
+      <div
+        className={`evx-stage evx-stage--tabbed${pane === "detail" ? " is-detail" : " is-runs"}`}
+      >
+        {pane === "runs" && view === "table" ? (
           <div className="table-wrap inx-table">
             <table className="dense-table" aria-label="Inspections">
               <thead>
@@ -489,7 +552,8 @@ export function InspectionsPage() {
               <tbody>{visible.map(row)}</tbody>
             </table>
           </div>
-        ) : (
+        ) : null}
+        {pane === "runs" && view === "board" ? (
           <div className="inx-board" aria-label="Inspection board">
             {INSPECTION_STATUSES.filter(
               (s) => !status || s === status,
@@ -510,7 +574,10 @@ export function InspectionsPage() {
                           data-status={insp.status}
                           className={`inx-kcard${selected?.id === insp.id ? " is-selected" : ""}`}
                           style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-                          onClick={() => setSelectedId(insp.id)}
+                          onClick={() => {
+                            setSelectedId(insp.id);
+                            setPane("detail");
+                          }}
                         >
                           <span className="inx-kcard__id mono">{insp.id}</span>
                           <span className="inx-kcard__assets">
@@ -537,164 +604,199 @@ export function InspectionsPage() {
               );
             })}
           </div>
-        )}
+        ) : null}
 
-        <aside className="evx-inspector inx-inspector" aria-label="Inspection detail">
-          {selected ? (
-            <div
-              key={selected.id}
-              className="evx-inspector__in"
-              data-status={selected.status}
-            >
-              <div className="inx-focus">
-                <RingGauge
-                  value={
-                    selected.sla_hours_left == null
-                      ? 1
-                      : Math.min(1, selected.sla_hours_left / 72)
-                  }
-                  size={104}
-                  stroke={8}
-                  tone={
-                    selected.sla_hours_left == null
-                      ? "steel"
-                      : selected.sla_hours_left <= SLA_HOT_H
-                        ? "breach"
-                        : selected.sla_hours_left <= 24
-                          ? "warn"
-                          : "volt"
-                  }
-                  label={
-                    selected.sla_hours_left == null
-                      ? "—"
-                      : `${selected.sla_hours_left}h`
-                  }
-                  sub="SLA left"
-                />
-                <div>
-                  <span className={`chip chip--status-${selected.status}`}>
-                    {pretty(selected.status)}
-                  </span>
-                  <h2 className="mono">{selected.id}</h2>
-                  <p>{STAGE_NOTE[selected.status]}</p>
+        {pane === "detail" ? (
+          <aside className="evx-inspector inx-inspector inx-inspector--pane" aria-label="Inspection detail">
+            {selected ? (
+              <div
+                key={selected.id}
+                className="evx-inspector__in"
+                data-status={selected.status}
+              >
+                <div className="inx-inspector__bar">
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => setPane("runs")}
+                  >
+                    ← Runs
+                  </button>
+                  <span className="mono">{selected.id}</span>
                 </div>
-              </div>
+                <div className="inx-focus">
+                  <RingGauge
+                    value={
+                      selected.sla_hours_left == null
+                        ? 1
+                        : Math.min(1, selected.sla_hours_left / 72)
+                    }
+                    size={104}
+                    stroke={8}
+                    tone={
+                      selected.sla_hours_left == null
+                        ? "steel"
+                        : selected.sla_hours_left <= SLA_HOT_H
+                          ? "breach"
+                          : selected.sla_hours_left <= 24
+                            ? "warn"
+                            : "volt"
+                    }
+                    label={
+                      selected.sla_hours_left == null
+                        ? "—"
+                        : `${selected.sla_hours_left}h`
+                    }
+                    sub="SLA left"
+                  />
+                  <div>
+                    <span className={`chip chip--status-${selected.status}`}>
+                      {pretty(selected.status)}
+                    </span>
+                    <h2 className="mono">{selected.id}</h2>
+                    <p>{STAGE_NOTE[selected.status]}</p>
+                  </div>
+                </div>
 
-              <Stepper status={selected.status} />
+                <Stepper status={selected.status} />
 
-              <dl className="evx-facts">
-                <div>
-                  <dt>Crew</dt>
-                  <dd>{selected.assignee ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt>Kind</dt>
-                  <dd>{selected.schedule_kind ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt>Planned</dt>
-                  <dd>
-                    {selected.planned_at
-                      ? new Date(selected.planned_at).toLocaleString()
-                      : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Timing</dt>
-                  <dd>
-                    {selected.planned_at
-                      ? (() => {
+                <dl className="evx-facts">
+                  <div>
+                    <dt>Crew</dt>
+                    <dd>{selected.assignee ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Kind</dt>
+                    <dd>{selected.schedule_kind ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Mode</dt>
+                    <dd>{selected.mode?.replace(/_/g, " ") ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Site</dt>
+                    <dd className="mono">{selected.site_id ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Planned</dt>
+                    <dd>
+                      {selected.planned_at
+                        ? new Date(selected.planned_at).toLocaleString()
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Timing</dt>
+                    <dd>
+                      {selected.planned_at
+                        ? (() => {
                           const h = Math.round(
                             (new Date(selected.planned_at).getTime() - now) /
-                              3_600_000,
+                            3_600_000,
                           );
                           return h >= 0 ? `starts in ${h}h` : `${-h}h ago`;
                         })()
-                      : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Findings</dt>
-                  <dd className="mono">{selected.finding_count ?? 0}</dd>
-                </div>
-                <div>
-                  <dt>Open alerts</dt>
-                  <dd className="mono">
-                    {selAlerts.filter((a) => !a.ack_at).length}
-                  </dd>
-                </div>
-              </dl>
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Findings</dt>
+                    <dd className="mono">{selected.finding_count ?? 0}</dd>
+                  </div>
+                  <div>
+                    <dt>Open alerts</dt>
+                    <dd className="mono">
+                      {selAlerts.filter((a) => !a.ack_at).length}
+                    </dd>
+                  </div>
+                </dl>
 
-              <div className="inx-block">
-                <p className="alx-sub">Assets</p>
-                <ul className="inx-alist">
-                  {selAssets.map((id) => (
-                    <li key={id} data-crit={assets.get(id)?.criticality}>
-                      <Link to={`/assets/${id}`}>{name(id)}</Link>
-                      <span className="mono">{assets.get(id)?.kind ?? id}</span>
-                      <Link
-                        className="inx-alist__map"
-                        to={`/map?asset=${encodeURIComponent(id)}`}
-                      >
-                        map
-                      </Link>
-                    </li>
-                  ))}
-                  {selAssets.length === 0 ? <li>No assets linked</li> : null}
-                </ul>
-              </div>
-
-              {selFindings.length > 0 ? (
                 <div className="inx-block">
-                  <p className="alx-sub">Findings on these assets</p>
-                  <ul className="inx-flist">
-                    {selFindings.map((f) => (
-                      <li key={f.id} data-class={f.class_id}>
-                        <i aria-hidden="true" />
-                        <span>{pretty(f.class_id)}</span>
-                        <span className={`badge badge--${f.severity}`}>
-                          {f.severity}
-                        </span>
-                        <b className="mono">{f.risk_score}</b>
+                  <p className="alx-sub">Assets</p>
+                  <ul className="inx-alist">
+                    {selAssets.map((id) => (
+                      <li key={id} data-crit={assets.get(id)?.criticality}>
+                        <Link to={`/assets/${id}`}>{name(id)}</Link>
+                        <span className="mono">{assets.get(id)?.kind ?? id}</span>
+                        <Link
+                          className="inx-alist__map"
+                          to={`/map?asset=${encodeURIComponent(id)}`}
+                        >
+                          map
+                        </Link>
                       </li>
                     ))}
+                    {selAssets.length === 0 ? <li>No assets linked</li> : null}
                   </ul>
                 </div>
-              ) : null}
 
-              {selEvidence.length > 0 ? (
-                <div className="alx-evid">
-                  <p className="alx-sub">Evidence</p>
-                  <ul>
-                    {selEvidence.map((ev) => (
-                      <li key={ev.id} data-class={ev.class_id ?? ev.kind}>
-                        <EvidenceThumb ev={ev} className="alx-evid__img" />
-                        <span>{ev.label}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {selFindings.length > 0 ? (
+                  <div className="inx-block">
+                    <p className="alx-sub">Findings on these assets</p>
+                    <ul className="inx-flist">
+                      {selFindings.map((f) => (
+                        <li key={f.id} data-class={f.class_id}>
+                          <i aria-hidden="true" />
+                          <Link to={`/findings/${f.id}`}>{pretty(f.class_id)}</Link>
+                          <span className={`badge badge--${f.severity}`}>
+                            {f.severity}
+                          </span>
+                          <b className="mono">{f.risk_score}</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {selEvidence.length > 0 ? (
+                  <div className="alx-evid">
+                    <p className="alx-sub">Evidence</p>
+                    <ul>
+                      {selEvidence.map((ev) => (
+                        <li key={ev.id} data-class={ev.class_id ?? ev.kind}>
+                          <EvidenceThumb ev={ev} className="alx-evid__img" />
+                          <span>{ev.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div className="alx-actions">
+                  {(selected.mode === "live_pull" ||
+                    selected.status === "in_progress") && (
+                      <Link
+                        className="btn btn--primary btn--sm"
+                        to={`/inspections/${selected.id}/live`}
+                      >
+                        Live session
+                      </Link>
+                    )}
+                  {(selected.mode === "record_upload" ||
+                    selected.status === "planned") && (
+                      <Link
+                        className="btn btn--primary btn--sm"
+                        to={`/inspections/${selected.id}/upload`}
+                      >
+                        Upload session
+                      </Link>
+                    )}
+                  <Link className="btn btn--ghost btn--sm alx-ghost" to="/evidence">
+                    Evidence
+                  </Link>
+                  <Link className="btn btn--ghost btn--sm alx-ghost" to="/alerts">
+                    Alerts
+                  </Link>
                 </div>
-              ) : null}
-
-              <div className="alx-actions">
-                <Link className="btn btn--primary btn--sm" to="/evidence">
-                  Open evidence
-                </Link>
-                <Link className="btn btn--ghost btn--sm alx-ghost" to="/alerts">
-                  Alerts
-                </Link>
-                <Link className="btn btn--ghost btn--sm alx-ghost" to="/priority">
-                  Priority
-                </Link>
+                <p className="evx-inspector__foot">↑/↓ or j/k to browse runs</p>
               </div>
-              <p className="evx-inspector__foot">↑/↓ or j/k to browse runs</p>
-            </div>
-          ) : (
-            <p className="evx-inspector__empty">
-              {loaded ? "No inspection selected." : "Loading inspections…"}
-            </p>
-          )}
-        </aside>
+            ) : (
+              <p className="evx-inspector__empty">
+                {loaded ? "No inspection selected." : "Loading inspections…"}
+              </p>
+            )}
+          </aside>
+        ) : null}
       </div>
 
       {visible.length === 0 && loaded && !error ? (

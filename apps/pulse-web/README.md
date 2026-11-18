@@ -1,6 +1,6 @@
 # pulse-web
 
-VoltPulse React shell (Sense / Media / Stream / Data inspection OS UI).
+TPulse React shell (Sense / Media / Stream / Data inspection OS UI).
 
 ```bash
 npm install

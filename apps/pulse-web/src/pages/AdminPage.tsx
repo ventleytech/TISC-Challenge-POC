@@ -109,7 +109,7 @@ export function AdminPage() {
   return (
     <section className="catalog catalog--wide">
       <header className="catalog__header">
-        <p className="catalog__eyebrow">VoltPulse · admin</p>
+        <p className="catalog__eyebrow">TPulse · admin</p>
         <h1 className="catalog__title">Admin &amp; pipeline</h1>
         <p className="catalog__summary">
           CSV import (M03), compliance export (W06), locale (W08) — utility stub

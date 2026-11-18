@@ -7,7 +7,7 @@ type RouteShellProps = {
 export function RouteShell({ title, summary }: RouteShellProps) {
   return (
     <section className="route-shell">
-      <p className="route-shell__eyebrow">VoltPulse</p>
+      <p className="route-shell__eyebrow">TPulse</p>
       <h1 className="route-shell__title">{title}</h1>
       <p className="route-shell__summary">{summary}</p>
       <p className="route-shell__empty">No records yet — shell only.</p>

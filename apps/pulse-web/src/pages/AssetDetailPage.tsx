@@ -73,6 +73,12 @@ export function AssetDetailPage() {
                 {asset.criticality}
               </span>
             ) : null}
+            <Link
+              className="btn btn--ghost btn--sm"
+              to={`/map?asset=${encodeURIComponent(asset.id)}`}
+            >
+              Open on map
+            </Link>
           </div>
           <p className="catalog__summary">
             Asset intelligence — registry fields plus linked findings,
@@ -97,12 +103,24 @@ export function AssetDetailPage() {
                 <dd>{asset.voltage_class ?? "—"}</dd>
               </div>
               <div>
-                <dt>Circuit</dt>
-                <dd>{asset.circuit ?? "—"}</dd>
-              </div>
-              <div>
                 <dt>OEM</dt>
                 <dd>{asset.oem ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>Warranty</dt>
+                <dd>{asset.warranty_until ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>Anti-corrosion SLA</dt>
+                <dd>{asset.anti_corrosion_sla ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>Site</dt>
+                <dd className="mono">{asset.site_id ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>Circuit</dt>
+                <dd>{asset.circuit ?? "—"}</dd>
               </div>
               <div>
                 <dt>Install year</dt>

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import {
   FindingFilters,
   type FindingFilterState,
 } from "../components/FindingFilters";
-import { assetName, listFindings } from "../mock/client";
+import { assetName, createTask, listFindings, patchFinding } from "../mock/client";
 import type { Finding } from "../types/domain";
 
 const emptyFilters: FindingFilterState = {
@@ -34,9 +35,11 @@ const columns: { key: string; title: string; match: (f: Finding) => boolean }[] 
   ];
 
 export function PriorityBoardPage() {
+  const { canWrite } = useAuth();
   const [filters, setFilters] = useState<FindingFilterState>(emptyFilters);
   const [items, setItems] = useState<Finding[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +90,7 @@ export function PriorityBoardPage() {
   return (
     <section className="catalog catalog--wide">
       <header className="catalog__header">
-        <p className="catalog__eyebrow">VoltPulse · C09 / W01</p>
+        <p className="catalog__eyebrow">TPulse · C09 / W01</p>
         <div className="catalog__title-row">
           <h1 className="catalog__title">Prioritisation</h1>
           <Link className="btn btn--ghost" to="/alerts">
@@ -122,6 +125,7 @@ export function PriorityBoardPage() {
       <FindingFilters value={filters} onChange={setFilters} />
 
       {error ? <p className="catalog__error">{error}</p> : null}
+      {msg ? <p className="catalog__summary">{msg}</p> : null}
 
       <div className="board" aria-label="Prioritisation columns">
         {grouped.map((col) => (
@@ -162,15 +166,65 @@ export function PriorityBoardPage() {
                   </p>
                   <p className="board-card__rec">{f.recommendation}</p>
                   <div className="board-card__actions">
+                    <Link className="btn btn--ghost btn--sm" to={`/findings/${f.id}`}>
+                      Open finding
+                    </Link>
                     <Link className="btn btn--ghost btn--sm" to="/alerts">
-                      Open alerts
+                      Open alert
                     </Link>
-                    <Link
+                    <button
+                      type="button"
                       className="btn btn--ghost btn--sm"
-                      to={`/assets/${f.asset_id}`}
+                      disabled={!canWrite}
+                      onClick={() =>
+                        void createTask({
+                          title: `Assign · ${f.class_id} · ${assetName(f.asset_id)}`,
+                          assignee: "Crew North",
+                          finding_id: f.id,
+                          due_at: new Date(Date.now() + 86400000).toISOString(),
+                        }).then(() => setMsg(`Task created for ${f.id}`))
+                      }
                     >
-                      Asset
-                    </Link>
+                      Assign
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={!canWrite}
+                      onClick={() =>
+                        void createTask({
+                          title: `Scheduled follow-up · ${f.id}`,
+                          assignee: "Scheduler",
+                          finding_id: f.id,
+                        }).then(() => setMsg(`Marked scheduled · ${f.id}`))
+                      }
+                    >
+                      Mark scheduled
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={!canWrite}
+                      onClick={() =>
+                        void patchFinding(f.id, { label: "tp" }).then(() =>
+                          setMsg(`TP · ${f.id}`),
+                        )
+                      }
+                    >
+                      TP
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={!canWrite}
+                      onClick={() =>
+                        void patchFinding(f.id, { label: "fp" }).then(() =>
+                          setMsg(`FP · ${f.id}`),
+                        )
+                      }
+                    >
+                      FP
+                    </button>
                   </div>
                 </li>
               ))}

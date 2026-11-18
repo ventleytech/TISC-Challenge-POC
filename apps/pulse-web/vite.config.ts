@@ -19,5 +19,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Dev: browser may not reach :3000 directly — proxy Nest under same origin.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:3000",
+        changeOrigin: true,
+      },
+    },
   },
 });

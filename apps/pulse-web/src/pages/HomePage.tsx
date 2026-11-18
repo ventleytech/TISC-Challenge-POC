@@ -73,11 +73,11 @@ export function HomePage() {
         <div className="hero__copy">
           <p className="hero__plane">Sense · Media · Stream · Data</p>
           <h1 id="vp-brand" className="hero__brand">
-            VoltPulse
+            TPulse
           </h1>
           <p className="hero__lede">
-            Drone and media inspection OS for energy corridors — detect, rank,
-            alert, govern.
+            Transmission Pulse for energy corridors — detect, rank, alert,
+            govern.
           </p>
           <div className="hero__actions">
             <Link className="btn btn--primary" to="/inspections">
@@ -95,7 +95,20 @@ export function HomePage() {
           <p className="catalog__eyebrow">Below fold · ops density</p>
           <h2 className="pulse-strip__title">Corridor pulse</h2>
         </header>
-        <ul className="kpi-row">
+
+        {breachQueue.length > 0 ? (
+          <div className="breach-cta" role="status">
+            <div>
+              <strong>{breachQueue.length} SLA breach</strong>
+              <span> — ack from the desk before the next corridor run.</span>
+            </div>
+            <Link className="btn btn--primary btn--sm" to="/alerts">
+              Open breach queue
+            </Link>
+          </div>
+        ) : null}
+
+        <ul className="kpi-row kpi-row--tight">
           {metrics.map((m, i) => (
             <li
               key={m.id}
@@ -130,6 +143,9 @@ export function HomePage() {
                       <p className="ops-queue__meta mono">{a.id}</p>
                     </div>
                     <SlaCountdown dueAt={a.sla_due_at} />
+                    <Link className="btn btn--ghost btn--sm" to={`/findings/${a.finding_id}`}>
+                      Finding
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -159,8 +175,8 @@ export function HomePage() {
                       risk {f.risk_score}
                     </p>
                   </div>
-                  <Link className="btn btn--ghost btn--sm" to={`/assets/${f.asset_id}`}>
-                    Asset
+                  <Link className="btn btn--ghost btn--sm" to={`/findings/${f.id}`}>
+                    Finding
                   </Link>
                 </li>
               ))}
