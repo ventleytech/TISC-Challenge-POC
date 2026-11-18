@@ -122,7 +122,11 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 16 | P0-T310 | Postgres behind pulse-api (kill MemoryStore) | T004 + compose data | serialize vs other pulse-api writers | done |
 | 16 | P0-T320 | pulse-web live API + real ack/write | T230, T300 | ok vs T310 (tiny ack only) | done |
 | 17 | P0-T330 | pulse-api Kafka consumer (vp.findings/alerts → store) | T300, T310, T210 | ok vs web | done |
-| 18 | P0-T340 | Compose real images: pulse-api/web/grid-rules/grid-perception | T330 | no vs compose | done |
+| 18 | P0-T337 | `utility_id` on `vp.findings.v1` | T330 | ok vs T350/T360 | done |
+| 19 | P0-T340 | Compose real images: pulse-api/web/grid-rules/grid-perception | T330 | no vs compose | done |
+| 20 | P0-T350 | Evidence API + MinIO store + Evidence page | T330, T340 | ok vs T360/T365 | done |
+| 21 | P0-T360 | pulse-notify real channel sink | T330, T340 | ok vs T350 | done |
+| 22 | P0-T365 | pulse-notify Kafka consumer | T360 | no vs web | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**; web via **T060 → T170 → T230**.
 
@@ -152,5 +156,10 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-T160 honest sag/thermal fallbacks under `packages/detector-fallbacks` (no accuracy claims)
 - [x] P0-T240 perception emits honest empty/low-conf `vp.detect.v1` + reason for sag/thermal
 - [x] P0-T230 wow pulse-web on main (`apps/pulse-web`, `packages/ui-tokens`)
+- [x] P0-T337 optional `utility_id` on `vp.findings.v1`
+- [x] P0-T340 compose real images for api/web/rules/perception
+- [x] P0-T350 evidence API + MinIO store + Evidence page
+- [x] P0-T360 pulse-notify real channel sink
+- [x] P0-T365 pulse-notify Kafka consumer
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes
