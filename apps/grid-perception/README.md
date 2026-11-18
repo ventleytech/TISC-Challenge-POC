@@ -31,9 +31,20 @@ cd apps/grid-perception && PYTHONPATH=. python -m grid_perception ...
 
 All runtime knobs via env → `grid_perception.config.Settings`. See `.env.template`. No hardcoded hosts/ports.
 
-## Docker
+## Docker (compose `sense` profile)
 
-Compose `sense` profile still uses alpine sleep stub. Real image + CUDA base = follow-up card. Until then use the scratch venv on the GPU host.
+CPU stub image (alpine, no torch/ultralytics). `python -m grid_perception.serve` runs `/health` **and** an inbox watcher:
+
+- `GP_INBOX_DIR` (compose `/data/inbox`, volume `pulse_perception_inbox`): each `*.jpg|png|…` → detectors in `GP_DETECTORS` → one `vp.detect.v1` JSON line appended to `GP_DETECT_FILE` (compose `/data/bus/vp.detect.v1.jsonl`, volume `pulse_bus_files`). File moves to `processed/` or `failed/`.
+- Default `GP_DETECTORS=sag,thermal_hotspot` → honest fallbacks, runs on CPU with no weights.
+- Gate0 weights (corrosion/crack/vegetation): `GP_MODELS_HOST_DIR` is mounted read-only at `/models`; set `GP_WEIGHTS_*_CONTAINER` to files under it and add them to `GP_DETECTORS`. Needs ultralytics, which this image lacks → those files land in `failed/` with a log line. CUDA image = follow-up card.
+- `/health` JSON includes `processed`, `failed`, `detections` counters.
+
+```bash
+docker compose --env-file .env.template -f infra/compose/docker-compose.yml --profile sense up -d --build grid-perception
+docker cp some.jpg vp-grid-perception:/data/inbox/
+docker exec vp-grid-perception tail -n1 /data/bus/vp.detect.v1.jsonl
+```
 
 ## Detectors
 
