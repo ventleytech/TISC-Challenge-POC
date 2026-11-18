@@ -46,6 +46,15 @@ export class AuthService {
     this.principals.set(key, { ...principal, keyId: key });
   }
 
+  /** Idempotent hydrate from durable memberships (T402). */
+  upsertPrincipal(credential: string, principal: AuthPrincipal): void {
+    const key = credential.trim();
+    if (!key) {
+      return;
+    }
+    this.principals.set(key, { ...principal, keyId: key });
+  }
+
   /**
    * Enforce utility tenancy. platform_admin may access any utility.
    * Other roles must match their bound utility_id.

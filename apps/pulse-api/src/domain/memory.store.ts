@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DomainStore } from './domain.store';
-import type { Alert, Asset, Finding, Inspection } from './types';
+import type { Alert, Asset, Finding, Inspection, Site, Utility, UtilityMembership } from './types';
 
 /**
  * Process-local Maps for unit tests / no-DB smoke.
@@ -12,6 +12,38 @@ export class MemoryStore extends DomainStore {
   private readonly assets = new Map<string, Asset>();
   private readonly findings = new Map<string, Finding>();
   private readonly alerts = new Map<string, Alert>();
+
+  async listUtilities(): Promise<Utility[]> {
+    return [...this.utilities.values()];
+  }
+
+  async getUtility(id: string): Promise<Utility | undefined> {
+    return this.utilities.get(id);
+  }
+
+  async createUtility(row: Utility): Promise<void> {
+    this.utilities.set(row.id, row);
+  }
+
+  async listSites(opts: { utilityId: string }): Promise<Site[]> {
+    return [...this.sites.values()].filter((s) => s.utility_id === opts.utilityId);
+  }
+
+  async getSite(id: string): Promise<Site | undefined> {
+    return this.sites.get(id);
+  }
+
+  async createSite(row: Site): Promise<void> {
+    this.sites.set(row.id, row);
+  }
+
+  async listMemberships(): Promise<UtilityMembership[]> {
+    return [...this.memberships.values()];
+  }
+
+  async createMembership(row: UtilityMembership): Promise<void> {
+    this.memberships.set(row.id, row);
+  }
 
   async listInspections(opts: {
     utilityId: string;

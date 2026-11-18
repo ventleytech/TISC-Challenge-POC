@@ -10,6 +10,9 @@ import type {
   Inspection,
   InspectionStatus,
   Severity,
+  Site,
+  Utility,
+  UtilityMembership,
 } from './types';
 
 @Injectable()
@@ -29,6 +32,69 @@ export class PostgresStore extends DomainStore implements OnModuleDestroy {
   async ping(): Promise<void> {
     await this.pool.query('SELECT 1');
     this.logger.log('Postgres pool ready');
+  }
+
+  async listUtilities(): Promise<Utility[]> {
+    const res = await this.pool.query(
+      'SELECT id, name, created_at FROM utilities ORDER BY created_at, id',
+    );
+    return res.rows.map(mapUtility);
+  }
+
+  async getUtility(id: string): Promise<Utility | undefined> {
+    const res = await this.pool.query(
+      'SELECT id, name, created_at FROM utilities WHERE id = $1',
+      [id],
+    );
+    const row = res.rows[0];
+    return row ? mapUtility(row) : undefined;
+  }
+
+  async createUtility(row: Utility): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO utilities (id, name, created_at)
+       VALUES ($1, $2, $3)`,
+      [row.id, row.name, row.created_at],
+    );
+  }
+
+  async listSites(opts: { utilityId: string }): Promise<Site[]> {
+    const res = await this.pool.query(
+      'SELECT id, utility_id, name FROM sites WHERE utility_id = $1 ORDER BY id',
+      [opts.utilityId],
+    );
+    return res.rows.map(mapSite);
+  }
+
+  async getSite(id: string): Promise<Site | undefined> {
+    const res = await this.pool.query(
+      'SELECT id, utility_id, name FROM sites WHERE id = $1',
+      [id],
+    );
+    const row = res.rows[0];
+    return row ? mapSite(row) : undefined;
+  }
+
+  async createSite(row: Site): Promise<void> {
+    await this.pool.query(
+      'INSERT INTO sites (id, utility_id, name) VALUES ($1, $2, $3)',
+      [row.id, row.utility_id, row.name],
+    );
+  }
+
+  async listMemberships(): Promise<UtilityMembership[]> {
+    const res = await this.pool.query(
+      'SELECT id, utility_id, role, key_id FROM memberships ORDER BY id',
+    );
+    return res.rows.map(mapMembership);
+  }
+
+  async createMembership(row: UtilityMembership): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO memberships (id, utility_id, role, key_id)
+       VALUES ($1, $2, $3, $4)`,
+      [row.id, row.utility_id, row.role, row.key_id],
+    );
   }
 
   async listInspections(opts: {
@@ -276,4 +342,29 @@ function toIsoOrNull(value: unknown): string | null {
     return value.toISOString();
   }
   return String(value);
+}
+
+function mapUtility(row: QueryResultRow): Utility {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    created_at: toIsoOrNull(row.created_at) ?? new Date(0).toISOString(),
+  };
+}
+
+function mapSite(row: QueryResultRow): Site {
+  return {
+    id: String(row.id),
+    utility_id: String(row.utility_id),
+    name: String(row.name),
+  };
+}
+
+function mapMembership(row: QueryResultRow): UtilityMembership {
+  return {
+    id: String(row.id),
+    utility_id: String(row.utility_id),
+    role: 'utility_admin',
+    key_id: String(row.key_id),
+  };
 }

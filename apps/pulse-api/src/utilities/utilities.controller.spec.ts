@@ -22,9 +22,9 @@ function build() {
 }
 
 describe('UtilitiesController', () => {
-  it('creates utility + utility_admin stub key', () => {
+  it('creates utility + utility_admin stub key', async () => {
     const { controller, auth, store } = build();
-    const created = controller.create({
+    const created = await controller.create({
       name: 'Acme Grid',
       admin_api_key: 'ua-acme',
     });
@@ -33,7 +33,7 @@ describe('UtilitiesController', () => {
       api_key: 'ua-acme',
       role: 'utility_admin',
     });
-    expect(store.utilities.get(created.id)?.name).toBe('Acme Grid');
+    expect((await store.getUtility(created.id))?.name).toBe('Acme Grid');
     expect(auth.resolveCredential('ua-acme')).toMatchObject({
       role: 'utility_admin',
       utilityId: created.id,
@@ -42,7 +42,7 @@ describe('UtilitiesController', () => {
 
   it('seeds sites and assets for utility', async () => {
     const { controller, store } = build();
-    const { id } = controller.create({ name: 'Beta Power' });
+    const { id } = await controller.create({ name: 'Beta Power' });
     const admin: AuthPrincipal = {
       keyId: 'x',
       role: 'utility_admin',
@@ -58,13 +58,13 @@ describe('UtilitiesController', () => {
     );
     expect(seeded.site_ids).toHaveLength(1);
     expect(seeded.asset_ids).toHaveLength(1);
-    expect(store.sites.get(seeded.site_ids[0])?.utility_id).toBe(id);
+    expect((await store.getSite(seeded.site_ids[0]))?.utility_id).toBe(id);
     expect((await store.getAsset(seeded.asset_ids[0]))?.name).toBe('Tower-1');
   });
 
   it('rejects empty seed and foreign utility seed', async () => {
     const { controller } = build();
-    const { id } = controller.create({ name: 'Gamma' });
+    const { id } = await controller.create({ name: 'Gamma' });
     const foreign: AuthPrincipal = {
       keyId: 'other',
       role: 'utility_admin',

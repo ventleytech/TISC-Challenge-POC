@@ -15,8 +15,8 @@ import { WorkOrdersModule } from './work-orders/work-orders.module';
 @Module({
   imports: [
     SettingsModule,
-    AuthModule,
     DomainModule,
+    AuthModule,
     HealthModule,
     UtilitiesModule,
     InspectionsModule,

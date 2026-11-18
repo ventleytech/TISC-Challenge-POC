@@ -11,17 +11,33 @@ import type {
 
 /**
  * Authoritative domain store for pulse-api.
- * Inspections / assets / findings / alerts are durable when Postgres is wired.
- * Utilities / sites / memberships stay process-local until a later card.
+ * Inspections / assets / findings / alerts / utilities / sites / memberships
+ * are durable when Postgres is wired.
  */
 export abstract class DomainStore {
+  /**
+   * @deprecated Prefer getUtility / listUtilities (kept for MemoryStore tests).
+   */
   readonly utilities = new Map<string, Utility>();
+  /** @deprecated Prefer getSite / listSites */
   readonly sites = new Map<string, Site>();
+  /** @deprecated Prefer listMemberships */
   readonly memberships = new Map<string, UtilityMembership>();
 
   nextId(): string {
     return randomUUID();
   }
+
+  abstract listUtilities(): Promise<Utility[]>;
+  abstract getUtility(id: string): Promise<Utility | undefined>;
+  abstract createUtility(row: Utility): Promise<void>;
+
+  abstract listSites(opts: { utilityId: string }): Promise<Site[]>;
+  abstract getSite(id: string): Promise<Site | undefined>;
+  abstract createSite(row: Site): Promise<void>;
+
+  abstract listMemberships(): Promise<UtilityMembership[]>;
+  abstract createMembership(row: UtilityMembership): Promise<void>;
 
   abstract listInspections(opts: {
     utilityId: string;

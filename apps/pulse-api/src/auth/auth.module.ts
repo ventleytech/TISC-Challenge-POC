@@ -3,6 +3,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { MeController } from './me.controller';
+import { MembershipHydrateService } from './membership-hydrate.service';
 import { RolesGuard } from './roles.guard';
 import { UtilityScopeInterceptor } from './utility-scope.interceptor';
 
@@ -11,6 +12,7 @@ import { UtilityScopeInterceptor } from './utility-scope.interceptor';
   controllers: [MeController],
   providers: [
     AuthService,
+    MembershipHydrateService,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_INTERCEPTOR, useClass: UtilityScopeInterceptor },

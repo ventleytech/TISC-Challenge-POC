@@ -30,8 +30,8 @@ export class UtilitiesController {
   ) {}
 
   @Get()
-  list(@CurrentUser() user?: AuthPrincipal): { items: Utility[] } {
-    const all = [...this.store.utilities.values()];
+  async list(@CurrentUser() user?: AuthPrincipal): Promise<{ items: Utility[] }> {
+    const all = await this.store.listUtilities();
     if (!this.auth.enabled || !user || user.role === 'platform_admin') {
       return { items: all };
     }
@@ -45,10 +45,10 @@ export class UtilitiesController {
 
   @Post()
   @Roles('platform_admin')
-  create(@Body() body: UtilityCreate): {
+  async create(@Body() body: UtilityCreate): Promise<{
     id: string;
     admin: { api_key: string; role: 'utility_admin' };
-  } {
+  }> {
     const name = body?.name?.trim();
     if (!name) {
       throw new BadRequestException('name is required');
@@ -60,7 +60,7 @@ export class UtilitiesController {
       name,
       created_at: new Date().toISOString(),
     };
-    this.store.utilities.set(id, row);
+    await this.store.createUtility(row);
 
     const apiKey = body.admin_api_key?.trim() || `ua-${randomUUID()}`;
     this.auth.registerPrincipal(apiKey, {
@@ -75,7 +75,7 @@ export class UtilitiesController {
       role: 'utility_admin',
       key_id: apiKey,
     };
-    this.store.memberships.set(membership.id, membership);
+    await this.store.createMembership(membership);
 
     // Onboarding needs the stub key once; later cards use IdP.
     return {
@@ -85,11 +85,11 @@ export class UtilitiesController {
   }
 
   @Get(':utilityId')
-  getOne(
+  async getOne(
     @Param('utilityId') utilityId: string,
     @CurrentUser() user?: AuthPrincipal,
-  ): Utility {
-    const row = this.store.utilities.get(utilityId);
+  ): Promise<Utility> {
+    const row = await this.store.getUtility(utilityId);
     if (!row) {
       throw new NotFoundException(`utility ${utilityId} not found`);
     }
@@ -104,7 +104,7 @@ export class UtilitiesController {
     @Body() body: UtilitySeed,
     @CurrentUser() user?: AuthPrincipal,
   ): Promise<{ site_ids: string[]; asset_ids: string[] }> {
-    const utility = this.store.utilities.get(utilityId);
+    const utility = await this.store.getUtility(utilityId);
     if (!utility) {
       throw new NotFoundException(`utility ${utilityId} not found`);
     }
@@ -128,7 +128,7 @@ export class UtilitiesController {
         utility_id: utilityId,
         name: siteName,
       };
-      this.store.sites.set(siteId, row);
+      await this.store.createSite(row);
       site_ids.push(siteId);
     }
 
@@ -138,14 +138,14 @@ export class UtilitiesController {
       if (!assetName) {
         throw new BadRequestException('asset name is required');
       }
-      if (asset.site_id && !this.store.sites.has(asset.site_id)) {
-        throw new BadRequestException(`unknown site_id ${asset.site_id}`);
-      }
-      if (
-        asset.site_id &&
-        this.store.sites.get(asset.site_id)?.utility_id !== utilityId
-      ) {
-        throw new BadRequestException('site_id not in this utility');
+      if (asset.site_id) {
+        const site = await this.store.getSite(asset.site_id);
+        if (!site) {
+          throw new BadRequestException(`unknown site_id ${asset.site_id}`);
+        }
+        if (site.utility_id !== utilityId) {
+          throw new BadRequestException('site_id not in this utility');
+        }
       }
       const assetId = this.store.nextId();
       const row: Asset = {
