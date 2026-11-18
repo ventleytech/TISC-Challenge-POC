@@ -6,6 +6,7 @@ import { AssetDetailPage } from "./pages/AssetDetailPage";
 import { AssetsPage } from "./pages/AssetsPage";
 import { EvidencePage } from "./pages/EvidencePage";
 import { HomePage } from "./pages/HomePage";
+import { MapPage } from "./pages/MapPage";
 import { InspectionsPage } from "./pages/InspectionsPage";
 import { PriorityBoardPage } from "./pages/PriorityBoardPage";
 import { ScheduleIndexPage } from "./pages/ScheduleIndexPage";
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="assets/:assetId" element={<AssetDetailPage />} />
         <Route path="priority" element={<PriorityBoardPage />} />
         <Route path="alerts" element={<AlertsPage />} />
+        <Route path="map" element={<MapPage />} />
         <Route path="evidence" element={<EvidencePage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

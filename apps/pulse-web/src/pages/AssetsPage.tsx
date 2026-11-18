@@ -127,7 +127,9 @@ export function AssetsPage() {
         <aside className="map-stub" aria-label="Corridor map stub">
           <header className="map-stub__head">
             <h2>Corridor sketch</h2>
-            <span className="chip">geo stub</span>
+            <Link className="chip" to="/map">
+              open full map
+            </Link>
           </header>
           <div className="map-stub__canvas" aria-hidden="true">
             <span className="map-stub__line map-stub__line--a" />
@@ -139,7 +141,7 @@ export function AssetsPage() {
           </div>
           <p className="map-stub__note">
             {stats.critical + stats.high} elevated assets in filtered set —
-            full GIS arrives with later A* cards.
+            open the full corridor map for risk heat and alerts.
           </p>
         </aside>
       </div>

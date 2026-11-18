@@ -1,49 +1,100 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { SlaCountdown } from "../components/SlaCountdown";
-import { ackAlert, listAlerts } from "../mock/client";
-import { SEVERITIES, type Alert, type Severity } from "../types/domain";
+import { EvidenceThumb } from "../components/EvidenceThumb";
+import { RingGauge } from "../components/RingGauge";
+import {
+  SLA_WARN_MS,
+  formatClock,
+  slaLeft,
+  slaTone,
+  useNow,
+  type SlaTone,
+} from "../components/sla";
+import {
+  ackAlert,
+  assetName,
+  listAlerts,
+  listEvidence,
+  listFindings,
+  listInspections,
+  liveApiEnabled,
+} from "../mock/client";
+import {
+  SEVERITIES,
+  type Alert,
+  type EvidenceObject,
+  type Finding,
+  type Inspection,
+  type Severity,
+} from "../types/domain";
 
-function slaTone(dueAt: string | null, now: number): "ok" | "warn" | "breach" {
-  if (!dueAt) return "ok";
-  const ms = new Date(dueAt).getTime() - now;
-  if (ms < 0) return "breach";
-  if (ms < 30 * 60_000) return "warn";
-  return "ok";
+type SortKey = "due" | "severity" | "risk";
+
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "due", label: "SLA due" },
+  { key: "severity", label: "Severity" },
+  { key: "risk", label: "Risk score" },
+];
+
+const LANES: { tone: SlaTone | "acked"; title: string; hint: string }[] = [
+  { tone: "breach", title: "Breached", hint: "SLA elapsed — escalate now" },
+  { tone: "warn", title: "Escalating", hint: "Under 30 minutes" },
+  { tone: "ok", title: "On track", hint: "Inside the SLA window" },
+  { tone: "none", title: "No SLA", hint: "Untimed alerts" },
+  { tone: "acked", title: "Acknowledged", hint: "Operator owns it" },
+];
+
+const pretty = (s: string) => s.replace(/_/g, " ");
+
+function sevRank(s: Severity): number {
+  return SEVERITIES.length - SEVERITIES.indexOf(s);
+}
+
+function laneOf(a: Alert, now: number): SlaTone | "acked" {
+  return a.ack_at ? "acked" : slaTone(a.sla_due_at, now);
+}
+
+function remainingLabel(a: Alert, now: number): string {
+  if (!a.sla_due_at) return "no SLA";
+  const ms = new Date(a.sla_due_at).getTime() - now;
+  return ms < 0 ? `+${formatClock(ms)} over` : formatClock(ms);
 }
 
 export function AlertsPage() {
   const [severity, setSeverity] = useState<Severity | "">("");
-  const [openOnly, setOpenOnly] = useState(true);
+  const [openOnly, setOpenOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>("due");
+  const [q, setQ] = useState("");
   const [items, setItems] = useState<Alert[]>([]);
+  const [findings, setFindings] = useState<Map<string, Finding>>(new Map());
+  const [inspections, setInspections] = useState<Map<string, Inspection>>(
+    new Map(),
+  );
+  const [evidence, setEvidence] = useState<EvidenceObject[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [acking, setAcking] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const reload = useCallback(async () => {
-    try {
-      const res = await listAlerts({ severity, openOnly });
-      setItems(res.items);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load alerts");
-    }
-  }, [severity, openOnly]);
+  const [loaded, setLoaded] = useState(false);
+  const [tick, setTick] = useState(0);
+  const now = useNow(1000);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await listAlerts({ severity, openOnly });
-        if (!cancelled) {
-          setItems(res.items);
-          setError(null);
-        }
+        const [a, f, i, e] = await Promise.all([
+          listAlerts({ openOnly }),
+          listFindings(),
+          listInspections({}),
+          listEvidence({}),
+        ]);
+        if (cancelled) return;
+        setItems(a.items);
+        setFindings(new Map(f.items.map((x) => [x.id, x])));
+        setInspections(new Map(i.items.map((x) => [x.id, x])));
+        setEvidence(e.items);
+        setError(null);
+        setLoaded(true);
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -55,9 +106,9 @@ export function AlertsPage() {
     return () => {
       cancelled = true;
     };
-  }, [severity, openOnly]);
+  }, [openOnly, tick]);
 
-  async function onAck(alertId: string) {
+  const onAck = useCallback(async (alertId: string) => {
     setAcking(alertId);
     try {
       const updated = await ackAlert(alertId);
@@ -65,137 +116,552 @@ export function AlertsPage() {
         setError(`Alert ${alertId} not found`);
         return;
       }
-      await reload();
+      setTick((n) => n + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ack failed");
     } finally {
       setAcking(null);
     }
-  }
+  }, []);
 
-  const summary = useMemo(() => {
-    const breach = items.filter(
-      (a) => !a.ack_at && slaTone(a.sla_due_at, now) === "breach",
-    ).length;
-    const warn = items.filter(
-      (a) => !a.ack_at && slaTone(a.sla_due_at, now) === "warn",
-    ).length;
-    const open = items.filter((a) => !a.ack_at).length;
-    return { breach, warn, open };
-  }, [items, now]);
+  const sevCounts = useMemo(() => {
+    const m = new Map<Severity, number>();
+    for (const a of items) m.set(a.severity, (m.get(a.severity) ?? 0) + 1);
+    return m;
+  }, [items]);
+
+  const risk = useCallback(
+    (a: Alert) => findings.get(a.finding_id)?.risk_score ?? 0,
+    [findings],
+  );
+
+  const visible = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const rows = items.filter((a) => {
+      if (severity && a.severity !== severity) return false;
+      if (!needle) return true;
+      const f = findings.get(a.finding_id);
+      const hay = [
+        a.title,
+        a.id,
+        a.finding_id,
+        a.inspection_id ?? "",
+        f?.class_id ?? "",
+        f ? assetName(f.asset_id) : "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(needle);
+    });
+    const byDue = (a: Alert, b: Alert) =>
+      (a.sla_due_at ?? "9") < (b.sla_due_at ?? "9") ? -1 : 1;
+    return rows.sort((a, b) => {
+      if (sort === "severity") {
+        return sevRank(b.severity) - sevRank(a.severity) || byDue(a, b);
+      }
+      if (sort === "risk") return risk(b) - risk(a) || byDue(a, b);
+      return byDue(a, b);
+    });
+  }, [items, severity, q, sort, findings, risk]);
+
+  const lanes = useMemo(
+    () =>
+      LANES.map((lane) => ({
+        ...lane,
+        rows: visible.filter((a) => laneOf(a, now) === lane.tone),
+      })).filter((l) => l.rows.length > 0),
+    [visible, now],
+  );
+
+  /** Flat order = lane order, so keyboard nav follows what the eye sees. */
+  const flat = useMemo(() => lanes.flatMap((l) => l.rows), [lanes]);
+  const selected = useMemo(
+    () => flat.find((a) => a.id === selectedId) ?? flat[0] ?? null,
+    [flat, selectedId],
+  );
+
+  const stats = useMemo(() => {
+    const open = visible.filter((a) => !a.ack_at);
+    const breach = open.filter((a) => slaTone(a.sla_due_at, now) === "breach");
+    const warn = open.filter((a) => slaTone(a.sla_due_at, now) === "warn");
+    const acked = visible.length - open.length;
+    const health = open.length ? 1 - breach.length / open.length : 1;
+    const next = open
+      .filter((a) => a.sla_due_at && new Date(a.sla_due_at).getTime() > now)
+      .sort((a, b) => (a.sla_due_at! < b.sla_due_at! ? -1 : 1))[0];
+    return {
+      open: open.length,
+      breach: breach.length,
+      warn: warn.length,
+      acked,
+      health,
+      next,
+    };
+  }, [visible, now]);
+
+  const step = useCallback(
+    (dir: 1 | -1) => {
+      if (!flat.length || !selected) return;
+      const i = flat.findIndex((a) => a.id === selected.id);
+      setSelectedId(flat[(i + dir + flat.length) % flat.length].id);
+    },
+    [flat, selected],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && ["INPUT", "SELECT", "TEXTAREA"].includes(t.tagName)) return;
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        step(1);
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        step(-1);
+      } else if (e.key === "a" && selected && !selected.ack_at) {
+        void onAck(selected.id);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [step, selected, onAck]);
+
+  const live = liveApiEnabled();
+  const healthTone =
+    stats.health >= 0.8 ? "ok" : stats.health >= 0.5 ? "warn" : "breach";
+  const sevTotal = [...sevCounts.values()].reduce((a, b) => a + b, 0);
+
+  const selFinding = selected ? findings.get(selected.finding_id) : undefined;
+  const selInspection = selected?.inspection_id
+    ? inspections.get(selected.inspection_id)
+    : undefined;
+  const selEvidence = useMemo(() => {
+    if (!selected) return [];
+    const byFinding = evidence.filter((e) => e.finding_id === selected.finding_id);
+    if (byFinding.length) return byFinding.slice(0, 4);
+    return evidence
+      .filter((e) => e.inspection_id === selected.inspection_id)
+      .slice(0, 4);
+  }, [evidence, selected]);
 
   return (
-    <section className="catalog catalog--wide">
-      <header className="catalog__header">
-        <p className="catalog__eyebrow">VoltPulse · C07</p>
-        <div className="catalog__title-row">
-          <h1 className="catalog__title">Alerts &amp; SLA</h1>
-          <Link className="btn btn--ghost" to="/priority">
-            Priority board
-          </Link>
+    <section className="evx alx">
+      <header className="evx-hero">
+        <div className="evx-hero__mesh" aria-hidden="true" />
+        <div className="alx-hero__sweep" aria-hidden="true" />
+        <div className="evx-hero__copy">
+          <p className="evx-eyebrow">VoltPulse · alert desk</p>
+          <h1 className="evx-title">
+            Beat the clock, <em>not the outage.</em>
+          </h1>
+          <p className="evx-sub">
+            Every critical finding opens a timed alert. Watch the SLA burn down,
+            acknowledge from the keyboard, and jump straight to the crop that
+            triggered it.
+          </p>
+          <div className="evx-hero__actions">
+            <span className={`evx-source evx-source--${live ? "live" : "mock"}`}>
+              <i aria-hidden="true" />
+              {live ? "Live · pulse-api" : "Mock bus · offline"}
+            </span>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setTick((n) => n + 1)}
+            >
+              Refresh
+            </button>
+            <Link className="btn btn--ghost btn--sm" to="/priority">
+              Priority board
+            </Link>
+            <Link className="btn btn--ghost btn--sm" to="/map">
+              Corridor map
+            </Link>
+          </div>
         </div>
-        <p className="catalog__summary">
-          Operator ack queue with live countdown. Breach rows pulse. Live Nest
-          when <code>VITE_PULSE_API_URL</code> set; else mock. No SMS bus.
-        </p>
+
+        <div className="alx-hero__side">
+          <RingGauge
+            value={stats.health}
+            size={132}
+            stroke={9}
+            tone={healthTone}
+            label={`${Math.round(stats.health * 100)}%`}
+            sub="SLA health"
+          />
+          <div className="evx-metrics alx-metrics" aria-label="Alert summary">
+            <div className="evx-metric evx-metric--bad">
+              <span className="evx-metric__n">{stats.breach}</span>
+              <span className="evx-metric__l">Breached</span>
+            </div>
+            <div className="evx-metric evx-metric--warn">
+              <span className="evx-metric__n">{stats.warn}</span>
+              <span className="evx-metric__l">Under 30m</span>
+            </div>
+            <div className="evx-metric">
+              <span className="evx-metric__n">{stats.open}</span>
+              <span className="evx-metric__l">Open</span>
+            </div>
+            <div className="evx-metric">
+              <span className="evx-metric__n">{stats.acked}</span>
+              <span className="evx-metric__l">Acked</span>
+            </div>
+            <div className="evx-mix" role="group" aria-label="Severity mix">
+              <div className="evx-mix__bar">
+                {SEVERITIES.filter((s) => sevCounts.has(s)).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    data-sev={s}
+                    title={`${s} · ${sevCounts.get(s)}`}
+                    className={`evx-mix__seg${severity === s ? " is-on" : ""}`}
+                    style={{ flexGrow: sevCounts.get(s) }}
+                    onClick={() => setSeverity(severity === s ? "" : s)}
+                  />
+                ))}
+                {sevTotal === 0 ? <span className="evx-mix__empty" /> : null}
+              </div>
+              <p className="evx-mix__cap">
+                {stats.next
+                  ? `Next deadline in ${remainingLabel(stats.next, now)} · ${stats.next.title}`
+                  : "No upcoming deadlines"}
+              </p>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div className="stat-band">
-        <div className="stat-band__cell stat-band__cell--danger">
-          <span className="stat-band__n">{summary.breach}</span>
-          <span className="stat-band__l">Breached</span>
-        </div>
-        <div className="stat-band__cell stat-band__cell--warn">
-          <span className="stat-band__n">{summary.warn}</span>
-          <span className="stat-band__l">Under 30m</span>
-        </div>
-        <div className="stat-band__cell">
-          <span className="stat-band__n">{summary.open}</span>
-          <span className="stat-band__l">Open in view</span>
-        </div>
-      </div>
-
-      <div className="filters" role="group" aria-label="Alert filters">
-        <label className="filters__field">
-          <span className="filters__label">Severity</span>
-          <select
-            className="filters__select"
-            value={severity}
-            onChange={(e) => setSeverity(e.target.value as Severity | "")}
+      <div className="evx-toolbar" role="group" aria-label="Alert filters">
+        <div className="evx-pills">
+          <button
+            type="button"
+            className={`evx-pill${severity === "" ? " is-on" : ""}`}
+            onClick={() => setSeverity("")}
           >
-            <option value="">All</option>
-            {SEVERITIES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="filters__field filters__field--check">
-          <input
-            type="checkbox"
-            checked={openOnly}
-            onChange={(e) => setOpenOnly(e.target.checked)}
-          />
-          <span className="filters__label">Open only</span>
-        </label>
+            All <b>{items.length}</b>
+          </button>
+          {SEVERITIES.filter((s) => sevCounts.has(s)).map((s) => (
+            <button
+              key={s}
+              type="button"
+              data-sev={s}
+              className={`evx-pill${severity === s ? " is-on" : ""}`}
+              onClick={() => setSeverity(severity === s ? "" : s)}
+            >
+              <i aria-hidden="true" />
+              {s} <b>{sevCounts.get(s)}</b>
+            </button>
+          ))}
+        </div>
+        <div className="evx-selects">
+          <label>
+            <span>Search</span>
+            <input
+              className="filters__select alx-search"
+              type="search"
+              placeholder="title, asset, class, id…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </label>
+          <label>
+            <span>Sort</span>
+            <select
+              className="filters__select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+            >
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="evx-toggle">
+            <input
+              type="checkbox"
+              checked={openOnly}
+              onChange={(e) => setOpenOnly(e.target.checked)}
+            />
+            <span>Open only</span>
+          </label>
+        </div>
       </div>
 
       {error ? <p className="catalog__error">{error}</p> : null}
 
-      <ul className="alert-grid" aria-label="Alerts">
-        {items.map((alert, index) => {
-          const acked = Boolean(alert.ack_at);
-          const tone = slaTone(alert.sla_due_at, now);
-          return (
-            <li
-              key={alert.id}
-              className={`alert-tile alert-tile--${tone}${acked ? " is-acked" : ""}`}
-              style={{ animationDelay: `${index * 55}ms` }}
+      <div className="evx-stage">
+        <div className="alx-lanes" aria-label="Alerts">
+          {lanes.map((lane) => (
+            <section key={lane.tone} className={`alx-lane alx-lane--${lane.tone}`}>
+              <header className="alx-lane__head">
+                <h2>{lane.title}</h2>
+                <span className="alx-lane__count">{lane.rows.length}</span>
+                <p>{lane.hint}</p>
+              </header>
+              <ul className="alx-list">
+                {lane.rows.map((alert, index) => {
+                  const f = findings.get(alert.finding_id);
+                  const tone = laneOf(alert, now);
+                  const left = slaLeft(alert.sla_due_at, now);
+                  return (
+                    <li key={alert.id}>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        data-sev={alert.severity}
+                        data-class={f?.class_id}
+                        className={`alx-card alx-card--${tone}${selected?.id === alert.id ? " is-selected" : ""}`}
+                        style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
+                        onClick={() => setSelectedId(alert.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedId(alert.id);
+                          }
+                        }}
+                      >
+                        <span className="alx-card__stripe" aria-hidden="true" />
+                        <div className="alx-card__main">
+                          <div className="alx-card__top">
+                            <span className="alx-card__title">{alert.title}</span>
+                            <span className={`badge badge--${alert.severity}`}>
+                              {alert.severity}
+                            </span>
+                          </div>
+                          <p className="alx-card__meta">
+                            {f ? (
+                              <>
+                                <span className="alx-tag" data-class={f.class_id}>
+                                  <i aria-hidden="true" />
+                                  {pretty(f.class_id)}
+                                </span>
+                                <span>{assetName(f.asset_id)}</span>
+                                <span>
+                                  risk <b className="mono">{f.risk_score}</b>
+                                </span>
+                              </>
+                            ) : (
+                              <span className="mono">{alert.finding_id}</span>
+                            )}
+                          </p>
+                          <div
+                            className="alx-bar"
+                            aria-hidden="true"
+                            title="Share of assumed 4h SLA window remaining"
+                          >
+                            <i style={{ width: `${Math.max(left, tone === "breach" ? 1 : 0.02) * 100}%` }} />
+                            <u style={{ left: `${(SLA_WARN_MS / (4 * 3_600_000)) * 100}%` }} />
+                          </div>
+                        </div>
+                        <div className="alx-card__side">
+                          <span className="alx-clock mono">
+                            {alert.ack_at ? "acked" : remainingLabel(alert, now)}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn btn--primary btn--sm"
+                            disabled={Boolean(alert.ack_at) || acking === alert.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void onAck(alert.id);
+                            }}
+                          >
+                            {alert.ack_at
+                              ? "Acked"
+                              : acking === alert.id
+                                ? "…"
+                                : "Ack"}
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+          {flat.length === 0 && loaded && !error ? (
+            <p className="catalog__empty">No alerts match filters.</p>
+          ) : null}
+        </div>
+
+        <aside className="evx-inspector alx-inspector" aria-label="Alert inspector">
+          {selected ? (
+            <div
+              key={selected.id}
+              className="evx-inspector__in"
+              data-sev={selected.severity}
             >
-              <div className="alert-tile__main">
-                <div className="alert-tile__title">
-                  <span className="alert-tile__name">{alert.title}</span>
-                  <span className={`badge badge--${alert.severity}`}>
-                    {alert.severity}
+              <div className="alx-focus">
+                <RingGauge
+                  value={selected.ack_at ? 1 : slaLeft(selected.sla_due_at, now)}
+                  size={120}
+                  stroke={8}
+                  tone={
+                    selected.ack_at
+                      ? "ok"
+                      : (({ none: "steel", ok: "volt", warn: "warn", breach: "breach" }) as const)[
+                          slaTone(selected.sla_due_at, now)
+                        ]
+                  }
+                  label={selected.ack_at ? "ACK" : remainingLabel(selected, now)}
+                  sub={
+                    selected.ack_at
+                      ? "owned"
+                      : slaTone(selected.sla_due_at, now) === "breach"
+                        ? "over SLA"
+                        : "to SLA"
+                  }
+                />
+                <div>
+                  <span className={`badge badge--${selected.severity}`}>
+                    {selected.severity}
                   </span>
-                </div>
-                <p className="alert-tile__meta">
-                  <span className="mono">{alert.id}</span> · finding{" "}
-                  <span className="mono">{alert.finding_id}</span>
-                  {alert.inspection_id ? (
-                    <>
-                      {" "}
-                      · <span className="mono">{alert.inspection_id}</span>
-                    </>
-                  ) : null}
-                </p>
-                <div className="alert-tile__sla">
-                  <span className="alert-tile__sla-label">SLA</span>
-                  <SlaCountdown dueAt={alert.sla_due_at} />
-                  {acked && alert.ack_at ? (
-                    <span className="alert-tile__acked">
-                      acked {new Date(alert.ack_at).toLocaleString()}
-                    </span>
-                  ) : null}
+                  <h2>{selected.title}</h2>
+                  <p className="mono">{selected.id}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                className="btn btn--primary"
-                disabled={acked || acking === alert.id}
-                onClick={() => void onAck(alert.id)}
-              >
-                {acked ? "Acknowledged" : acking === alert.id ? "…" : "Ack"}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
 
-      {items.length === 0 && !error ? (
-        <p className="catalog__empty">No alerts match filters.</p>
-      ) : null}
+              <ol className="alx-timeline" aria-label="Escalation timeline">
+                {(
+                  [
+                    ["Raised", "Finding opened alert", true],
+                    [
+                      "Warn",
+                      "T−30m escalation",
+                      slaTone(selected.sla_due_at, now) !== "ok",
+                    ],
+                    [
+                      "Due",
+                      selected.sla_due_at
+                        ? new Date(selected.sla_due_at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "no SLA",
+                      slaTone(selected.sla_due_at, now) === "breach",
+                    ],
+                    [
+                      "Ack",
+                      selected.ack_at
+                        ? new Date(selected.ack_at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "pending",
+                      Boolean(selected.ack_at),
+                    ],
+                  ] as const
+                ).map(([name, note, done]) => (
+                  <li key={name} className={done ? "is-done" : undefined}>
+                    <i aria-hidden="true" />
+                    <b>{name}</b>
+                    <span>{note}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <dl className="evx-facts">
+                <div>
+                  <dt>Class</dt>
+                  <dd>{selFinding ? pretty(selFinding.class_id) : "—"}</dd>
+                </div>
+                <div>
+                  <dt>Risk score</dt>
+                  <dd className="mono">{selFinding?.risk_score ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt>Asset</dt>
+                  <dd>
+                    {selFinding ? (
+                      <Link to={`/assets/${selFinding.asset_id}`}>
+                        {assetName(selFinding.asset_id)}
+                      </Link>
+                    ) : (
+                      "—"
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Finding</dt>
+                  <dd className="mono">{selected.finding_id}</dd>
+                </div>
+                <div>
+                  <dt>Inspection</dt>
+                  <dd>
+                    {selInspection ? (
+                      <>
+                        <span className={`chip chip--status-${selInspection.status}`}>
+                          {pretty(selInspection.status)}
+                        </span>{" "}
+                        <span className="mono">{selInspection.id}</span>
+                      </>
+                    ) : (
+                      <span className="mono">{selected.inspection_id ?? "—"}</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Crew</dt>
+                  <dd>{selInspection?.assignee ?? "—"}</dd>
+                </div>
+              </dl>
+
+              {selFinding ? (
+                <p className="alx-reco">
+                  <span>Recommended action</span>
+                  {selFinding.recommendation}
+                </p>
+              ) : null}
+
+              {selEvidence.length > 0 ? (
+                <div className="alx-evid">
+                  <p className="alx-sub">Triggering evidence</p>
+                  <ul>
+                    {selEvidence.map((ev) => (
+                      <li key={ev.id} data-class={ev.class_id ?? ev.kind}>
+                        <EvidenceThumb ev={ev} className="alx-evid__img" />
+                        <span>{ev.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="alx-actions">
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={Boolean(selected.ack_at) || acking === selected.id}
+                  onClick={() => void onAck(selected.id)}
+                >
+                  {selected.ack_at ? "Acknowledged" : "Acknowledge"}
+                </button>
+                {selFinding ? (
+                  <Link
+                    className="btn btn--ghost btn--sm alx-ghost"
+                    to={`/map?asset=${encodeURIComponent(selFinding.asset_id)}`}
+                  >
+                    Locate on map
+                  </Link>
+                ) : null}
+                <Link className="btn btn--ghost btn--sm alx-ghost" to="/evidence">
+                  Evidence
+                </Link>
+              </div>
+              <p className="evx-inspector__foot">
+                ↑/↓ or j/k to browse · a to acknowledge
+              </p>
+            </div>
+          ) : (
+            <p className="evx-inspector__empty">
+              {loaded ? "No alert selected." : "Loading alerts…"}
+            </p>
+          )}
+        </aside>
+      </div>
     </section>
   );
 }

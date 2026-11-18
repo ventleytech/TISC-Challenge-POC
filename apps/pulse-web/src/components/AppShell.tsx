@@ -5,6 +5,7 @@ const primary: { to: string; label: string; end?: boolean; hint: string }[] = [
   { to: "/inspections", label: "Inspections", hint: "Lifecycle" },
   { to: "/assets", label: "Assets", hint: "Registry" },
   { to: "/priority", label: "Priority", hint: "Risk board" },
+  { to: "/map", label: "Map", hint: "Corridor" },
   { to: "/alerts", label: "Alerts", hint: "SLA / ack" },
   { to: "/evidence", label: "Evidence", hint: "Objects" },
   { to: "/admin", label: "Admin", hint: "Ops health" },
