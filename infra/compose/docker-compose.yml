@@ -39,6 +39,9 @@ services:
       PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC:-vp.detect.v1}
       # kafka sink only: in-compose broker (needs profile stream/data alongside media).
       KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+    volumes:
+      # Shared file bus (T385): gateway writes vp.detect.v1.jsonl, grid-rules tails it.
+      - pulse_bus_files:/data/bus
     restart: "no"
 
   # Apache Kafka (KRaft combined broker+controller). Profiles stream + data share the bus.
@@ -135,6 +138,9 @@ services:
       GRID_RULES_KAFKA_FROM_BEGINNING: ${GRID_RULES_KAFKA_FROM_BEGINNING:-false}
       GRID_RULES_KAFKA_PRODUCER_ENABLED: ${GRID_RULES_KAFKA_PRODUCER_ENABLED:-false}
       GRID_RULES_KAFKA_CLIENT_ID: ${GRID_RULES_KAFKA_CLIENT_ID:-grid-rules}
+    volumes:
+      # Same volume as pulse-gateway; reads detect jsonl, writes findings/alerts jsonl here.
+      - pulse_bus_files:/data/bus
     depends_on:
       pulse-bus:
         condition: service_healthy
@@ -325,3 +331,5 @@ volumes:
   pulse_pg_data:
   pulse_store_data:
   pulse_kafka_data:
+  # File-bus shared by pulse-gateway + grid-rules (images chown /data/bus to node).
+  pulse_bus_files:
