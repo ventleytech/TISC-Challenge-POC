@@ -1,0 +1,1 @@
+PASS inspection=7a60ba60-bc1b-49c7-b94e-097fef373b16 mode=synthetic findings=1 alerts=1 notify_lines=2
