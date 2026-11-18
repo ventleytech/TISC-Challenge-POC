@@ -53,6 +53,11 @@ class Settings:
     ingest_source: str = "upload"
     inspection_id: str = ""
     asset_id: str = ""
+    utility_id: str = ""
+    # P0-T403: POST crops to pulse-api /evidence (MinIO/fs via Nest).
+    evidence_enabled: bool = False
+    evidence_api_base: str = ""
+    evidence_api_key: str = ""
 
 
 def _env(key: str, default: str = "") -> str:
@@ -64,6 +69,17 @@ def _env_bool(key: str, default: bool = False) -> bool:
     if not raw:
         return default
     return raw.lower() in ("1", "true", "yes", "on")
+
+
+
+def _evidence_api_base() -> str:
+    explicit = _env("GP_EVIDENCE_API_BASE")
+    if explicit:
+        return explicit.rstrip("/")
+    root = _env("PULSE_API_BASE_URL", "http://pulse-api:3000").rstrip("/")
+    if root.endswith("/api/v1"):
+        return root
+    return f"{root}/api/v1"
 
 
 def load_settings(repo_root: Path | None = None) -> Settings:
@@ -102,4 +118,8 @@ def load_settings(repo_root: Path | None = None) -> Settings:
         ingest_source=_env("GP_INGEST_SOURCE", "upload"),
         inspection_id=_env("GP_INSPECTION_ID"),
         asset_id=_env("GP_ASSET_ID"),
+        utility_id=_env("GP_UTILITY_ID", "util-demo-01"),
+        evidence_enabled=_env_bool("GP_EVIDENCE_ENABLED", False),
+        evidence_api_base=_evidence_api_base(),
+        evidence_api_key=_env("GP_EVIDENCE_API_KEY") or _env("PULSE_API_KEY"),
     )

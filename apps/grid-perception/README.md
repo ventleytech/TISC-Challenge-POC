@@ -63,3 +63,10 @@ Requesting `sag` or `thermal_hotspot` always routes to `packages/detector-fallba
 ## Anti-leak
 
 VoltPulse names only. Do not copy proprietary DeepStream configs or internal brands.
+
+## Evidence crops (P0-T403)
+
+When `GP_EVIDENCE_ENABLED=1`, each detection with a bbox is POSTed to pulse-api
+`POST /api/v1/evidence` (`kind=crop`). Nest stores bytes in MinIO/fs. Detection
+rows gain `evidence_object_id` on success. Without Pillow (CPU alpine), the
+source frame is uploaded with bbox metadata (real pixel crop on CUDA/ultralytics images).

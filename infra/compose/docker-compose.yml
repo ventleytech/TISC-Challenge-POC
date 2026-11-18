@@ -31,6 +31,13 @@ services:
       GP_WEIGHTS_CORROSION: ${GP_WEIGHTS_CORROSION_CONTAINER:-}
       GP_WEIGHTS_CRACK: ${GP_WEIGHTS_CRACK_CONTAINER:-}
       GP_WEIGHTS_VEGETATION: ${GP_WEIGHTS_VEGETATION_CONTAINER:-}
+      # P0-T403: detection crops → pulse-api evidence (MinIO/fs). Off by default.
+      GP_EVIDENCE_ENABLED: ${GP_EVIDENCE_ENABLED:-0}
+      GP_UTILITY_ID: ${GP_UTILITY_ID:-util-demo-01}
+      GP_INSPECTION_ID: ${GP_INSPECTION_ID:-}
+      GP_EVIDENCE_API_BASE: ${GP_EVIDENCE_API_BASE:-http://pulse-api:3000/api/v1}
+      GP_EVIDENCE_API_KEY: ${GP_EVIDENCE_API_KEY:-dev-operator}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL:-http://pulse-api:3000}
     ports:
       - "${GP_HEALTH_PORT:-8081}:${GP_HEALTH_PORT:-8081}"
     volumes:
