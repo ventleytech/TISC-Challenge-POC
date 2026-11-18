@@ -78,7 +78,15 @@ const assetsDb = [...MOCK_ASSETS];
 const inspectionsDb = [...MOCK_INSPECTIONS];
 const findingsDb = [...MOCK_FINDINGS];
 const alertsDb = MOCK_ALERTS.map((a) => ({ ...a }));
+/** Live asset names (API rows lack registry mock ids). */
+const assetNameCache = new Map<string, string>();
 let nextSeq = 100;
+
+function rememberAssets(rows: Asset[]): void {
+  for (const a of rows) {
+    if (a.id && a.name) assetNameCache.set(a.id, a.name);
+  }
+}
 
 type VitePulseEnv = {
   VITE_PULSE_API_BASE?: string;
@@ -178,7 +186,8 @@ function toUiFinding(row: ApiFinding): Finding {
     criticality: severityToCriticality(row.severity),
     risk_score: row.risk_score,
     recommendation: `Review ${row.class_id.replace(/_/g, " ")} finding`,
-    occurred_at: new Date(0).toISOString(),
+    // Nest finding rows omit occurred_at — stamp load time for board meta.
+    occurred_at: new Date().toISOString(),
   };
 }
 
@@ -208,6 +217,7 @@ export async function listAssets(
   let items = (live?.items ?? assetsDb.filter((a) => a.utility_id === utilityId)).map(
     (a) => ({ ...a, kind: a.kind ?? ("tower" as AssetKind) }),
   );
+  rememberAssets(items);
 
   if (filters.kind) {
     items = items.filter((a) => a.kind === filters.kind);
@@ -244,6 +254,31 @@ export async function listInspections(
   let items =
     live?.items ??
     inspectionsDb.filter((i) => i.utility_id === utilityId);
+
+  // Live Nest rows are thin — fill board fields from linked findings.
+  if (live?.items) {
+    const findingsLive = await tryFetchJson<ListResult<ApiFinding>>(
+      `/findings?utility_id=${encodeURIComponent(utilityId)}`,
+    );
+    const counts = new Map<string, number>();
+    for (const f of findingsLive?.items ?? []) {
+      if (!f.inspection_id) continue;
+      counts.set(f.inspection_id, (counts.get(f.inspection_id) ?? 0) + 1);
+    }
+    items = items.map((row) => {
+      const findingCount = counts.get(row.id) ?? row.finding_count ?? 0;
+      const advanced =
+        findingCount > 0 && row.status === "planned" ? "review" : row.status;
+      return {
+        ...row,
+        status: advanced,
+        schedule_kind: row.schedule_kind ?? "line",
+        assignee: row.assignee ?? "Gate0 · corrosion YOLO",
+        finding_count: findingCount,
+        sla_hours_left: row.sla_hours_left ?? 18,
+      };
+    });
+  }
 
   if (filters.status) {
     items = items.filter((i) => i.status === filters.status);
@@ -342,6 +377,13 @@ export async function listFindings(
   const live = await tryFetchJson<ListResult<ApiFinding>>(
     `/findings?utility_id=${encodeURIComponent(utilityId)}`,
   );
+  // Warm name cache so Priority board links show tower names, not UUIDs.
+  if (live?.items?.length) {
+    const assetsLive = await tryFetchJson<ListResult<Asset>>(
+      `/assets?utility_id=${encodeURIComponent(utilityId)}`,
+    );
+    if (assetsLive?.items) rememberAssets(assetsLive.items);
+  }
 
   let items: Finding[] = live?.items
     ? live.items.map(toUiFinding)
@@ -519,7 +561,11 @@ export async function listOpsMetrics(): Promise<ListResult<OpsMetric>> {
 }
 
 export function assetName(assetId: string): string {
-  return assetsDb.find((a) => a.id === assetId)?.name ?? assetId;
+  return (
+    assetNameCache.get(assetId) ??
+    assetsDb.find((a) => a.id === assetId)?.name ??
+    assetId
+  );
 }
 
 export type CsvImportResult = {
