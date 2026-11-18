@@ -1,0 +1,80 @@
+{
+  "mode": "postgres",
+  "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+  "findings": [
+    {
+      "id": "4c1028e3-0e3a-4cfe-b2af-fe90d12bd0b7",
+      "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+      "class_id": "corrosion",
+      "severity": "medium",
+      "risk_score": 52.35,
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+      "asset_id": "ec705bfc-6b18-4113-b46c-3327f9109acc",
+      "source_detection_ids": [
+        "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/corrosion-01"
+      ]
+    },
+    {
+      "id": "d01f03d6-c31a-4468-94e1-4e360d381ce7",
+      "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+      "class_id": "thermal_hotspot",
+      "severity": "critical",
+      "risk_score": 89.78,
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+      "asset_id": "ec705bfc-6b18-4113-b46c-3327f9109acc",
+      "source_detection_ids": [
+        "ffffffff-ffff-4fff-8fff-ffffffffffff"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/thermal-01"
+      ]
+    },
+    {
+      "id": "d3e9dcc9-a1dd-48c4-a186-ca7c54dba7c2",
+      "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+      "class_id": "vegetation",
+      "severity": "low",
+      "risk_score": 29.05,
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+      "asset_id": "ec705bfc-6b18-4113-b46c-3327f9109acc",
+      "source_detection_ids": [
+        "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/veg-01"
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "id": "06590a88-85be-4fcf-80f6-4796178225ba",
+      "finding_id": "d3e9dcc9-a1dd-48c4-a186-ca7c54dba7c2",
+      "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+      "severity": "low",
+      "sla_due_at": "2026-11-19T00:00:00.000Z",
+      "ack_at": null,
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33"
+    },
+    {
+      "id": "409e33e1-0e08-43cd-950f-225e631788e4",
+      "finding_id": "4c1028e3-0e3a-4cfe-b2af-fe90d12bd0b7",
+      "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+      "severity": "medium",
+      "sla_due_at": "2026-11-18T04:00:00.000Z",
+      "ack_at": null,
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33"
+    },
+    {
+      "id": "ba16f78e-137d-4592-94c3-8365f2d5e794",
+      "finding_id": "d01f03d6-c31a-4468-94e1-4e360d381ce7",
+      "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+      "severity": "critical",
+      "sla_due_at": "2026-11-18T00:15:00.000Z",
+      "ack_at": null,
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+findings | alerts for utility aa8060b2-1250-47c9-a36a-8fc3b35441d5:
+3 | 3
+d01f03d6-c31a-4468-94e1-4e360d381ce7|thermal_hotspot|critical|89.78|8ccefe0e-ad53-492c-a8d2-6129fae50c33
+4c1028e3-0e3a-4cfe-b2af-fe90d12bd0b7|corrosion|medium|52.35|8ccefe0e-ad53-492c-a8d2-6129fae50c33
+d3e9dcc9-a1dd-48c4-a186-ca7c54dba7c2|vegetation|low|29.05|8ccefe0e-ad53-492c-a8d2-6129fae50c33

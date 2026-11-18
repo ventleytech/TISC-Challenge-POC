@@ -1,0 +1,176 @@
+{
+  "summary": {
+    "service": "grid-rules",
+    "source_topic": "vp.detect.v1",
+    "input_detections": 3,
+    "findings": 3,
+    "alerts": 3,
+    "kafka_published": 6,
+    "top_risk": 89.78,
+    "emitted": [
+      {
+        "topic": "vp.findings.v1",
+        "id": "d01f03d6-c31a-4468-94e1-4e360d381ce7",
+        "severity": "critical",
+        "risk_score": 89.78,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "4c1028e3-0e3a-4cfe-b2af-fe90d12bd0b7",
+        "severity": "medium",
+        "risk_score": 52.35,
+        "party_type": "oem",
+        "warranty_hint": "warranty_breach_suspect"
+      },
+      {
+        "topic": "vp.findings.v1",
+        "id": "d3e9dcc9-a1dd-48c4-a186-ca7c54dba7c2",
+        "severity": "low",
+        "risk_score": 29.05,
+        "party_type": "vegetation_contractor",
+        "warranty_hint": "in_warranty"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "409e33e1-0e08-43cd-950f-225e631788e4",
+        "severity": "medium",
+        "sla_due_at": "2026-11-18T04:00:00.000Z"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "06590a88-85be-4fcf-80f6-4796178225ba",
+        "severity": "low",
+        "sla_due_at": "2026-11-19T00:00:00.000Z"
+      },
+      {
+        "topic": "vp.alerts.v1",
+        "id": "ba16f78e-137d-4592-94c3-8365f2d5e794",
+        "severity": "critical",
+        "sla_due_at": "2026-11-18T00:15:00.000Z"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "event_id": "c40d9a34-8687-4c20-ba61-ec06fd3065d8",
+      "occurred_at": "2026-11-18T00:00:00.000Z",
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+      "finding": {
+        "finding_id": "d01f03d6-c31a-4468-94e1-4e360d381ce7",
+        "class_id": "thermal_hotspot",
+        "severity": "critical",
+        "risk_score": 89.78,
+        "asset_id": "ec705bfc-6b18-4113-b46c-3327f9109acc",
+        "source_detection_ids": [
+          "ffffffff-ffff-4fff-8fff-ffffffffffff"
+        ],
+        "evidence_object_ids": [
+          "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/thermal-01"
+        ],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    },
+    {
+      "event_id": "a7aa9fb7-f12d-4dac-9320-5348731a418a",
+      "occurred_at": "2026-11-18T00:00:00.000Z",
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+      "finding": {
+        "finding_id": "4c1028e3-0e3a-4cfe-b2af-fe90d12bd0b7",
+        "class_id": "corrosion",
+        "severity": "medium",
+        "risk_score": 52.35,
+        "asset_id": "ec705bfc-6b18-4113-b46c-3327f9109acc",
+        "source_detection_ids": [
+          "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+        ],
+        "evidence_object_ids": [
+          "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/corrosion-01"
+        ],
+        "extensions": {
+          "party_type": "oem",
+          "warranty_hint": "warranty_breach_suspect",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    },
+    {
+      "event_id": "2b7ced36-a169-475a-a0ca-c31c197f8e28",
+      "occurred_at": "2026-11-18T00:00:00.000Z",
+      "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+      "finding": {
+        "finding_id": "d3e9dcc9-a1dd-48c4-a186-ca7c54dba7c2",
+        "class_id": "vegetation",
+        "severity": "low",
+        "risk_score": 29.05,
+        "asset_id": "ec705bfc-6b18-4113-b46c-3327f9109acc",
+        "source_detection_ids": [
+          "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+        ],
+        "evidence_object_ids": [
+          "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/veg-01"
+        ],
+        "extensions": {
+          "party_type": "vegetation_contractor",
+          "warranty_hint": "in_warranty",
+          "tender_ref": "VP-TENDER-SYN-001"
+        }
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "event_id": "9e2ba70e-ce9d-4e53-b06b-ea7814263688",
+      "occurred_at": "2026-11-18T00:00:00.000Z",
+      "alert": {
+        "alert_id": "409e33e1-0e08-43cd-950f-225e631788e4",
+        "finding_id": "4c1028e3-0e3a-4cfe-b2af-fe90d12bd0b7",
+        "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+        "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+        "severity": "medium",
+        "sla_due_at": "2026-11-18T04:00:00.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    },
+    {
+      "event_id": "28601f06-d5cd-4122-a619-3e8e3a8306d1",
+      "occurred_at": "2026-11-18T00:00:00.000Z",
+      "alert": {
+        "alert_id": "06590a88-85be-4fcf-80f6-4796178225ba",
+        "finding_id": "d3e9dcc9-a1dd-48c4-a186-ca7c54dba7c2",
+        "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+        "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+        "severity": "low",
+        "sla_due_at": "2026-11-19T00:00:00.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    },
+    {
+      "event_id": "358f8598-d403-459f-b400-9bb570903695",
+      "occurred_at": "2026-11-18T00:00:00.000Z",
+      "alert": {
+        "alert_id": "ba16f78e-137d-4592-94c3-8365f2d5e794",
+        "finding_id": "d01f03d6-c31a-4468-94e1-4e360d381ce7",
+        "inspection_id": "8ccefe0e-ad53-492c-a8d2-6129fae50c33",
+        "utility_id": "aa8060b2-1250-47c9-a36a-8fc3b35441d5",
+        "severity": "critical",
+        "sla_due_at": "2026-11-18T00:15:00.000Z",
+        "channels": [
+          "push",
+          "sms"
+        ]
+      }
+    }
+  ]
+}
