@@ -1,0 +1,21 @@
+$ npx tsc --noEmit && npx jest && npx jest --config ./test/jest-e2e.json
+tsc ok
+Test Suites: 9 passed, 9 total
+Tests:       37 passed, 37 total
+Test Suites: 1 passed, 1 total
+Tests:       12 passed, 12 total
+
+/home/ubuntu/voltpulse-P0-T350/apps/pulse-api/src/evidence/evidence.service.ts
+   73:18  error  Replace ``evidence·backend=${this.backend.name}·bucket=${this.cfg.bucket}`` with `⏎······`evidence·backend=${this.backend.name}·bucket=${this.cfg.bucket}`,⏎····`                                                                                   prettier/prettier
+  107:9   error  Replace `!(EVIDENCE_CONTENT_TYPES·as·readonly·string[]).includes(body.content_type)` with `⏎······!(EVIDENCE_CONTENT_TYPES·as·readonly·string[]).includes(body.content_type)⏎····`                                                                  prettier/prettier
+  115:9   error  Replace `typeof·body.confidence·===·'number'·&&·body.confidence·>=·0·&&·body.confidence·<=·1` with `⏎········typeof·body.confidence·===·'number'·&&⏎········body.confidence·>=·0·&&⏎········body.confidence·<=·1⏎······`                            prettier/prettier
+  121:9   error  Replace `Array.isArray(body.bbox)·&&·body.bbox.length·===·4·&&·body.bbox.every((n)·=>·Number.isFinite(n))` with `⏎········Array.isArray(body.bbox)·&&⏎········body.bbox.length·===·4·&&⏎········body.bbox.every((n)·=>·Number.isFinite(n))⏎······`  prettier/prettier
+
+/home/ubuntu/voltpulse-P0-T350/apps/pulse-api/src/evidence/object-backend.ts
+  17:3  error  Async method 'put' has no 'await' expression   @typescript-eslint/require-await
+  21:3  error  Async method 'get' has no 'await' expression   @typescript-eslint/require-await
+  25:3  error  Async method 'list' has no 'await' expression  @typescript-eslint/require-await
+
+✖ 27 problems (27 errors, 0 warnings)
+  24 errors and 0 warnings potentially fixable with the `--fix` option.
+

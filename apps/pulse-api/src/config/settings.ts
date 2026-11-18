@@ -1,8 +1,6 @@
+import { randomBytes } from 'node:crypto';
 import * as path from 'node:path';
-import {
-  isEnergyRole,
-  type EnergyRole,
-} from '../auth/roles';
+import { isEnergyRole, type EnergyRole } from '../auth/roles';
 import type { AuthPrincipal } from '../auth/principal';
 
 export type PulseApiSettings = {
@@ -21,6 +19,31 @@ export type PulseApiSettings = {
   databaseUrl: string | null;
   /** Kafka ingest of vp.findings.v1 / vp.alerts.v1 (P0-T330). Omitted in unit fixtures. */
   kafka?: KafkaIngestSettings;
+  /** Evidence crops → object store (P0-T350). Omitted in unit fixtures → memory backend. */
+  evidence?: EvidenceSettings;
+  /** Browser origins allowed by CORS (PULSE_API_CORS_ORIGINS, comma-separated). Empty → CORS off. */
+  corsOrigins?: string[];
+};
+
+export type EvidenceBackend = 'memory' | 'fs' | 'minio';
+
+export type EvidenceSettings = {
+  backend: EvidenceBackend;
+  /** MinIO / S3 endpoint (PULSE_STORE_ENDPOINT). Used when backend=minio. */
+  endpoint: string;
+  bucket: string;
+  accessKey: string;
+  secretKey: string;
+  region: string;
+  useSSL: boolean;
+  /** Root dir for backend=fs. */
+  fsRoot: string;
+  /** HMAC secret for signed content URLs (PULSE_EVIDENCE_SIGNING_SECRET). */
+  signingSecret: string;
+  /** True when secret was generated per-process (links die on restart). */
+  signingSecretEphemeral: boolean;
+  urlTtlSeconds: number;
+  maxBytes: number;
 };
 
 export type KafkaIngestSettings = {
@@ -85,6 +108,58 @@ export function loadSettings(
       alertsTopic: env.PULSE_KAFKA_TOPIC_ALERTS?.trim() || 'vp.alerts.v1',
       defaultUtilityId: env.PULSE_KAFKA_DEFAULT_UTILITY_ID?.trim() || null,
     },
+    evidence: loadEvidenceSettings(env),
+    corsOrigins: (env.PULSE_API_CORS_ORIGINS ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  };
+}
+
+/**
+ * Evidence store config. Reuses the pulse-store env keys from .env.template
+ * (PULSE_STORE_*); unset backend → memory (tests / no-store local).
+ */
+export function loadEvidenceSettings(
+  env: NodeJS.ProcessEnv = process.env,
+): EvidenceSettings {
+  const backendRaw = (env.PULSE_STORE_BACKEND ?? 'memory').trim().toLowerCase();
+  if (!['memory', 'fs', 'minio'].includes(backendRaw)) {
+    throw new Error(
+      `Invalid PULSE_STORE_BACKEND: ${backendRaw} (use memory|fs|minio)`,
+    );
+  }
+  const endpoint = env.PULSE_STORE_ENDPOINT?.trim() || 'http://127.0.0.1:9000';
+  const ttl = Number(env.PULSE_EVIDENCE_URL_TTL_SECONDS ?? '300');
+  const maxBytes = Number(
+    env.PULSE_EVIDENCE_MAX_BYTES ?? String(5 * 1024 * 1024),
+  );
+  if (!Number.isInteger(ttl) || ttl <= 0) {
+    throw new Error(
+      `Invalid PULSE_EVIDENCE_URL_TTL_SECONDS: ${env.PULSE_EVIDENCE_URL_TTL_SECONDS}`,
+    );
+  }
+  if (!Number.isInteger(maxBytes) || maxBytes <= 0) {
+    throw new Error(
+      `Invalid PULSE_EVIDENCE_MAX_BYTES: ${env.PULSE_EVIDENCE_MAX_BYTES}`,
+    );
+  }
+  const secretRaw = env.PULSE_EVIDENCE_SIGNING_SECRET?.trim() ?? '';
+  return {
+    backend: backendRaw as EvidenceBackend,
+    endpoint,
+    bucket: env.PULSE_STORE_BUCKET?.trim() || 'voltpulse-evidence',
+    accessKey: env.PULSE_STORE_ACCESS_KEY?.trim() || 'minioadmin',
+    secretKey: env.PULSE_STORE_SECRET_KEY?.trim() || 'change-me-local-only',
+    region: env.PULSE_STORE_REGION?.trim() || 'us-east-1',
+    useSSL: parseBool(env.PULSE_STORE_USE_SSL, endpoint.startsWith('https://')),
+    fsRoot: path.resolve(
+      env.PULSE_STORE_FS_ROOT?.trim() || './.pulse-store-data',
+    ),
+    signingSecret: secretRaw || randomBytes(32).toString('hex'),
+    signingSecretEphemeral: secretRaw.length === 0,
+    urlTtlSeconds: ttl,
+    maxBytes,
   };
 }
 
@@ -131,9 +206,7 @@ export function parseStubKeys(raw: string): Map<string, AuthPrincipal> {
     }
     const role: EnergyRole = roleRaw;
     if (!utilityId && role !== 'platform_admin') {
-      throw new Error(
-        `Stub key ${key}: utility_id required for role ${role}`,
-      );
+      throw new Error(`Stub key ${key}: utility_id required for role ${role}`);
     }
     if (utilityId && role === 'platform_admin') {
       // platform may optionally bind a home utility; still cross-scope

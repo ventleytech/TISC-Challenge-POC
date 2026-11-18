@@ -1,0 +1,5 @@
+$ tsc -b && oxlint src && vite build
+tsc ok
+dist/assets/index-AC9vmtfW.js   341.77 kB │ gzip: 100.96 kB
+
+✓ built in 416ms

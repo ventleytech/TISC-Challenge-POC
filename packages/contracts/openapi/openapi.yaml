@@ -15,6 +15,7 @@ tags:
   - name: assets
   - name: findings
   - name: alerts
+  - name: evidence
 
 paths:
   /inspections:
@@ -283,6 +284,108 @@ paths:
         '404':
           description: Not found
 
+  /evidence:
+    get:
+      tags: [evidence]
+      operationId: listEvidence
+      summary: List evidence objects (crops, frames) with signed content paths
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: inspection_id
+          in: query
+          schema:
+            type: string
+        - name: finding_id
+          in: query
+          schema:
+            type: string
+        - name: kind
+          in: query
+          schema:
+            $ref: '#/components/schemas/EvidenceKind'
+      responses:
+        '200':
+          description: Evidence list (newest captured first)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EvidenceObject'
+    post:
+      tags: [evidence]
+      operationId: createEvidence
+      summary: Store evidence bytes in the object store (MinIO) and index metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenceCreate'
+      responses:
+        '201':
+          description: Created (id is content-addressed per inspection; re-post is idempotent)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+
+  /evidence/{evidenceId}:
+    get:
+      tags: [evidence]
+      operationId: getEvidence
+      summary: Get evidence metadata + signed content path
+      parameters:
+        - $ref: '#/components/parameters/EvidenceId'
+      responses:
+        '200':
+          description: Evidence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceObject'
+        '404':
+          description: Not found
+
+  /evidence/{evidenceId}/content:
+    get:
+      tags: [evidence]
+      operationId: getEvidenceContent
+      summary: Stream evidence bytes via signed URL (no API key; HMAC exp+sig query)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/EvidenceId'
+        - name: exp
+          in: query
+          required: true
+          schema:
+            type: integer
+            description: Unix seconds expiry
+        - name: sig
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object bytes
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Missing, invalid, or expired signature
+        '404':
+          description: Not found
+
 components:
   parameters:
     UtilityId:
@@ -320,6 +423,13 @@ components:
       schema:
         type: string
         format: uuid
+    EvidenceId:
+      name: evidenceId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: ev_9f2c41ab07de
 
   schemas:
     DetectionId:
@@ -494,6 +604,117 @@ components:
           type: array
           items:
             type: string
+
+    EvidenceKind:
+      type: string
+      enum: [crop, rgb_frame, ir_frame, clip, report]
+
+    EvidenceCreate:
+      type: object
+      required: [utility_id, inspection_id, kind, content_type, data_base64]
+      properties:
+        utility_id:
+          type: string
+        inspection_id:
+          type: string
+        kind:
+          $ref: '#/components/schemas/EvidenceKind'
+        content_type:
+          type: string
+          enum: [image/jpeg, image/png, image/webp, video/mp4, application/pdf]
+        data_base64:
+          type: string
+          description: Raw object bytes, base64 (bounded by PULSE_EVIDENCE_MAX_BYTES)
+        finding_id:
+          type: string
+          nullable: true
+        asset_id:
+          type: string
+          nullable: true
+        class_id:
+          allOf:
+            - $ref: '#/components/schemas/DetectionId'
+          nullable: true
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          nullable: true
+        bbox:
+          type: array
+          description: "[x, y, w, h] source-frame pixels"
+          minItems: 4
+          maxItems: 4
+          items:
+            type: number
+          nullable: true
+        label:
+          type: string
+          maxLength: 120
+          nullable: true
+        captured_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    EvidenceObject:
+      type: object
+      required: [id, utility_id, inspection_id, kind, content_type, bytes, retention, captured_at, object_key, content_path]
+      properties:
+        id:
+          type: string
+        utility_id:
+          type: string
+        inspection_id:
+          type: string
+        finding_id:
+          type: string
+          nullable: true
+        asset_id:
+          type: string
+          nullable: true
+        kind:
+          $ref: '#/components/schemas/EvidenceKind'
+        class_id:
+          allOf:
+            - $ref: '#/components/schemas/DetectionId'
+          nullable: true
+        confidence:
+          type: number
+          nullable: true
+        bbox:
+          type: array
+          items:
+            type: number
+          nullable: true
+        label:
+          type: string
+          nullable: true
+        content_type:
+          type: string
+        bytes:
+          type: integer
+        retention:
+          type: string
+          enum: [hot, warm, expire, legal_hold]
+        captured_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        object_key:
+          type: string
+          description: Key inside the evidence bucket (docs/storage-retention.md layout)
+        backend:
+          type: string
+          enum: [memory, fs, minio]
+        content_path:
+          type: string
+          description: Signed path relative to the API base (/api/v1)
+        content_expires_at:
+          type: string
+          format: date-time
 
     Alert:
       type: object

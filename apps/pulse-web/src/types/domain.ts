@@ -104,14 +104,31 @@ export type Alert = {
   ack_at: string | null;
 };
 
+export type EvidenceKind = "crop" | "rgb_frame" | "ir_frame" | "clip" | "report";
+
 export type EvidenceObject = {
   id: string;
   inspection_id: string;
   label: string;
-  kind: "rgb_frame" | "ir_frame" | "clip" | "report";
+  kind: EvidenceKind;
   retention: "hot" | "warm" | "expire" | "legal_hold";
   bytes_label: string;
   captured_at: string;
+  /** Crop / detection context (P0-T350). */
+  class_id?: DetectionClass | null;
+  confidence?: number | null;
+  /** [x, y, w, h] in source-frame pixels. */
+  bbox?: [number, number, number, number] | null;
+  finding_id?: string | null;
+  asset_id?: string | null;
+  /** Object key inside the evidence bucket. */
+  object_key?: string;
+  /** minio | fs | memory when live; "mock" for the offline store. */
+  backend?: string;
+  content_type?: string;
+  /** Absolute signed URL (live only, short-lived). Absent → procedural art. */
+  content_url?: string | null;
+  content_expires_at?: string | null;
 };
 
 export type OpsMetric = {

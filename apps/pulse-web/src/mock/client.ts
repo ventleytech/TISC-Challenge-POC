@@ -367,20 +367,89 @@ export type EvidenceFilters = {
   retention?: EvidenceObject["retention"] | "";
 };
 
+/** Nest evidence row (P0-T350). `content_path` is relative to the API base. */
+type ApiEvidence = {
+  id: string;
+  inspection_id: string;
+  kind: EvidenceObject["kind"];
+  retention: EvidenceObject["retention"];
+  captured_at: string;
+  bytes: number;
+  content_type: string;
+  class_id?: DetectionClass | null;
+  confidence?: number | null;
+  bbox?: [number, number, number, number] | null;
+  finding_id?: string | null;
+  asset_id?: string | null;
+  label?: string | null;
+  object_key: string;
+  backend: string;
+  content_path: string;
+  content_expires_at: string;
+};
+
+function bytesLabel(n: number): string {
+  if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  if (n >= 1024) return `${Math.round(n / 1024)} KB`;
+  return `${n} B`;
+}
+
+function toUiEvidence(row: ApiEvidence): EvidenceObject {
+  return {
+    id: row.id,
+    inspection_id: row.inspection_id,
+    label:
+      row.label ??
+      `${(row.class_id ?? row.kind).replace(/_/g, " ")} · ${row.kind.replace(/_/g, " ")}`,
+    kind: row.kind,
+    retention: row.retention,
+    bytes_label: bytesLabel(row.bytes),
+    captured_at: row.captured_at,
+    class_id: row.class_id,
+    confidence: row.confidence,
+    bbox: row.bbox,
+    finding_id: row.finding_id,
+    asset_id: row.asset_id,
+    object_key: row.object_key,
+    backend: row.backend,
+    content_type: row.content_type,
+    content_url: `${apiBase()}${row.content_path}`,
+    content_expires_at: row.content_expires_at,
+  };
+}
+
+/**
+ * Live Nest when configured and reachable (even if the bucket is empty);
+ * otherwise the offline mock store. `source` tells the page which it got.
+ */
 export async function listEvidence(
   filters: EvidenceFilters = {},
-): Promise<ListResult<EvidenceObject>> {
-  let items = [...MOCK_EVIDENCE];
-  if (filters.inspectionId) {
-    items = items.filter((e) => e.inspection_id === filters.inspectionId);
-  }
-  if (filters.kind) {
-    items = items.filter((e) => e.kind === filters.kind);
+): Promise<ListResult<EvidenceObject> & { source: "live" | "mock" }> {
+  const utilityId = DEMO_UTILITY_ID;
+  const q = new URLSearchParams({ utility_id: utilityId });
+  if (filters.inspectionId) q.set("inspection_id", filters.inspectionId);
+  if (filters.kind) q.set("kind", filters.kind);
+  const live = await tryFetchJson<ListResult<ApiEvidence>>(`/evidence?${q}`);
+
+  let items: EvidenceObject[];
+  let source: "live" | "mock";
+  if (live) {
+    items = live.items.map(toUiEvidence);
+    source = "live";
+  } else {
+    items = [...MOCK_EVIDENCE];
+    source = "mock";
+    if (filters.inspectionId) {
+      items = items.filter((e) => e.inspection_id === filters.inspectionId);
+    }
+    if (filters.kind) {
+      items = items.filter((e) => e.kind === filters.kind);
+    }
   }
   if (filters.retention) {
     items = items.filter((e) => e.retention === filters.retention);
   }
-  return { items };
+  return { items, source };
 }
 
 export async function listOpsMetrics(): Promise<ListResult<OpsMetric>> {

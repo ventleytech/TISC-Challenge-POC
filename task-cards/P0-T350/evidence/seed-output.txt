@@ -1,0 +1,9 @@
+ev_2b082cfc2c2d  insp-02  corrosion        0.94  9 KB
+ev_16517b61170e  insp-02  thermal_hotspot  0.91  6 KB
+ev_3795876c654e  insp-02  crack            0.83  12 KB
+ev_0fe32e89cc35  insp-06  vegetation       0.88  10 KB
+ev_5dcb9c9d4f52  insp-06  sag              0.79  6 KB
+ev_8c99b3d38b25  insp-06  corrosion        0.86  9 KB
+ev_721556e4537a  insp-03  crack            0.92  12 KB
+ev_71640c792d87  insp-03  thermal_hotspot  0.97  6 KB
+ev_788f0d4c9130  insp-05  vegetation       0.74  10 KB

@@ -327,4 +327,62 @@ describe('pulse-api (e2e)', () => {
       .send({ ...payload, utility_id: OTHER })
       .expect(403);
   });
+  it('evidence: POST crop → list → get → signed content round-trip', async () => {
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/evidence')
+      .set('X-API-Key', 'dev-operator')
+      .send({
+        utility_id: UTILITY,
+        inspection_id: 'insp-e2e',
+        kind: 'crop',
+        content_type: 'image/png',
+        data_base64: png.toString('base64'),
+        class_id: 'corrosion',
+        confidence: 0.88,
+      })
+      .expect(201);
+
+    const listed = await request(app.getHttpServer())
+      .get(`/api/v1/evidence?utility_id=${UTILITY}&kind=crop`)
+      .set('X-API-Key', 'dev-viewer')
+      .expect(200);
+    expect(listed.body.items).toHaveLength(1);
+    expect(listed.body.items[0].id).toBe(created.body.id);
+
+    const one = await request(app.getHttpServer())
+      .get(`/api/v1/evidence/${created.body.id}`)
+      .set('X-API-Key', 'dev-viewer')
+      .expect(200);
+
+    // content: no API key, signature only
+    const bytes = await request(app.getHttpServer())
+      .get(`/api/v1${one.body.content_path}`)
+      .buffer(true)
+      .parse((res, cb) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => cb(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    expect(bytes.headers['content-type']).toMatch(/image\/png/);
+    expect((bytes.body as Buffer).equals(png)).toBe(true);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/evidence/${created.body.id}/content?exp=1&sig=00`)
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/evidence?utility_id=${OTHER}`)
+      .set('X-API-Key', 'dev-viewer')
+      .expect(403);
+    await request(app.getHttpServer())
+      .post('/api/v1/evidence')
+      .set('X-API-Key', 'dev-viewer')
+      .send({ utility_id: UTILITY })
+      .expect(403);
+  });
 });

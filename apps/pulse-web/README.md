@@ -47,4 +47,4 @@ VITE_PULSE_API_BASE=1 VITE_PULSE_API_KEY=dev-operator npm run dev
 | `VITE_PULSE_API_BASE=1` | Enables live mode at `http://127.0.0.1:3000/api/v1` |
 | `VITE_PULSE_API_KEY` | Optional → `X-API-Key` (needed when Nest auth on) |
 
-Live surfaces: inspections / assets / alerts / findings list + inspection create + alert ack (`POST …/alerts/{id}/ack`). On unset env or fetch failure → mock fallback. Evidence / ops metrics stay mock until store UI wire.
+Live surfaces: inspections / assets / alerts / findings list + inspection create + alert ack (`POST …/alerts/{id}/ack`). On unset env or fetch failure → mock fallback. Evidence (`/evidence`) also goes live via `GET /evidence` + signed image URLs (needs pulse-api `PULSE_API_CORS_ORIGINS` to include the dev origin); empty/unreachable → rich mock vault. Ops metrics stay mock.
