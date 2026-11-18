@@ -33,6 +33,12 @@ export type Settings = {
     enabled: boolean;
     clientId: string;
   };
+  /** pulse-api HTTP sink (T393). On only when baseUrl set; failures are logged, never fatal. */
+  apiSink: {
+    baseUrl: string | null;
+    apiKey: string | null;
+    timeoutMs: number;
+  };
   /** Long-running loop (serve.ts). Each input/output is env-gated; unset → off. */
   loop: {
     /** JSONL of vp.detect.v1 to tail (file bus input). */
@@ -83,6 +89,14 @@ function parsePollMs(raw: string | undefined): number {
   return n;
 }
 
+function parseTimeoutMs(raw: string | undefined): number {
+  const n = Number(raw ?? '5000');
+  if (!Number.isInteger(n) || n < 100) {
+    throw new Error(`Invalid GRID_RULES_API_TIMEOUT_MS: ${raw}`);
+  }
+  return n;
+}
+
 export function loadSettings(
   env: NodeJS.ProcessEnv = process.env,
 ): Settings {
@@ -103,6 +117,11 @@ export function loadSettings(
     kafkaProducer: {
       enabled: env.GRID_RULES_KAFKA_PRODUCER_ENABLED === 'true',
       clientId: env.GRID_RULES_KAFKA_CLIENT_ID ?? 'grid-rules',
+    },
+    apiSink: {
+      baseUrl: env.GRID_RULES_API_BASE_URL?.trim().replace(/\/+$/, '') || null,
+      apiKey: env.GRID_RULES_API_KEY?.trim() || null,
+      timeoutMs: parseTimeoutMs(env.GRID_RULES_API_TIMEOUT_MS),
     },
     loop: {
       detectFile: env.GRID_RULES_DETECT_FILE?.trim() || null,

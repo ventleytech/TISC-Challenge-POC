@@ -1,0 +1,10 @@
+{
+  "finding_ids": [
+    "f3b7a356-4cf2-45bc-b240-356944af0d3c"
+  ],
+  "alert_ids": [
+    "eccf6e08-a842-4358-bc86-fa4ccc9aa322"
+  ],
+  "inspection_id": "78dc161f-cbb6-45b8-86e5-2d02f1c93d4a",
+  "posted_by": "grid-rules (in-container http sink)"
+}
