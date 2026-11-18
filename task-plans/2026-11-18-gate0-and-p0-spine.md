@@ -131,6 +131,7 @@ Forbidden in this plan’s public outcomes: internal product brand strings, prop
 | 23 | P0-T371 | MinIO image re-pin (`bitnamilegacy` tag+digest) | T110, T350 | no vs compose | done |
 | 24 | P0-T380 | pulse-gateway pull targets + env-gated synthetic `vp.detect.v1` | T040 | ok vs compose | done |
 | 25 | P0-T381 | pulse-gateway real Docker image + compose service | T380, T371 | no vs compose | done |
+| 26 | P0-T382 | grid-rules compose runs real rules loop (file/Kafka) | T340, T381 | no vs compose | done |
 
 Suggested overnight pick order: **M001 → M002 → T002 → T001 → T005 → T003**; after Gate 0.1 → **T010 → T020 → T130**; web via **T060 → T170 → T230**.
 
@@ -169,5 +170,6 @@ Merge order (morning): **contracts → compose → api → web**; perception aft
 - [x] P0-T371 MinIO image re-pin
 - [x] P0-T380 pulse-gateway pull stub + detect sink
 - [x] P0-T381 pulse-gateway Docker image + compose
+- [x] P0-T382 grid-rules compose rules loop
 - [ ] No secrets / internal brands in tracked diffs
 - [ ] Formal `docs/` updated only if contract/arch decision changes

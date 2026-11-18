@@ -22,6 +22,7 @@ COPY --from=build /srv/packages/responsibility/package.json /srv/packages/respon
 COPY --from=build /srv/packages/responsibility/dist /srv/packages/responsibility/dist
 COPY --from=build /srv/apps/grid-rules /srv/apps/grid-rules
 WORKDIR /srv/apps/grid-rules
+RUN mkdir -p /data/bus && chown node:node /data/bus
 USER node
 ENV GRID_RULES_HEALTH_PORT=8080
 EXPOSE 8080
