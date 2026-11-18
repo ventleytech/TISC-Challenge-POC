@@ -191,12 +191,29 @@ services:
 
   pulse-notify:
     profiles: [data]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/pulse-notify/Dockerfile
+    image: voltpulse/pulse-notify:dev
     container_name: vp-pulse-notify
-    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_NOTIFY_PORT:-3010}:${PULSE_NOTIFY_PORT:-3010}"
     environment:
+      PULSE_NOTIFY_PORT: ${PULSE_NOTIFY_PORT:-3010}
+      PULSE_ALERTS_TOPIC: ${PULSE_ALERTS_TOPIC:-vp.alerts.v1}
+      # T360 sinks: log (default) | webhook | file
       PULSE_NOTIFY_ADAPTER: ${PULSE_NOTIFY_ADAPTER:-log}
-      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL}
+      PULSE_NOTIFY_WEBHOOK_URL: ${PULSE_NOTIFY_WEBHOOK_URL:-}
+      PULSE_NOTIFY_WEBHOOK_TIMEOUT_MS: ${PULSE_NOTIFY_WEBHOOK_TIMEOUT_MS:-5000}
+      PULSE_NOTIFY_FILE_PATH: ${PULSE_NOTIFY_FILE_PATH_CONTAINER:-}
+      PULSE_NOTIFY_ACK_MODE: ${PULSE_NOTIFY_ACK_MODE:-log}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL:-http://pulse-api:3000}
+      # T365 Kafka consumer: needs flag AND brokers (pulse-bus in this profile).
+      PULSE_NOTIFY_KAFKA_ENABLED: ${PULSE_NOTIFY_KAFKA_ENABLED:-false}
+      PULSE_NOTIFY_KAFKA_CLIENT_ID: ${PULSE_NOTIFY_KAFKA_CLIENT_ID:-pulse-notify}
+      PULSE_NOTIFY_KAFKA_GROUP_ID: ${PULSE_NOTIFY_KAFKA_GROUP_ID:-pulse-notify}
+      PULSE_NOTIFY_KAFKA_FROM_BEGINNING: ${PULSE_NOTIFY_KAFKA_FROM_BEGINNING:-false}
+      KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
     restart: "no"
 
   pulse-train:
