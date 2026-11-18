@@ -29,4 +29,4 @@ Close the T382 gap: `pulse-gateway` and `grid-rules` each had a container-local 
 
 ## Notes
 
-`grid-perception` (T384) uses the **same** volume name `pulse_bus_files` at `/data/bus` in its own card, so all three producers/consumers converge on one volume. Both T381/T382 images already `chown node:node /data/bus`, so a fresh named volume inherits writable ownership. Volume persists across `down` (use `down -v` to reset); grid-rules tail re-reads from offset 0 after restart (T382 limit).
+`grid-perception` (T384, merged on main) already mounts the **same** `pulse_bus_files` at `/data/bus`, so all three producers/consumers converge on one volume. Both T381/T382 images already `chown node:node /data/bus`, so a fresh named volume inherits writable ownership. Volume persists across `down` (use `down -v` to reset); grid-rules tail re-reads from offset 0 after restart (T382 limit).
