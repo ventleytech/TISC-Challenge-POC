@@ -1,0 +1,16 @@
+{"level":"WARN","timestamp":"2026-11-18T00:23:38.558Z","logger":"kafkajs","message":"KafkaJS v2.0.0 switched default partitioner. To retain the same partitioning behavior as in previous versions, create the producer with the option \"createPartitioner: Partitioners.LegacyPartitioner\". See the migration guide at https://kafka.js.org/docs/migration-guide-v2.0.0#producer-new-default-partitioner for details. Silence this warning by setting the environment variable \"KAFKAJS_NO_PARTITIONER_WARNING=1\""}
+(node:926372) TimeoutNegativeWarning: -1794961418587 is a negative number.
+Timeout duration was set to 1.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[pulse-gateway] listening host=127.0.0.1 port=3029 rtsp=8554 rtmp=1935 sessions=/tmp/tmp.TuJOiBt9WR/sessions pullTargets=1 detectSink=kafka
+== GET /health
+{"status":"ok","service":"pulse-gateway","plane":"media","rtspPort":8554,"rtmpPort":1935,"publicHost":"127.0.0.1","sessionCount":0,"pullTargets":1,"detectSink":"kafka","startedAt":"2026-11-18T00:23:38.588Z"}
+== GET /pull/targets
+{"items":["rtsp://127.0.0.1:8554/live/feeder-demo"]}
+== POST /pull/sync
+{"items":[{"id":"ecc8043d-b38c-4e60-891b-210789b1c12b","pullUrl":"rtsp://127.0.0.1:8554/live/feeder-demo","created":true}]}
+== POST /sessions/ecc8043d-b38c-4e60-891b-210789b1c12b/frames
+{"id":"7712c58c-0c81-4d55-97d9-b8944f49b2e8","inspection_id":"ac2d8829-d5a4-4f29-951e-9b8c74aa68fc","sink":"kafka"}
+== sink-off-style bad input (expect 400)
+400
+SMOKE OK

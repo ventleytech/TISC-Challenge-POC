@@ -5,6 +5,20 @@ export interface GatewaySettings {
   rtspPort: number;
   rtmpPort: number;
   sessionDir: string;
+  /** Configured live-pull targets (rtsp:// / rtmp://); empty when unset. */
+  pullUrls: string[];
+  detect: DetectSettings;
+}
+
+export type DetectSinkMode = 'off' | 'file' | 'kafka';
+
+export interface DetectSettings {
+  /** off (default) | file (jsonl bus) | kafka (needs brokers). */
+  mode: DetectSinkMode;
+  topic: string;
+  filePath: string;
+  brokers: string | null;
+  clientId: string;
 }
 
 function requireNonEmpty(name: string, value: string | undefined, fallback: string): string {
@@ -21,6 +35,45 @@ function parsePort(name: string, raw: string | undefined, fallback: number): num
     throw new Error(`${name} invalid: ${raw}`);
   }
   return n;
+}
+
+function parsePullUrls(raw: string | undefined): string[] {
+  const urls = (raw ?? '')
+    .split(',')
+    .map((u) => u.trim())
+    .filter(Boolean);
+  for (const u of urls) {
+    if (!/^(rtsp|rtmp):\/\//i.test(u)) {
+      throw new Error(`PULSE_GATEWAY_PULL_URLS entry must be rtsp:// or rtmp://: ${u}`);
+    }
+  }
+  return urls;
+}
+
+function parseDetect(env: NodeJS.ProcessEnv): DetectSettings {
+  const mode = (env.PULSE_GATEWAY_DETECT_SINK ?? 'off').trim().toLowerCase();
+  if (mode !== 'off' && mode !== 'file' && mode !== 'kafka') {
+    throw new Error(`PULSE_GATEWAY_DETECT_SINK must be off|file|kafka: ${mode}`);
+  }
+  const brokers = env.KAFKA_BROKERS?.trim() || null;
+  if (mode === 'kafka' && !brokers) {
+    throw new Error('PULSE_GATEWAY_DETECT_SINK=kafka requires KAFKA_BROKERS');
+  }
+  return {
+    mode,
+    topic: requireNonEmpty('PULSE_DETECT_TOPIC', env.PULSE_DETECT_TOPIC, 'vp.detect.v1'),
+    filePath: requireNonEmpty(
+      'PULSE_GATEWAY_DETECT_FILE',
+      env.PULSE_GATEWAY_DETECT_FILE,
+      './data/bus/vp.detect.v1.jsonl',
+    ),
+    brokers,
+    clientId: requireNonEmpty(
+      'PULSE_GATEWAY_KAFKA_CLIENT_ID',
+      env.PULSE_GATEWAY_KAFKA_CLIENT_ID,
+      'pulse-gateway',
+    ),
+  };
 }
 
 /** Load settings from env. Business code reads GatewaySettings — not raw process.env. */
@@ -40,5 +93,7 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): GatewaySetti
       env.PULSE_GATEWAY_SESSION_DIR,
       './data/sessions',
     ),
+    pullUrls: parsePullUrls(env.PULSE_GATEWAY_PULL_URLS),
+    detect: parseDetect(env),
   };
 }

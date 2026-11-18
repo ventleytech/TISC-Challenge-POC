@@ -27,6 +27,16 @@ npm run dev   # listens PULSE_GATEWAY_PORT (default 3020)
 | `GET` | `/sessions` | List sessions |
 | `GET` | `/sessions/:id` | Fetch session |
 | `GET` | `/sessions/:id/handoff` | Handoff note for `grid-perception` |
+| `GET` | `/pull/targets` | Configured `PULSE_GATEWAY_PULL_URLS` (comma list, rtsp/rtmp) |
+| `POST` | `/pull/sync` | Register configured URLs as sessions (idempotent by URL) |
+| `POST` | `/sessions/:id/frames` | Publish a **synthetic** `vp.detect.v1` event (`source: live`) → `202 { id, inspection_id, sink }` |
+
+### Synthetic frames (T380, Sense-plane demo)
+
+Env-gated by `PULSE_GATEWAY_DETECT_SINK` = `off` (default, `409 detect_sink_disabled`) | `file` (JSONL at `PULSE_GATEWAY_DETECT_FILE`) | `kafka` (needs `KAFKA_BROKERS`; topic `PULSE_DETECT_TOPIC`, key = `inspection_id`).
+Optional body: `class_id`, `confidence`, `bbox` (xyxy), `inspection_id`, `asset_id` (uuid). Each detection carries an honest `reason`: no inference runs. Real pull + DeepStream remains `grid-perception`'s job.
+
+`npm run smoke:curl` boots the service and exercises all of the above with curl (kafka: `PULSE_GATEWAY_DETECT_SINK=kafka KAFKA_BROKERS=localhost:9094`).
 
 ### Register body
 

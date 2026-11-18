@@ -86,6 +86,22 @@ export class FileSessionRegistry {
     }
   }
 
+  /** Register a pull URL once; returns existing session when the URL is already known. */
+  async registerPullUrl(url: string): Promise<{ session: GatewaySession; created: boolean }> {
+    const existing = (await this.list()).find((s) => s.pullUrl === url);
+    if (existing) {
+      return { session: existing, created: false };
+    }
+    const protocol = url.toLowerCase().startsWith('rtmp://') ? 'rtmp' : 'rtsp';
+    const streamPath = derivePathFromUrl(url);
+    const session = await this.register({
+      name: streamPath.replace(/\//g, '-'),
+      protocol,
+      url,
+    });
+    return { session, created: true };
+  }
+
   async list(): Promise<GatewaySession[]> {
     await ensureDir(this.settings.sessionDir);
     const entries = await readdir(this.settings.sessionDir);

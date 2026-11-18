@@ -6,12 +6,16 @@ import {
   SessionNotFoundError,
   SessionValidationError,
 } from './registry.js';
+import { buildSyntheticDetect, FrameValidationError } from './detect-sink.js';
+import type { DetectSink, SyntheticFrameInput } from './detect-sink.js';
 import type { RegisterSessionInput, StreamProtocol } from './types.js';
 
 export interface GatewayRuntime {
   settings: GatewaySettings;
   registry: FileSessionRegistry;
   startedAt: string;
+  /** Null/undefined → frame publishing disabled (PULSE_GATEWAY_DETECT_SINK=off). */
+  detectSink?: DetectSink | null;
 }
 
 function readJson(req: http.IncomingMessage): Promise<unknown> {
@@ -73,6 +77,8 @@ export function createGatewayServer(runtime: GatewayRuntime): http.Server {
           rtmpPort: runtime.settings.rtmpPort,
           publicHost: runtime.settings.publicHost,
           sessionCount: sessions.length,
+          pullTargets: runtime.settings.pullUrls.length,
+          detectSink: runtime.detectSink?.mode ?? 'off',
           startedAt: runtime.startedAt,
         });
         return;
@@ -88,6 +94,45 @@ export function createGatewayServer(runtime: GatewayRuntime): http.Server {
       if (req.method === 'GET' && path === '/sessions') {
         const sessions = await runtime.registry.list();
         sendJson(res, 200, { items: sessions });
+        return;
+      }
+
+      if (req.method === 'GET' && path === '/pull/targets') {
+        sendJson(res, 200, { items: runtime.settings.pullUrls });
+        return;
+      }
+
+      if (req.method === 'POST' && path === '/pull/sync') {
+        const items = [];
+        for (const pullUrl of runtime.settings.pullUrls) {
+          const { session, created } = await runtime.registry.registerPullUrl(pullUrl);
+          items.push({ id: session.id, pullUrl, created });
+        }
+        sendJson(res, 200, { items });
+        return;
+      }
+
+      const framesMatch = path.match(/^\/sessions\/([^/]+)\/frames$/);
+      if (req.method === 'POST' && framesMatch) {
+        const session = await runtime.registry.get(decodeURIComponent(framesMatch[1]));
+        if (!runtime.detectSink) {
+          sendJson(res, 409, {
+            error: 'detect_sink_disabled',
+            message: 'set PULSE_GATEWAY_DETECT_SINK=file|kafka',
+          });
+          return;
+        }
+        const body = await readJson(req);
+        if (!body || typeof body !== 'object') {
+          throw new FrameValidationError('body must be an object');
+        }
+        const event = buildSyntheticDetect(body as SyntheticFrameInput, session.name);
+        await runtime.detectSink.publish(event);
+        sendJson(res, 202, {
+          id: event.event_id,
+          inspection_id: event.inspection_id,
+          sink: runtime.detectSink.mode,
+        });
         return;
       }
 
@@ -107,7 +152,7 @@ export function createGatewayServer(runtime: GatewayRuntime): http.Server {
 
       sendJson(res, 404, { error: 'not_found' });
     } catch (err) {
-      if (err instanceof SessionValidationError) {
+      if (err instanceof SessionValidationError || err instanceof FrameValidationError) {
         sendJson(res, 400, { error: 'validation_error', message: err.message });
         return;
       }
