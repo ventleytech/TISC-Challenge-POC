@@ -29,6 +29,15 @@ Real IdP not yet. Without `PULSE_DATABASE_URL`, inspections/assets/alerts fall b
 | `PULSE_KAFKA_TOPIC_FINDINGS` / `_ALERTS` | `vp.findings.v1` / `vp.alerts.v1` | Topic overrides |
 | `PULSE_KAFKA_DEFAULT_UTILITY_ID` | _(unset)_ | Fallback tenant: finding events carry no `utility_id` (inspection row wins) |
 
+| `PULSE_STORE_BACKEND` | `memory` | Evidence blobs: `memory` \| `fs` \| `minio` (P0-T350) |
+| `PULSE_STORE_ENDPOINT` / `_BUCKET` / `_ACCESS_KEY` / `_SECRET_KEY` / `_REGION` | see `.env.template` | MinIO client (same keys as `apps/pulse-store`) |
+| `PULSE_EVIDENCE_SIGNING_SECRET` | random per process | HMAC for signed content URLs |
+| `PULSE_EVIDENCE_URL_TTL_SECONDS` | `300` | Signed URL lifetime |
+| `PULSE_EVIDENCE_MAX_BYTES` | `5242880` | Max decoded upload |
+| `PULSE_API_CORS_ORIGINS` | _(empty)_ | Browser origins (pulse-web live mode); empty = CORS off |
+
+Evidence (P0-T350): `POST /api/v1/evidence` (base64 crop → object store + `*.meta.json` sidecar), `GET /evidence`, `GET /evidence/{id}`, `GET /evidence/{id}/content?exp&sig` (signed proxy, no API key so `<img>` works). Keys follow `docs/storage-retention.md`. Index warms from sidecars on first use (single replica). Smoke: `task-cards/P0-T350/evidence/smoke.sh`; demo data: `scripts/seed-evidence.py`.
+
 Kafka ingest is idempotent on `finding_id` / `alert_id`; malformed or unattributable messages are logged and skipped, store errors retry. Smoke: `scripts/s2-kafka-ingest.sh`.
 
 Roles: `platform_admin` · `utility_admin` · `energy_supervisor` · `energy_operator` · `viewer`.
