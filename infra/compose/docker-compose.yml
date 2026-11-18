@@ -260,12 +260,25 @@ services:
 
   pulse-train:
     profiles: [data]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/pulse-train/Dockerfile
+    image: voltpulse/pulse-train:dev
     container_name: vp-pulse-train
-    command: ["sleep", "infinity"]
+    ports:
+      - "${PULSE_TRAIN_PORT:-3020}:${PULSE_TRAIN_PORT:-3020}"
     environment:
-      PULSE_MODELS_TOPIC: ${PULSE_MODELS_TOPIC}
-      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT}
+      PULSE_TRAIN_PORT: ${PULSE_TRAIN_PORT:-3020}
+      PULSE_TRAIN_HOST: ${PULSE_TRAIN_HOST:-0.0.0.0}
+      PULSE_LABELS_TOPIC: ${PULSE_LABELS_TOPIC:-vp.labels.v1}
+      PULSE_MODELS_TOPIC: ${PULSE_MODELS_TOPIC:-vp.models.v1}
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT:-http://pulse-store:9000}
+      PULSE_TRAIN_DATA_DIR: ${PULSE_TRAIN_DATA_DIR_CONTAINER:-/data/train}
+      PULSE_TRAIN_RELOAD_MODE: ${PULSE_TRAIN_RELOAD_MODE:-log}
+      PULSE_TRAIN_RELOAD_URL: ${PULSE_TRAIN_RELOAD_URL:-http://127.0.0.1:3015/internal/reload}
+      PULSE_TRAIN_JOB_AUTO_ADVANCE: ${PULSE_TRAIN_JOB_AUTO_ADVANCE:-true}
+    volumes:
+      - pulse_train_data:/data/train
     restart: "no"
 
   pulse-prometheus:
@@ -360,3 +373,4 @@ volumes:
   # File bus shared by grid-perception, pulse-gateway, grid-rules (T384/T385; images chown /data/bus to node).
   pulse_bus_files:
   pulse_perception_inbox:
+  pulse_train_data:

@@ -1,0 +1,9 @@
+== health ==
+{"status":"ok","service":"pulse-train","labelsTopic":"vp.labels.v1","modelsTopic":"vp.models.v1","reloadMode":"log","labelsConsumed":0,"queueSize":0,"jobs":0,"models":0,"startedAt":"2026-11-18T01:03:17.946Z"}
+== TP POST → 202 ==
+{"id":"cadc36c9-1561-4b0a-a68a-d8063481f883","topic":"vp.labels.v1","kind":"tp","class_id":"corrosion","queueSize":1}
+== FP POST → 202 ==
+{"id":"48bf4d78-ac5d-461b-9028-47b4b250c008","topic":"vp.labels.v1","kind":"fp","class_id":"crack","queueSize":2}
+== labels ==
+{"topic":"vp.labels.v1","items":[{"event_id":"b9bbeb06-5e5e-4b13-9cc6-0a760c388fcd","occurred_at":"2026-11-18T01:03:45.000Z","label":{"label_id":"cadc36c9-1561-4b0a-a68a-d8063481f883","finding_id":"a4a7e993-c0ef-4b97-a8bf-31e1f8a4b9af","class_id":"corrosion","accepted":true,"labeler_role":"energy_operator"}},{"event_id":"4ae45a5b-6264-4d99-9277-9f958425604f","occurred_at":"2026-11-18T01:03:45.000Z","label":{"label_id":"48bf4d78-ac5d-461b-9028-47b4b250c008","finding_id":"29c3de68-cccf-42b3-aa3a-7c37314dcb7e","class_id":"crack","accepted":false,"corrected_class_id":"vegetation","labeler_role":"energy_operator"}}]}
+O04 smoke OK (TP+FP → http://127.0.0.1:8596)
