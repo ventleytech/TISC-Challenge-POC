@@ -20,13 +20,25 @@ services:
 
   pulse-gateway:
     profiles: [media]
-    image: alpine:3.20
+    build:
+      context: ../..
+      dockerfile: apps/pulse-gateway/Dockerfile
+    image: voltpulse/pulse-gateway:dev
     container_name: vp-pulse-gateway
-    command: ["sleep", "infinity"]
     ports:
+      - "${PULSE_GATEWAY_PORT:-3020}:${PULSE_GATEWAY_PORT:-3020}"
+      # RTSP port is advertised in session URLs; no media server binds it yet (T380/T381 stub).
       - "${PULSE_GATEWAY_RTSP_PORT:-8554}:8554"
     environment:
+      PULSE_GATEWAY_PORT: ${PULSE_GATEWAY_PORT:-3020}
       PULSE_GATEWAY_RTSP_PORT: ${PULSE_GATEWAY_RTSP_PORT:-8554}
+      PULSE_GATEWAY_PULL_URLS: ${PULSE_GATEWAY_PULL_URLS:-}
+      PULSE_GATEWAY_DETECT_SINK: ${PULSE_GATEWAY_DETECT_SINK:-off}
+      PULSE_GATEWAY_DETECT_FILE: ${PULSE_GATEWAY_DETECT_FILE_CONTAINER:-/data/bus/vp.detect.v1.jsonl}
+      PULSE_GATEWAY_KAFKA_CLIENT_ID: ${PULSE_GATEWAY_KAFKA_CLIENT_ID:-pulse-gateway}
+      PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC:-vp.detect.v1}
+      # kafka sink only: in-compose broker (needs profile stream/data alongside media).
+      KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
     restart: "no"
 
   # Apache Kafka (KRaft combined broker+controller). Profiles stream + data share the bus.
