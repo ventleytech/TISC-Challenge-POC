@@ -59,6 +59,16 @@ export type KafkaIngestSettings = {
    * Resolution order: inspection row -> this default -> reject.
    */
   defaultUtilityId: string | null;
+  /** Dead-letter sink for skipped messages (P0-T391). Off by default. */
+  dlq: DlqSettings;
+};
+
+export type DlqSettings = {
+  enabled: boolean;
+  /** Kafka topic used when `file` is empty. */
+  topic: string;
+  /** If set, append JSONL here instead of producing to Kafka. */
+  file: string;
 };
 
 /**
@@ -107,6 +117,11 @@ export function loadSettings(
       findingsTopic: env.PULSE_KAFKA_TOPIC_FINDINGS?.trim() || 'vp.findings.v1',
       alertsTopic: env.PULSE_KAFKA_TOPIC_ALERTS?.trim() || 'vp.alerts.v1',
       defaultUtilityId: env.PULSE_KAFKA_DEFAULT_UTILITY_ID?.trim() || null,
+      dlq: {
+        enabled: parseBool(env.PULSE_KAFKA_DLQ_ENABLED, false),
+        topic: env.PULSE_KAFKA_DLQ_TOPIC?.trim() || 'vp.dlq.v1',
+        file: env.PULSE_KAFKA_DLQ_FILE?.trim() ?? '',
+      },
     },
     evidence: loadEvidenceSettings(env),
     corsOrigins: (env.PULSE_API_CORS_ORIGINS ?? '')

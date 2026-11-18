@@ -28,6 +28,7 @@ Real IdP not yet. Without `PULSE_DATABASE_URL`, inspections/assets/alerts fall b
 | `PULSE_KAFKA_GROUP_ID` | `pulse-api` | Consumer group |
 | `PULSE_KAFKA_TOPIC_FINDINGS` / `_ALERTS` | `vp.findings.v1` / `vp.alerts.v1` | Topic overrides |
 | `PULSE_KAFKA_DEFAULT_UTILITY_ID` | _(unset)_ | Last-resort tenant. Finding utility precedence: inspection row > event `utility_id` > this default |
+| `PULSE_KAFKA_DLQ_ENABLED` / `_TOPIC` / `_FILE` | `false` / `vp.dlq.v1` / _(empty)_ | Dead-letter skipped messages (non-JSON, rejected e.g. unknown utility). `_FILE` set -> append JSONL, else produce to topic. Offset still advances; DLQ write failure is logged only (P0-T391) |
 
 | `PULSE_STORE_BACKEND` | `memory` | Evidence blobs: `memory` \| `fs` \| `minio` (P0-T350) |
 | `PULSE_STORE_ENDPOINT` / `_BUCKET` / `_ACCESS_KEY` / `_SECRET_KEY` / `_REGION` | see `.env.template` | MinIO client (same keys as `apps/pulse-store`) |

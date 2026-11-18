@@ -58,3 +58,6 @@ Host bootstrap (after bus is up): use `PULSE_KAFKA_BOOTSTRAP=localhost:${PULSE_K
 | `vp.alerts.v1` | `grid-rules` |
 | `vp.labels.v1` | `pulse-api` |
 | `vp.models.v1` | `pulse-train` |
+| `vp.dlq.v1` | `pulse-api` (dead-letter of skipped ingest messages; added by `create-topics.sh`, not in catalog) |
+
+DLQ record: JSON `{dlq_version, reason: non_json|rejected|unexpected_topic, detail, source_topic, partition, offset, failed_at, payload}`. Enable with `PULSE_KAFKA_DLQ_ENABLED=true`; set `PULSE_KAFKA_DLQ_FILE` to append JSONL instead of producing.
