@@ -1,0 +1,7 @@
+$ tsc --noEmit; jest; jest e2e; eslint (evidence, config/settings.ts, main.ts)
+tsc ok
+Test Suites: 9 passed, 9 total
+Tests:       39 passed, 39 total
+Test Suites: 1 passed, 1 total
+Tests:       12 passed, 12 total
+eslint ok (touched files)

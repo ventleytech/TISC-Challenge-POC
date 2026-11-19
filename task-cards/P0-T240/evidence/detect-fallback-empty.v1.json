@@ -1,0 +1,20 @@
+{
+  "event_id": "376f97e3-2ed8-4e4f-97e5-25e1992a8010",
+  "occurred_at": "2026-11-17T23:10:18Z",
+  "inspection_id": "5f3b4e83-aac0-41c0-9f62-aa64703e1726",
+  "asset_id": null,
+  "source": "upload",
+  "detections": [],
+  "fallback_reasons": [
+    {
+      "class_id": "sag",
+      "reason": "No smoke-proven open conductor-sag detector on this host. Public sag boxes are sparse; geometric/catenary baseline not yet wired. Demo Day: emit empty detections rather than fake confidence.",
+      "status": "fallback"
+    },
+    {
+      "class_id": "thermal_hotspot",
+      "reason": "No calibrated utility IR camera or Gate0 thermal weight wired. Public IR datasets exist for later plumbing; do not claim radiometric \u00b0C. Demo Day: emit empty detections rather than fake hotspots.",
+      "status": "fallback"
+    }
+  ]
+}

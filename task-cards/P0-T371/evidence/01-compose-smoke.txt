@@ -1,0 +1,29 @@
+$ compose config | rg image
+8:      MINIO_API_PORT_NUMBER: "9000"
+9:      MINIO_CONSOLE_PORT_NUMBER: "9001"
+16:    image: bitnamilegacy/minio:2025.4.22@sha256:50cec18ac4184af4671a78aedd5554942c8ae105d51a465fa82037949046da01
+32:        target: /bitnami/minio/data
+71:      MC_CONFIG_DIR: /tmp/.mc
+76:    image: bitnamilegacy/minio-client:2025.4.16@sha256:8a86e441decf053093c5977d49290298295f850c7843652f93e970ab15871dd1
+
+$ up -d pulse-store pulse-store-buckets
+ Container vp-pulse-store Creating 
+ Container vp-pulse-store Created 
+ Container vp-pulse-store-buckets Creating 
+ Container vp-pulse-store-buckets Created 
+ Container vp-pulse-store Starting 
+ Container vp-pulse-store Started 
+ Container vp-pulse-store-buckets Starting 
+ Container vp-pulse-store-buckets Started 
+vp-pulse-store-buckets  | Added `vp` successfully.
+vp-pulse-store-buckets  | Bucket created successfully `vp/voltpulse-evidence`.
+vp-pulse-store-buckets  | bucket ready: voltpulse-evidence (region=us-east-1)
+vp-pulse-store-buckets  | Bucket created successfully `vp/voltpulse-models`.
+vp-pulse-store-buckets  | bucket ready: voltpulse-models (region=us-east-1)
+vp-pulse-store-buckets  | pulse-store-buckets done
+NAME                     IMAGE                                                                                                          COMMAND                  SERVICE               CREATED          STATUS                      PORTS
+vp-pulse-store           bitnamilegacy/minio:2025.4.22@sha256:50cec18ac4184af4671a78aedd5554942c8ae105d51a465fa82037949046da01          "/opt/bitnami/script…"   pulse-store           14 seconds ago   Up 12 seconds               0.0.0.0:19100->9000/tcp, [::]:19100->9000/tcp, 0.0.0.0:19101->9001/tcp, [::]:19101->9001/tcp
+vp-pulse-store-buckets   bitnamilegacy/minio-client:2025.4.16@sha256:8a86e441decf053093c5977d49290298295f850c7843652f93e970ab15871dd1   "/bin/sh -c 'set -eu…"   pulse-store-buckets   13 seconds ago   Exited (0) 10 seconds ago   
+
+$ health
+live=200

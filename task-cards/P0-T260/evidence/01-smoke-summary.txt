@@ -1,0 +1,52 @@
+COMPOSE_OK
+EXIT_packages/offline-sync=0
+EXIT_packages/i18n=0
+EXIT_packages/responsibility=0
+EXIT_packages/work-order=0
+EXIT_packages/audit=0
+EXIT_packages/prioritisation=0
+EXIT_packages/geo-map=0
+EXIT_packages/label-ui-stub=1
+EXIT_packages/alert-policy=0
+EXIT_apps/pulse-store=0
+EXIT_apps/grid-rules=1
+EXIT_apps/pulse-gateway=0
+EXIT_apps/pulse-notify=0
+EXIT_apps/pulse-train=0
+EXIT_packages/detector-fallbacks=0
+EXIT_packages/compliance-report=0
+IN 0d1d875 vp/P0-T002-contracts
+IN 16e73e1 vp/P0-T001-compose
+IN 5353332 vp/P0-T110-minio-compose
+IN e232e0a vp/P0-T090-kafka-bootstrap
+IN 61efcd2 vp/P0-T210-kafka-compose
+IN 49de9d6 vp/P0-T007-pulse-store
+IN f4b1537 vp/P0-T070-retention-hold
+IN 0f5965d vp/P0-T003-pulse-api
+IN 4ea3129 vp/P0-T004-api-stubs
+IN 6e3b4cf vp/P0-T050-auth-roles
+IN 1f371c9 vp/P0-T140-utility-onboarding
+IN 8e038ed vp/P0-T006-pulse-notify
+IN 9dc97f6 vp/P0-T008-obs
+IN d83b8cd vp/P0-T020-grid-rules
+IN ca32b71 vp/P0-T190-rules-responsibility
+IN e073d2f vp/P0-T180-alert-policy
+IN 423faef vp/P0-T280-rules-alert-policy
+IN f3906a8 vp/P0-T010-grid-perception
+IN 8549d8e vp/P0-T130-detect-rules-glue
+IN 8fbfd68 vp/P0-T240-perception-fallbacks
+IN 39ca95b vp/P0-T080-responsibility
+IN bc7bcc9 vp/P0-T150-work-order
+IN 194912b vp/P0-T100-audit-priority
+IN 5b72d85 vp/P0-T120-compliance-report
+IN 77329a7 vp/P0-T160-sag-thermal-stubs
+IN e429d7b vp/P0-T200-geo-map
+IN fc21cb9 vp/P0-T220-label-ui-stub
+IN 0abd803 vp/P0-T270-offline-i18n
+IN 6e70172 vp/P0-T030-pulse-train
+IN d3b97ac vp/P0-T040-pulse-gateway
+DEFER vp/P0-T005-pulse-web 0db34d6 feat(pulse-web): scaffold VoltPulse shell with brand hero and route stubs
+DEFER vp/P0-T060-schedule-assets-ui e74ee9c feat(pulse-web): add S8 schedule wizards and A01 asset shells
+DEFER vp/P0-T170-priority-alerts-ui 9950332 feat(pulse-web): add C09 priority board and alerts SLA/ack mocks
+DEFER vp/P0-T230-wow-ui 9950332 feat(pulse-web): add C09 priority board and alerts SLA/ack mocks
+NO_WEB

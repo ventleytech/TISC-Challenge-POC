@@ -1,0 +1,1 @@
+{"status": "ok", "service": "grid-perception", "detect_topic": "vp.detect.v1", "ingest_loop": true, "detectors": ["sag", "thermal_hotspot"], "processed": 1, "failed": 0, "detections": 2}

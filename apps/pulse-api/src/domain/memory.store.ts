@@ -1,0 +1,132 @@
+import { Injectable } from '@nestjs/common';
+import { DomainStore } from './domain.store';
+import type { Alert, Asset, Finding, Inspection, Site, Utility, UtilityMembership } from './types';
+
+/**
+ * Process-local Maps for unit tests / no-DB smoke.
+ * Production path uses PostgresStore when PULSE_DATABASE_URL is set.
+ */
+@Injectable()
+export class MemoryStore extends DomainStore {
+  private readonly inspections = new Map<string, Inspection>();
+  private readonly assets = new Map<string, Asset>();
+  private readonly findings = new Map<string, Finding>();
+  private readonly alerts = new Map<string, Alert>();
+
+  async listUtilities(): Promise<Utility[]> {
+    return [...this.utilities.values()];
+  }
+
+  async getUtility(id: string): Promise<Utility | undefined> {
+    return this.utilities.get(id);
+  }
+
+  async createUtility(row: Utility): Promise<void> {
+    this.utilities.set(row.id, row);
+  }
+
+  async listSites(opts: { utilityId: string }): Promise<Site[]> {
+    return [...this.sites.values()].filter((s) => s.utility_id === opts.utilityId);
+  }
+
+  async getSite(id: string): Promise<Site | undefined> {
+    return this.sites.get(id);
+  }
+
+  async createSite(row: Site): Promise<void> {
+    this.sites.set(row.id, row);
+  }
+
+  async listMemberships(): Promise<UtilityMembership[]> {
+    return [...this.memberships.values()];
+  }
+
+  async createMembership(row: UtilityMembership): Promise<void> {
+    this.memberships.set(row.id, row);
+  }
+
+  async listInspections(opts: {
+    utilityId: string;
+    status?: string;
+  }): Promise<Inspection[]> {
+    let items = [...this.inspections.values()].filter(
+      (i) => i.utility_id === opts.utilityId,
+    );
+    if (opts.status) {
+      items = items.filter((i) => i.status === opts.status);
+    }
+    return items;
+  }
+
+  async getInspection(id: string): Promise<Inspection | undefined> {
+    return this.inspections.get(id);
+  }
+
+  async createInspection(row: Inspection): Promise<void> {
+    this.inspections.set(row.id, row);
+  }
+
+  async listAssets(opts: { utilityId: string }): Promise<Asset[]> {
+    return [...this.assets.values()].filter(
+      (a) => a.utility_id === opts.utilityId,
+    );
+  }
+
+  async getAsset(id: string): Promise<Asset | undefined> {
+    return this.assets.get(id);
+  }
+
+  async createAsset(row: Asset): Promise<void> {
+    this.assets.set(row.id, row);
+  }
+
+  async listAlerts(opts: {
+    utilityId: string;
+    severity?: string;
+  }): Promise<Alert[]> {
+    let items = [...this.alerts.values()].filter(
+      (a) => a.utility_id === opts.utilityId,
+    );
+    if (opts.severity) {
+      items = items.filter((a) => a.severity === opts.severity);
+    }
+    return items;
+  }
+
+  async getAlert(id: string): Promise<Alert | undefined> {
+    return this.alerts.get(id);
+  }
+
+  async createAlert(row: Alert): Promise<void> {
+    this.alerts.set(row.id, row);
+  }
+
+  async ackAlert(id: string): Promise<Alert | undefined> {
+    const row = this.alerts.get(id);
+    if (row && !row.ack_at) {
+      row.ack_at = new Date().toISOString();
+    }
+    return row;
+  }
+
+  async listFindings(opts: {
+    utilityId: string;
+    inspectionId?: string;
+  }): Promise<Finding[]> {
+    let items = [...this.findings.values()].filter(
+      (f) => f.utility_id === opts.utilityId,
+    );
+    if (opts.inspectionId) {
+      items = items.filter((f) => f.inspection_id === opts.inspectionId);
+    }
+    return items;
+  }
+
+  async getFinding(id: string): Promise<Finding | undefined> {
+    return this.findings.get(id);
+  }
+
+  async createFinding(row: Finding): Promise<void> {
+    this.findings.set(row.id, row);
+  }
+}

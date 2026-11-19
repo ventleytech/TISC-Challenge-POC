@@ -1,0 +1,15 @@
+# 1 POST crop
+id=ev_4cdaabd8bf86
+# 2 GET list (viewer)
+1 item(s); key = util-demo-01/insp_insp-smoke/evidence/ev_4cdaabd8bf86.png ; backend = minio
+# 3 GET one -> signed content (no key)
+HTTP/1.1 200 OK
+Content-Type: image/png
+bytes=70 sha256=c414cd0e204de974 expect=c414cd0e204de974
+# 4 tampered sig -> 401
+401
+# 5 unauth list -> 401 / wrong tenant -> 403
+401 403
+# 6 MinIO bucket contents
+/bitnami/minio/data/voltpulse-evidence/util-demo-01/insp_insp-smoke/evidence/ev_4cdaabd8bf86.png.meta.json/xl.meta
+/bitnami/minio/data/voltpulse-evidence/util-demo-01/insp_insp-smoke/evidence/ev_4cdaabd8bf86.png/xl.meta

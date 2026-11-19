@@ -1,0 +1,764 @@
+openapi: 3.0.3
+info:
+  title: VoltPulse API
+  version: 0.0.1
+  description: |
+    Stub OpenAPI for pulse-api. Paths are contract anchors for Nest mount.
+    Canonical surfaces: /api/v1/inspections, /api/v1/assets, /api/v1/findings, /api/v1/alerts.
+    Fresh VoltPulse surface — not a proprietary catalog paste.
+servers:
+  - url: /api/v1
+    description: Versioned API prefix (compose/env supplies host)
+
+tags:
+  - name: inspections
+  - name: assets
+  - name: findings
+  - name: alerts
+  - name: evidence
+
+paths:
+  /inspections:
+    get:
+      tags: [inspections]
+      operationId: listInspections
+      summary: List inspections (scoped by utility_id)
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InspectionStatus'
+      responses:
+        '200':
+          description: Inspection list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Inspection'
+    post:
+      tags: [inspections]
+      operationId: createInspection
+      summary: Create inspection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InspectionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /inspections/{inspectionId}:
+    get:
+      tags: [inspections]
+      operationId: getInspection
+      summary: Get inspection by id
+      parameters:
+        - $ref: '#/components/parameters/InspectionId'
+      responses:
+        '200':
+          description: Inspection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inspection'
+        '404':
+          description: Not found
+
+  /assets:
+    get:
+      tags: [assets]
+      operationId: listAssets
+      summary: List assets
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+      responses:
+        '200':
+          description: Asset list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+    post:
+      tags: [assets]
+      operationId: createAsset
+      summary: Create asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /assets/{assetId}:
+    get:
+      tags: [assets]
+      operationId: getAsset
+      summary: Get asset by id
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          description: Not found
+
+  /findings:
+    get:
+      tags: [findings]
+      operationId: listFindings
+      summary: List findings
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: inspection_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Finding list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Finding'
+    post:
+      tags: [findings]
+      operationId: createFinding
+      summary: Create / ingest finding (Nest persist path from rules)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FindingCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /findings/{findingId}:
+    get:
+      tags: [findings]
+      operationId: getFinding
+      summary: Get finding by id
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      responses:
+        '200':
+          description: Finding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Finding'
+        '404':
+          description: Not found
+
+  /alerts:
+    get:
+      tags: [alerts]
+      operationId: listAlerts
+      summary: List alerts
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/Severity'
+      responses:
+        '200':
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Alert'
+    post:
+      tags: [alerts]
+      operationId: createAlert
+      summary: Create / ingest alert (Nest persist path)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+
+  /alerts/{alertId}:
+    get:
+      tags: [alerts]
+      operationId: getAlert
+      summary: Get alert by id
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Not found
+
+  /alerts/{alertId}/ack:
+    post:
+      tags: [alerts]
+      operationId: ackAlert
+      summary: Acknowledge alert (operator ack; sets ack_at)
+      parameters:
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert with ack_at set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Not found
+
+  /evidence:
+    get:
+      tags: [evidence]
+      operationId: listEvidence
+      summary: List evidence objects (crops, frames) with signed content paths
+      parameters:
+        - $ref: '#/components/parameters/UtilityId'
+        - name: inspection_id
+          in: query
+          schema:
+            type: string
+        - name: finding_id
+          in: query
+          schema:
+            type: string
+        - name: kind
+          in: query
+          schema:
+            $ref: '#/components/schemas/EvidenceKind'
+      responses:
+        '200':
+          description: Evidence list (newest captured first)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EvidenceObject'
+    post:
+      tags: [evidence]
+      operationId: createEvidence
+      summary: Store evidence bytes in the object store (MinIO) and index metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenceCreate'
+      responses:
+        '201':
+          description: Created (id is content-addressed per inspection; re-post is idempotent)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+
+  /evidence/{evidenceId}:
+    get:
+      tags: [evidence]
+      operationId: getEvidence
+      summary: Get evidence metadata + signed content path
+      parameters:
+        - $ref: '#/components/parameters/EvidenceId'
+      responses:
+        '200':
+          description: Evidence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceObject'
+        '404':
+          description: Not found
+
+  /evidence/{evidenceId}/content:
+    get:
+      tags: [evidence]
+      operationId: getEvidenceContent
+      summary: Stream evidence bytes via signed URL (no API key; HMAC exp+sig query)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/EvidenceId'
+        - name: exp
+          in: query
+          required: true
+          schema:
+            type: integer
+            description: Unix seconds expiry
+        - name: sig
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object bytes
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Missing, invalid, or expired signature
+        '404':
+          description: Not found
+
+components:
+  parameters:
+    UtilityId:
+      name: utility_id
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+    InspectionId:
+      name: inspectionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FindingId:
+      name: findingId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AlertId:
+      name: alertId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EvidenceId:
+      name: evidenceId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: ev_9f2c41ab07de
+
+  schemas:
+    DetectionId:
+      type: string
+      enum:
+        - crack
+        - sag
+        - corrosion
+        - vegetation
+        - thermal_hotspot
+
+    InspectionStatus:
+      type: string
+      enum:
+        - planned
+        - in_progress
+        - processing
+        - review
+        - closed
+        - cancelled
+
+    Severity:
+      type: string
+      enum:
+        - critical
+        - high
+        - medium
+        - low
+        - info
+
+    Inspection:
+      type: object
+      required: [id, utility_id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/InspectionStatus'
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        planned_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    InspectionCreate:
+      type: object
+      required: [utility_id]
+      properties:
+        utility_id:
+          type: string
+          format: uuid
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        planned_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Asset:
+      type: object
+      required: [id, utility_id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        criticality:
+          type: string
+          enum: [critical, high, medium, low]
+        voltage_class:
+          type: string
+          nullable: true
+
+    AssetCreate:
+      type: object
+      required: [utility_id, name]
+      properties:
+        utility_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        criticality:
+          type: string
+          enum: [critical, high, medium, low]
+        voltage_class:
+          type: string
+          nullable: true
+
+    Finding:
+      type: object
+      required: [id, utility_id, class_id, severity, risk_score]
+      properties:
+        id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        class_id:
+          $ref: '#/components/schemas/DetectionId'
+        severity:
+          $ref: '#/components/schemas/Severity'
+        risk_score:
+          type: number
+          minimum: 0
+        inspection_id:
+          type: string
+          format: uuid
+          nullable: true
+        asset_id:
+          type: string
+          format: uuid
+          nullable: true
+        source_detection_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        evidence_object_ids:
+          type: array
+          items:
+            type: string
+
+    FindingCreate:
+      type: object
+      required: [utility_id, class_id, severity, risk_score]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Optional rules finding_id; generated if omitted
+        utility_id:
+          type: string
+          format: uuid
+        class_id:
+          $ref: '#/components/schemas/DetectionId'
+        severity:
+          $ref: '#/components/schemas/Severity'
+        risk_score:
+          type: number
+          minimum: 0
+        inspection_id:
+          type: string
+          format: uuid
+          nullable: true
+        asset_id:
+          type: string
+          format: uuid
+          nullable: true
+        source_detection_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        evidence_object_ids:
+          type: array
+          items:
+            type: string
+
+    EvidenceKind:
+      type: string
+      enum: [crop, rgb_frame, ir_frame, clip, report]
+
+    EvidenceCreate:
+      type: object
+      required: [utility_id, inspection_id, kind, content_type, data_base64]
+      properties:
+        utility_id:
+          type: string
+        inspection_id:
+          type: string
+        kind:
+          $ref: '#/components/schemas/EvidenceKind'
+        content_type:
+          type: string
+          enum: [image/jpeg, image/png, image/webp, video/mp4, application/pdf]
+        data_base64:
+          type: string
+          description: Raw object bytes, base64 (bounded by PULSE_EVIDENCE_MAX_BYTES)
+        finding_id:
+          type: string
+          nullable: true
+        asset_id:
+          type: string
+          nullable: true
+        class_id:
+          allOf:
+            - $ref: '#/components/schemas/DetectionId'
+          nullable: true
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          nullable: true
+        bbox:
+          type: array
+          description: "[x, y, w, h] source-frame pixels"
+          minItems: 4
+          maxItems: 4
+          items:
+            type: number
+          nullable: true
+        label:
+          type: string
+          maxLength: 120
+          nullable: true
+        captured_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    EvidenceObject:
+      type: object
+      required: [id, utility_id, inspection_id, kind, content_type, bytes, retention, captured_at, object_key, content_path]
+      properties:
+        id:
+          type: string
+        utility_id:
+          type: string
+        inspection_id:
+          type: string
+        finding_id:
+          type: string
+          nullable: true
+        asset_id:
+          type: string
+          nullable: true
+        kind:
+          $ref: '#/components/schemas/EvidenceKind'
+        class_id:
+          allOf:
+            - $ref: '#/components/schemas/DetectionId'
+          nullable: true
+        confidence:
+          type: number
+          nullable: true
+        bbox:
+          type: array
+          items:
+            type: number
+          nullable: true
+        label:
+          type: string
+          nullable: true
+        content_type:
+          type: string
+        bytes:
+          type: integer
+        retention:
+          type: string
+          enum: [hot, warm, expire, legal_hold]
+        captured_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        object_key:
+          type: string
+          description: Key inside the evidence bucket (docs/storage-retention.md layout)
+        backend:
+          type: string
+          enum: [memory, fs, minio]
+        content_path:
+          type: string
+          description: Signed path relative to the API base (/api/v1)
+        content_expires_at:
+          type: string
+          format: date-time
+
+    Alert:
+      type: object
+      required: [id, severity, finding_id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        finding_id:
+          type: string
+          format: uuid
+        inspection_id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        severity:
+          $ref: '#/components/schemas/Severity'
+        sla_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        ack_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AlertCreate:
+      type: object
+      required: [severity, finding_id, utility_id]
+      properties:
+        finding_id:
+          type: string
+          format: uuid
+        inspection_id:
+          type: string
+          format: uuid
+        utility_id:
+          type: string
+          format: uuid
+        severity:
+          $ref: '#/components/schemas/Severity'
+        sla_due_at:
+          type: string
+          format: date-time
+          nullable: true

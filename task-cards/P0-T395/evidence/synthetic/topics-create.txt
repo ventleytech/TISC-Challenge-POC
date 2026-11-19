@@ -1,0 +1,25 @@
+ Container vp395-pulse-kafka-topics-run-3eb579c6f2f9 Creating 
+ Container vp395-pulse-kafka-topics-run-3eb579c6f2f9 Created 
+waiting for pulse-bus…
+catalog:   /work/packages/contracts/events/catalog.yaml
+bootstrap: pulse-bus:9092
+topics:    6
+
++ kafka-topics.sh --bootstrap-server pulse-bus:9092 --create --if-not-exists --topic vp.detect.v1 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic vp.detect.v1.
++ kafka-topics.sh --bootstrap-server pulse-bus:9092 --create --if-not-exists --topic vp.findings.v1 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic vp.findings.v1.
++ kafka-topics.sh --bootstrap-server pulse-bus:9092 --create --if-not-exists --topic vp.alerts.v1 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic vp.alerts.v1.
++ kafka-topics.sh --bootstrap-server pulse-bus:9092 --create --if-not-exists --topic vp.labels.v1 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic vp.labels.v1.
++ kafka-topics.sh --bootstrap-server pulse-bus:9092 --create --if-not-exists --topic vp.models.v1 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic vp.models.v1.
++ kafka-topics.sh --bootstrap-server pulse-bus:9092 --create --if-not-exists --topic vp.dlq.v1 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic vp.dlq.v1.

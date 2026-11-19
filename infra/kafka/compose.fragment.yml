@@ -1,0 +1,29 @@
+# Legacy overlay (P0-T090) — for stacks that still have alpine pulse-bus.
+# P0-T210 moved real Kafka + pulse-kafka-topics into infra/compose/docker-compose.yml.
+# Do NOT combine this file with post-T210 main compose (duplicate service names).
+#
+# Pre-T210 example only:
+#   docker compose -p voltpulse \
+#     -f infra/compose/docker-compose.yml \
+#     -f infra/kafka/compose.fragment.yml \
+#     --profile stream --profile data \
+#     run --rm pulse-kafka-topics --dry-run
+
+services:
+  pulse-kafka-topics:
+    profiles: [stream, data]
+    image: apache/kafka:4.1.0
+    container_name: vp-pulse-kafka-topics
+    working_dir: /work
+    volumes:
+      - ../..:/work:ro
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+      PULSE_TOPIC_CATALOG: /work/packages/contracts/events/catalog.yaml
+      PULSE_TOPIC_PARTITIONS: ${PULSE_TOPIC_PARTITIONS:-1}
+      PULSE_TOPIC_REPLICATION: ${PULSE_TOPIC_REPLICATION:-1}
+      PATH: /opt/kafka/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    entrypoint: ["/bin/bash", "/work/infra/kafka/create-topics.sh"]
+    depends_on:
+      - pulse-bus
+    restart: "no"

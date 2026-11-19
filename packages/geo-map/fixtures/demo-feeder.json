@@ -1,0 +1,62 @@
+{
+  "_comment": "Synthetic VoltPulse demo feeder — NOT a real utility corridor",
+  "feederId": "vp-demo-feeder-01",
+  "points": [
+    {
+      "id": "vp-demo-feeder-01",
+      "kind": "feeder",
+      "name": "Demo Feeder A",
+      "lon": 10.0,
+      "lat": 50.0,
+      "feederId": "vp-demo-feeder-01",
+      "criticality": 3
+    },
+    {
+      "id": "vp-demo-tower-01",
+      "kind": "tower",
+      "name": "Tower 1",
+      "lon": 10.01,
+      "lat": 50.005,
+      "feederId": "vp-demo-feeder-01",
+      "criticality": 2
+    },
+    {
+      "id": "vp-demo-tower-02",
+      "kind": "tower",
+      "name": "Tower 2",
+      "lon": 10.03,
+      "lat": 50.015,
+      "feederId": "vp-demo-feeder-01",
+      "criticality": 2
+    },
+    {
+      "id": "vp-demo-tower-03",
+      "kind": "tower",
+      "name": "Tower 3",
+      "lon": 10.05,
+      "lat": 50.02,
+      "feederId": "vp-demo-feeder-01",
+      "criticality": 4
+    }
+  ],
+  "spans": [
+    {
+      "id": "vp-demo-span-01",
+      "feederId": "vp-demo-feeder-01",
+      "name": "Span 1-2",
+      "coordinates": [
+        { "lon": 10.01, "lat": 50.005 },
+        { "lon": 10.03, "lat": 50.015 }
+      ]
+    },
+    {
+      "id": "vp-demo-span-02",
+      "feederId": "vp-demo-feeder-01",
+      "name": "Span 2-3",
+      "coordinates": [
+        { "lon": 10.03, "lat": 50.015 },
+        { "lon": 10.05, "lat": 50.02 }
+      ]
+    }
+  ]
+}

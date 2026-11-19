@@ -1,0 +1,20 @@
+{
+  "name": "@voltpulse/geo-map",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VoltPulse GeoJSON helpers + static SVG map stub (W05 digital-twin lite)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "fixtures",
+    "stub",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "render-stub": "node --experimental-strip-types scripts/render-stub.mjs"
+  }
+}

@@ -1,0 +1,33 @@
+# grid-perception CUDA image (P0-T405)
+# Thin nvidia base + code. Mount host Gate0 venv (torch+ultralytics+cu*) at /opt/gp-venv.
+# Build context: repo root.
+ARG CUDA_IMAGE=nvidia/cuda:12.6.0-base-ubuntu22.04
+
+FROM ${CUDA_IMAGE}
+ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-distutils \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
+  && rm -rf /var/lib/apt/lists/*
+WORKDIR /srv
+COPY apps/grid-perception/grid_perception apps/grid-perception/grid_perception
+COPY packages/detector-fallbacks packages/detector-fallbacks
+ENV PYTHONPATH=/srv/apps/grid-perception \
+    VIRTUAL_ENV=/opt/gp-venv \
+    PATH=/opt/gp-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    GP_HEALTH_PORT=8081 \
+    NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+RUN useradd -m -u 10001 vp \
+  && mkdir -p /data/bus /data/inbox /opt/gp-venv \
+  && chown -R vp:vp /data
+USER vp
+EXPOSE 8081
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
+  CMD python3 -c "import os,urllib.request as u;u.urlopen('http://127.0.0.1:'+os.environ.get('GP_HEALTH_PORT','8081')+'/health',timeout=3)"
+# Prefer venv python when mounted; fall back to system python3 (no torch).
+CMD ["sh", "-c", "if [ -x /opt/gp-venv/bin/python ]; then exec /opt/gp-venv/bin/python -m grid_perception.serve; else exec python3 -m grid_perception.serve; fi"]

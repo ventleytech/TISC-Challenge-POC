@@ -1,0 +1,4 @@
+# restart persistence: API restarted (fresh process, empty memory); index re-warmed from MinIO sidecars
+10 items; backends: {'minio'}
+# MinIO objects (data + sidecar per evidence):
+20

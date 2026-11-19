@@ -1,0 +1,77 @@
+import { randomUUID } from 'node:crypto';
+import type {
+  Alert,
+  Asset,
+  Finding,
+  Inspection,
+  Site,
+  Utility,
+  UtilityMembership,
+} from './types';
+
+/**
+ * Authoritative domain store for pulse-api.
+ * Inspections / assets / findings / alerts / utilities / sites / memberships
+ * are durable when Postgres is wired.
+ */
+export abstract class DomainStore {
+  /**
+   * @deprecated Prefer getUtility / listUtilities (kept for MemoryStore tests).
+   */
+  readonly utilities = new Map<string, Utility>();
+  /** @deprecated Prefer getSite / listSites */
+  readonly sites = new Map<string, Site>();
+  /** @deprecated Prefer listMemberships */
+  readonly memberships = new Map<string, UtilityMembership>();
+
+  nextId(): string {
+    return randomUUID();
+  }
+
+  abstract listUtilities(): Promise<Utility[]>;
+  abstract getUtility(id: string): Promise<Utility | undefined>;
+  abstract createUtility(row: Utility): Promise<void>;
+
+  abstract listSites(opts: { utilityId: string }): Promise<Site[]>;
+  abstract getSite(id: string): Promise<Site | undefined>;
+  abstract createSite(row: Site): Promise<void>;
+
+  abstract listMemberships(): Promise<UtilityMembership[]>;
+  abstract createMembership(row: UtilityMembership): Promise<void>;
+
+  abstract listInspections(opts: {
+    utilityId: string;
+    status?: string;
+  }): Promise<Inspection[]>;
+
+  abstract getInspection(id: string): Promise<Inspection | undefined>;
+
+  abstract createInspection(row: Inspection): Promise<void>;
+
+  abstract listAssets(opts: { utilityId: string }): Promise<Asset[]>;
+
+  abstract getAsset(id: string): Promise<Asset | undefined>;
+
+  abstract createAsset(row: Asset): Promise<void>;
+
+  abstract listAlerts(opts: {
+    utilityId: string;
+    severity?: string;
+  }): Promise<Alert[]>;
+
+  abstract getAlert(id: string): Promise<Alert | undefined>;
+
+  abstract createAlert(row: Alert): Promise<void>;
+
+  /** Sets ack_at once (idempotent). Returns undefined when alert missing. */
+  abstract ackAlert(id: string): Promise<Alert | undefined>;
+
+  abstract listFindings(opts: {
+    utilityId: string;
+    inspectionId?: string;
+  }): Promise<Finding[]>;
+
+  abstract getFinding(id: string): Promise<Finding | undefined>;
+
+  abstract createFinding(row: Finding): Promise<void>;
+}

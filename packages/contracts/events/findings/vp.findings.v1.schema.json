@@ -1,0 +1,48 @@
+{
+  "$id": "https://voltpulse.local/contracts/events/findings/vp.findings.v1.schema.json",
+  "title": "VpFindingsV1",
+  "description": "Stub: ranked finding emit from grid-rules on topic vp.findings.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "occurred_at", "inspection_id", "finding"],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "inspection_id": { "type": "string", "format": "uuid" },
+    "utility_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Optional (additive, v1-compatible). Tenant of the finding; lets pulse-api persist when the inspection row is unknown. Producers set it when resolvable (asset context)."
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_id", "class_id", "severity", "risk_score"],
+      "properties": {
+        "finding_id": { "type": "string", "format": "uuid" },
+        "class_id": { "$ref": "../../enums/detection.json" },
+        "severity": { "$ref": "../../enums/severity.json" },
+        "risk_score": { "type": "number", "minimum": 0 },
+        "asset_id": { "type": ["string", "null"], "format": "uuid" },
+        "source_detection_ids": {
+          "type": "array",
+          "items": { "type": "string", "format": "uuid" }
+        },
+        "evidence_object_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "extensions": {
+          "type": "object",
+          "description": "Optional non-core finding enrichments (S9 responsibility hints, etc.). Additive; consumers may ignore.",
+          "additionalProperties": true,
+          "properties": {
+            "party_type": { "type": "string" },
+            "warranty_hint": { "type": "string" },
+            "tender_ref": { "type": ["string", "null"] }
+          }
+        }
+      }
+    }
+  }
+}

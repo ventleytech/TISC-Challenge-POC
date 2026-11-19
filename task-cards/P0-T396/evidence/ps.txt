@@ -1,0 +1,2 @@
+NAME                  IMAGE                       COMMAND                  SERVICE       CREATED          STATUS                    PORTS
+vp396-pulse-train-1   voltpulse/pulse-train:dev   "docker-entrypoint.s…"   pulse-train   19 seconds ago   Up 19 seconds (healthy)   3020/tcp, 0.0.0.0:8596->8596/tcp, [::]:8596->8596/tcp

@@ -1,0 +1,190 @@
+{
+  "mode": "memory",
+  "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+  "findings": [
+    {
+      "id": "14b6852e-12d9-4621-be72-d1f6bf898f08",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "low",
+      "risk_score": 30.94,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "564fec5e-568b-4a79-a99a-81227ecd8029"
+      ],
+      "evidence_object_ids": []
+    },
+    {
+      "id": "c15dcefd-f801-41c1-89d6-3e4b42e1c601",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "low",
+      "risk_score": 30.54,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "e7d2f397-bab1-45e7-a11c-d2d8e93d4a23"
+      ],
+      "evidence_object_ids": []
+    },
+    {
+      "id": "4f2c0ec0-606b-4613-8708-3c72e033b769",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "low",
+      "risk_score": 28.39,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "5920d8b3-fc80-4f85-975e-d41aae6a3434"
+      ],
+      "evidence_object_ids": []
+    },
+    {
+      "id": "0b02d208-a81b-4209-bd47-3dc15eeec862",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "info",
+      "risk_score": 11.25,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "be870705-db68-4d58-8523-137359a0ff36"
+      ],
+      "evidence_object_ids": []
+    },
+    {
+      "id": "b28e6537-0781-49b3-9cee-391aabc78014",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "info",
+      "risk_score": 11.07,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "abfd59f1-ebae-4d22-82e2-c127a748a748"
+      ],
+      "evidence_object_ids": []
+    },
+    {
+      "id": "4cf0b79e-bef1-46a4-b298-cda8d73b154a",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "thermal_hotspot",
+      "severity": "critical",
+      "risk_score": 89.78,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "ffffffff-ffff-4fff-8fff-ffffffffffff"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/thermal-01"
+      ]
+    },
+    {
+      "id": "d8c4d79a-fed7-4e50-8cab-3a591f9d30d4",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "medium",
+      "risk_score": 52.35,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/corrosion-01"
+      ]
+    },
+    {
+      "id": "787bb68c-479c-48fc-bb15-13111131ecdc",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "vegetation",
+      "severity": "low",
+      "risk_score": 29.05,
+      "inspection_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "asset_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "source_detection_ids": [
+        "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/veg-01"
+      ]
+    },
+    {
+      "id": "2d78c585-ee66-4269-8fe2-2adec5f2f1ce",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "thermal_hotspot",
+      "severity": "critical",
+      "risk_score": 89.78,
+      "inspection_id": "3638bab8-7146-447b-abd0-6765c30e2319",
+      "asset_id": "8c307e07-9683-41e9-82f5-8314983c8a3a",
+      "source_detection_ids": [
+        "ffffffff-ffff-4fff-8fff-ffffffffffff"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/thermal-01"
+      ]
+    },
+    {
+      "id": "2ef958d7-f287-468b-a00b-92be78612f38",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "corrosion",
+      "severity": "medium",
+      "risk_score": 52.35,
+      "inspection_id": "3638bab8-7146-447b-abd0-6765c30e2319",
+      "asset_id": "8c307e07-9683-41e9-82f5-8314983c8a3a",
+      "source_detection_ids": [
+        "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/corrosion-01"
+      ]
+    },
+    {
+      "id": "235daa19-8985-450d-bdfa-0a3c4af7d7b7",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "class_id": "vegetation",
+      "severity": "low",
+      "risk_score": 29.05,
+      "inspection_id": "3638bab8-7146-447b-abd0-6765c30e2319",
+      "asset_id": "8c307e07-9683-41e9-82f5-8314983c8a3a",
+      "source_detection_ids": [
+        "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+      ],
+      "evidence_object_ids": [
+        "insp/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/ev/veg-01"
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "id": "8695d91a-f41d-4db3-8426-5161ec3e3fc1",
+      "finding_id": "2ef958d7-f287-468b-a00b-92be78612f38",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "severity": "medium",
+      "inspection_id": "3638bab8-7146-447b-abd0-6765c30e2319",
+      "sla_due_at": "2026-11-18T04:00:00.000Z",
+      "ack_at": null
+    },
+    {
+      "id": "f939e65b-920c-4da9-8b94-d6c74c85e8f6",
+      "finding_id": "235daa19-8985-450d-bdfa-0a3c4af7d7b7",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "severity": "low",
+      "inspection_id": "3638bab8-7146-447b-abd0-6765c30e2319",
+      "sla_due_at": "2026-11-19T00:00:00.000Z",
+      "ack_at": null
+    },
+    {
+      "id": "5b36a9d4-d8f3-4584-a1e1-374392f5c127",
+      "finding_id": "2d78c585-ee66-4269-8fe2-2adec5f2f1ce",
+      "utility_id": "0487eea2-7507-4e6d-96f1-137b42f5918e",
+      "severity": "critical",
+      "inspection_id": "3638bab8-7146-447b-abd0-6765c30e2319",
+      "sla_due_at": "2026-11-18T00:15:00.000Z",
+      "ack_at": null
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# Compose build context = repo root. Keep it small and secret-free.
+.git
+.env
+.env.*
+!.env.template
+local-notes
+graphify-out
+models
+evidence
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pt
+**/*.onnx
+task-cards/**/evidence

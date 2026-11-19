@@ -1,0 +1,27 @@
+{
+  "name": "@voltpulse/pulse-notify",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VoltPulse notify mock — consume vp.alerts.v1, mock SMS/push, ack hook",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "tsx --test test/*.test.ts",
+    "smoke": "tsx scripts/smoke.ts",
+    "smoke:sink": "tsx scripts/smoke-sink.ts",
+    "smoke:kafka": "tsx scripts/smoke-kafka.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  }
+}

@@ -1,0 +1,489 @@
+# VoltPulse Compose skeleton — project name voltpulse
+# Profiles: sense | sense-cuda | media | media-hls | stream | data | obs | store
+# Stub images except: store → MinIO (T110); stream/data bus → Apache Kafka KRaft (T210).
+
+name: voltpulse
+
+services:
+  grid-perception:
+    profiles: [sense]
+    build:
+      context: ../..
+      dockerfile: apps/grid-perception/Dockerfile
+    image: voltpulse/grid-perception:dev
+    container_name: vp-grid-perception
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+      PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC}
+      GP_HEALTH_PORT: ${GP_HEALTH_PORT:-8081}
+      # File ingest: images dropped in GP_INBOX_DIR -> one vp.detect.v1 JSON line each on GP_DETECT_FILE.
+      GP_INBOX_DIR: ${GP_INBOX_DIR_CONTAINER:-/data/inbox}
+      GP_DETECT_FILE: ${GP_DETECT_FILE_CONTAINER:-/data/bus/vp.detect.v1.jsonl}
+      GP_DETECTORS: ${GP_DETECTORS:-sag,thermal_hotspot}
+      GP_POLL_MS: ${GP_POLL_MS:-1000}
+      GP_INGEST_SOURCE: ${GP_INGEST_SOURCE:-upload}
+      GP_FALLBACK_SENTINEL: ${GP_FALLBACK_SENTINEL:-0}
+      GP_DEVICE: ${GP_DEVICE_CONTAINER:-cpu}
+      GP_CONF: ${GP_CONF:-0.25}
+      GP_IMGSZ: ${GP_IMGSZ:-640}
+      # Gate0 weights: mount GP_MODELS_HOST_DIR at /models, then point GP_WEIGHTS_*_CONTAINER at files under it.
+      # Needs ultralytics in the image (CPU stub image has none -> those detectors fail the file, it lands in failed/).
+      GP_WEIGHTS_CORROSION: ${GP_WEIGHTS_CORROSION_CONTAINER:-}
+      GP_WEIGHTS_CRACK: ${GP_WEIGHTS_CRACK_CONTAINER:-}
+      GP_WEIGHTS_VEGETATION: ${GP_WEIGHTS_VEGETATION_CONTAINER:-}
+      # P0-T403: detection crops → pulse-api evidence (MinIO/fs). Off by default.
+      GP_EVIDENCE_ENABLED: ${GP_EVIDENCE_ENABLED:-0}
+      GP_UTILITY_ID: ${GP_UTILITY_ID:-util-demo-01}
+      GP_INSPECTION_ID: ${GP_INSPECTION_ID:-}
+      GP_EVIDENCE_API_BASE: ${GP_EVIDENCE_API_BASE:-http://pulse-api:3000/api/v1}
+      GP_EVIDENCE_API_KEY: ${GP_EVIDENCE_API_KEY:-dev-operator}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL:-http://pulse-api:3000}
+    ports:
+      - "${GP_HEALTH_PORT:-8081}:${GP_HEALTH_PORT:-8081}"
+    volumes:
+      - pulse_bus_files:/data/bus
+      - pulse_perception_inbox:/data/inbox
+      - ${GP_MODELS_HOST_DIR:-../../local-notes/models-experiments}:/models:ro
+    restart: "no"
+
+  # CUDA Gate0 path (P0-T405). Mount host ultralytics venv — avoids baking multi-GB torch into the image.
+  grid-perception-cuda:
+    profiles: [sense-cuda]
+    build:
+      context: ../..
+      dockerfile: apps/grid-perception/Dockerfile.cuda
+    image: voltpulse/grid-perception:cuda
+    container_name: vp-grid-perception-cuda
+    gpus: all
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP:-}
+      PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC:-vp.detect.v1}
+      GP_HEALTH_PORT: ${GP_HEALTH_PORT:-8081}
+      GP_INBOX_DIR: ${GP_INBOX_DIR_CONTAINER:-/data/inbox}
+      GP_DETECT_FILE: ${GP_DETECT_FILE_CONTAINER:-/data/bus/vp.detect.v1.jsonl}
+      GP_DETECTORS: ${GP_CUDA_DETECTORS:-corrosion}
+      GP_POLL_MS: ${GP_POLL_MS:-1000}
+      GP_INGEST_SOURCE: ${GP_INGEST_SOURCE:-upload}
+      GP_DEVICE: ${GP_DEVICE_CUDA:-0}
+      GP_CONF: ${GP_CONF:-0.25}
+      GP_IMGSZ: ${GP_IMGSZ:-640}
+      GP_WEIGHTS_CORROSION: ${GP_WEIGHTS_CORROSION_CONTAINER:-/models/corrosion/weights/Basic_YOLO11_v1.pt}
+      GP_WEIGHTS_CRACK: ${GP_WEIGHTS_CRACK_CONTAINER:-}
+      GP_WEIGHTS_VEGETATION: ${GP_WEIGHTS_VEGETATION_CONTAINER:-}
+      GP_EVIDENCE_ENABLED: ${GP_EVIDENCE_ENABLED:-0}
+      GP_UTILITY_ID: ${GP_UTILITY_ID:-util-demo-01}
+      GP_EVIDENCE_API_BASE: ${GP_EVIDENCE_API_BASE:-http://pulse-api:3000/api/v1}
+      GP_EVIDENCE_API_KEY: ${GP_EVIDENCE_API_KEY:-dev-operator}
+    ports:
+      - "${GP_CUDA_HEALTH_PORT:-8082}:${GP_HEALTH_PORT:-8081}"
+    volumes:
+      - pulse_bus_files:/data/bus
+      - pulse_perception_inbox:/data/inbox
+      - ${GP_MODELS_HOST_DIR:-../../local-notes/models-experiments}:/models:ro
+      - ${GP_CUDA_VENV_HOST:-../../local-notes/models-experiments/_scratch/venv}:/opt/gp-venv:ro
+    restart: "no"
+
+
+  pulse-gateway:
+    profiles: [media]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-gateway/Dockerfile
+    image: voltpulse/pulse-gateway:dev
+    container_name: vp-pulse-gateway
+    ports:
+      - "${PULSE_GATEWAY_PORT:-3020}:${PULSE_GATEWAY_PORT:-3020}"
+      # RTSP port is advertised in session URLs; no media server binds it yet (T380/T381 stub).
+      - "${PULSE_GATEWAY_RTSP_PORT:-8554}:8554"
+    environment:
+      PULSE_GATEWAY_PORT: ${PULSE_GATEWAY_PORT:-3020}
+      PULSE_GATEWAY_RTSP_PORT: ${PULSE_GATEWAY_RTSP_PORT:-8554}
+      PULSE_GATEWAY_PULL_URLS: ${PULSE_GATEWAY_PULL_URLS:-}
+      PULSE_GATEWAY_DETECT_SINK: ${PULSE_GATEWAY_DETECT_SINK:-off}
+      PULSE_GATEWAY_DETECT_FILE: ${PULSE_GATEWAY_DETECT_FILE_CONTAINER:-/data/bus/vp.detect.v1.jsonl}
+      PULSE_GATEWAY_KAFKA_CLIENT_ID: ${PULSE_GATEWAY_KAFKA_CLIENT_ID:-pulse-gateway}
+      PULSE_DETECT_TOPIC: ${PULSE_DETECT_TOPIC:-vp.detect.v1}
+      # kafka sink only: in-compose broker (needs profile stream/data alongside media).
+      KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+    volumes:
+      # Shared file bus (T385): gateway writes vp.detect.v1.jsonl, grid-rules tails it.
+      - pulse_bus_files:/data/bus
+    restart: "no"
+
+  # Apache Kafka (KRaft combined broker+controller). Profiles stream + data share the bus.
+  pulse-bus:
+    profiles: [stream, data]
+    image: apache/kafka:4.1.0
+    container_name: vp-pulse-bus
+    hostname: pulse-bus
+    ports:
+      # In-compose clients use pulse-bus:9092; host clients use localhost:${PULSE_KAFKA_HOST_PORT}
+      - "${PULSE_KAFKA_PORT:-9092}:9092"
+      - "${PULSE_KAFKA_HOST_PORT:-9094}:9094"
+    environment:
+      CLUSTER_ID: ${PULSE_KAFKA_CLUSTER_ID}
+      KAFKA_NODE_ID: ${PULSE_KAFKA_NODE_ID:-1}
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://pulse-bus:9092,PLAINTEXT_HOST://localhost:${PULSE_KAFKA_HOST_PORT:-9094}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${PULSE_KAFKA_NODE_ID:-1}@pulse-bus:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Surface VoltPulse bootstrap for dependent services / docs
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+    volumes:
+      - pulse_kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    restart: "no"
+
+  # Optional one-shot: create vp.* topics from contracts catalog (infra/kafka/create-topics.sh).
+  pulse-kafka-topics:
+    profiles: [stream, data]
+    image: apache/kafka:4.1.0
+    container_name: vp-pulse-kafka-topics
+    working_dir: /work
+    volumes:
+      - ../..:/work:ro
+    environment:
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+      PULSE_TOPIC_CATALOG: /work/packages/contracts/events/catalog.yaml
+      PULSE_TOPIC_PARTITIONS: ${PULSE_TOPIC_PARTITIONS:-1}
+      PULSE_TOPIC_REPLICATION: ${PULSE_TOPIC_REPLICATION:-1}
+      PATH: /opt/kafka/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -eu
+        echo "waiting for pulse-bus…"
+        i=0
+        until /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server "$$PULSE_KAFKA_BOOTSTRAP" >/dev/null 2>&1; do
+          i=$$((i+1))
+          if [ "$$i" -gt 30 ]; then
+            echo "pulse-bus not ready after retries" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        exec /bin/bash /work/infra/kafka/create-topics.sh
+    depends_on:
+      pulse-bus:
+        condition: service_healthy
+    restart: "no"
+
+  grid-rules:
+    profiles: [stream]
+    build:
+      context: ../..
+      dockerfile: apps/grid-rules/Dockerfile
+    image: voltpulse/grid-rules:dev
+    container_name: vp-grid-rules
+    environment:
+      GRID_RULES_HEALTH_PORT: ${GRID_RULES_HEALTH_PORT:-8080}
+      KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP}
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+      VP_TOPIC_DETECT: ${PULSE_DETECT_TOPIC:-vp.detect.v1}
+      VP_TOPIC_FINDINGS: ${PULSE_FINDINGS_TOPIC:-vp.findings.v1}
+      VP_TOPIC_ALERTS: ${PULSE_ALERTS_TOPIC:-vp.alerts.v1}
+      # Rules loop: file bus in (tail jsonl) + file bus out; Kafka in/out off unless flagged.
+      GRID_RULES_DETECT_FILE: ${GRID_RULES_DETECT_FILE:-/data/bus/vp.detect.v1.jsonl}
+      GRID_RULES_OUT_DIR: ${GRID_RULES_OUT_DIR:-/data/bus}
+      GRID_RULES_ASSETS_FILE: ${GRID_RULES_ASSETS_FILE:-fixtures/assets.json}
+      GRID_RULES_POLL_MS: ${GRID_RULES_POLL_MS:-1000}
+      GRID_RULES_KAFKA_CONSUMER_ENABLED: ${GRID_RULES_KAFKA_CONSUMER_ENABLED:-false}
+      GRID_RULES_KAFKA_GROUP_ID: ${GRID_RULES_KAFKA_GROUP_ID:-grid-rules}
+      GRID_RULES_KAFKA_FROM_BEGINNING: ${GRID_RULES_KAFKA_FROM_BEGINNING:-false}
+      GRID_RULES_KAFKA_PRODUCER_ENABLED: ${GRID_RULES_KAFKA_PRODUCER_ENABLED:-false}
+      GRID_RULES_KAFKA_CLIENT_ID: ${GRID_RULES_KAFKA_CLIENT_ID:-grid-rules}
+      # HTTP sink (T393): POST findings/alerts to pulse-api. Empty base URL = off.
+      # Needs profile `data` (pulse-api); don't combine with pulse-api Kafka consumer (duplicate ids).
+      GRID_RULES_API_BASE_URL: ${GRID_RULES_API_BASE_URL:-}
+      GRID_RULES_API_KEY: ${GRID_RULES_API_KEY:-}
+      GRID_RULES_API_TIMEOUT_MS: ${GRID_RULES_API_TIMEOUT_MS:-5000}
+    volumes:
+      # Same volume as pulse-gateway; reads detect jsonl, writes findings/alerts jsonl here.
+      - pulse_bus_files:/data/bus
+    depends_on:
+      pulse-bus:
+        condition: service_healthy
+    restart: "no"
+
+  pulse-postgres:
+    profiles: [data]
+    image: postgres:16-alpine
+    container_name: vp-pulse-postgres
+    environment:
+      POSTGRES_USER: ${PULSE_PG_USER}
+      POSTGRES_PASSWORD: ${PULSE_PG_PASSWORD}
+      POSTGRES_DB: ${PULSE_PG_DB}
+    ports:
+      - "${PULSE_PG_PORT:-5432}:5432"
+    volumes:
+      - pulse_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: "no"
+
+  pulse-api:
+    profiles: [data]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-api/Dockerfile
+    image: voltpulse/pulse-api:dev
+    container_name: vp-pulse-api
+    ports:
+      - "${PULSE_API_PORT:-3000}:${PULSE_API_PORT:-3000}"
+    environment:
+      PULSE_API_PORT: ${PULSE_API_PORT:-3000}
+      PULSE_DATABASE_URL: ${PULSE_DATABASE_URL}
+      PULSE_KAFKA_BOOTSTRAP: ${PULSE_KAFKA_BOOTSTRAP}
+      PULSE_KAFKA_CONSUMER_ENABLED: ${PULSE_KAFKA_CONSUMER_ENABLED:-false}
+      PULSE_AUTH_ENABLED: ${PULSE_AUTH_ENABLED:-true}
+      PULSE_AUTH_STUB_KEYS: ${PULSE_AUTH_STUB_KEYS:-}
+    depends_on:
+      pulse-postgres:
+        condition: service_healthy
+    restart: "no"
+
+  pulse-web:
+    profiles: [data]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-web/Dockerfile
+      args:
+        # Browser-facing API base (host port), baked at build time.
+        PULSE_WEB_API_URL: ${PULSE_WEB_API_URL:-http://127.0.0.1:3000/api/v1}
+        PULSE_WEB_API_KEY: ${PULSE_WEB_API_KEY:-dev-operator}
+    image: voltpulse/pulse-web:dev
+    container_name: vp-pulse-web
+    ports:
+      - "${PULSE_WEB_PORT:-5173}:${PULSE_WEB_PORT:-5173}"
+    environment:
+      PULSE_WEB_PORT: ${PULSE_WEB_PORT:-5173}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL}
+    restart: "no"
+
+  pulse-notify:
+    profiles: [data]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-notify/Dockerfile
+    image: voltpulse/pulse-notify:dev
+    container_name: vp-pulse-notify
+    ports:
+      - "${PULSE_NOTIFY_PORT:-3010}:${PULSE_NOTIFY_PORT:-3010}"
+    environment:
+      PULSE_NOTIFY_PORT: ${PULSE_NOTIFY_PORT:-3010}
+      PULSE_ALERTS_TOPIC: ${PULSE_ALERTS_TOPIC:-vp.alerts.v1}
+      # T360 sinks: log (default) | webhook | file
+      PULSE_NOTIFY_ADAPTER: ${PULSE_NOTIFY_ADAPTER:-log}
+      PULSE_NOTIFY_WEBHOOK_URL: ${PULSE_NOTIFY_WEBHOOK_URL:-}
+      PULSE_NOTIFY_WEBHOOK_TIMEOUT_MS: ${PULSE_NOTIFY_WEBHOOK_TIMEOUT_MS:-5000}
+      PULSE_NOTIFY_FILE_PATH: ${PULSE_NOTIFY_FILE_PATH_CONTAINER:-}
+      PULSE_NOTIFY_ACK_MODE: ${PULSE_NOTIFY_ACK_MODE:-log}
+      PULSE_API_BASE_URL: ${PULSE_API_BASE_URL:-http://pulse-api:3000}
+      # T365 Kafka consumer: needs flag AND brokers (pulse-bus in this profile).
+      PULSE_NOTIFY_KAFKA_ENABLED: ${PULSE_NOTIFY_KAFKA_ENABLED:-false}
+      PULSE_NOTIFY_KAFKA_CLIENT_ID: ${PULSE_NOTIFY_KAFKA_CLIENT_ID:-pulse-notify}
+      PULSE_NOTIFY_KAFKA_GROUP_ID: ${PULSE_NOTIFY_KAFKA_GROUP_ID:-pulse-notify}
+      PULSE_NOTIFY_KAFKA_FROM_BEGINNING: ${PULSE_NOTIFY_KAFKA_FROM_BEGINNING:-false}
+      KAFKA_BROKERS: ${PULSE_KAFKA_BOOTSTRAP:-pulse-bus:9092}
+    restart: "no"
+
+  pulse-train:
+    profiles: [data]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-train/Dockerfile
+    image: voltpulse/pulse-train:dev
+    container_name: vp-pulse-train
+    ports:
+      - "${PULSE_TRAIN_PORT:-3020}:${PULSE_TRAIN_PORT:-3020}"
+    environment:
+      PULSE_TRAIN_PORT: ${PULSE_TRAIN_PORT:-3020}
+      PULSE_TRAIN_HOST: ${PULSE_TRAIN_HOST:-0.0.0.0}
+      PULSE_LABELS_TOPIC: ${PULSE_LABELS_TOPIC:-vp.labels.v1}
+      PULSE_MODELS_TOPIC: ${PULSE_MODELS_TOPIC:-vp.models.v1}
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT:-http://pulse-store:9000}
+      PULSE_TRAIN_DATA_DIR: ${PULSE_TRAIN_DATA_DIR_CONTAINER:-/data/train}
+      PULSE_TRAIN_RELOAD_MODE: ${PULSE_TRAIN_RELOAD_MODE:-log}
+      PULSE_TRAIN_RELOAD_URL: ${PULSE_TRAIN_RELOAD_URL:-http://127.0.0.1:3015/internal/reload}
+      PULSE_TRAIN_JOB_AUTO_ADVANCE: ${PULSE_TRAIN_JOB_AUTO_ADVANCE:-true}
+    volumes:
+      - pulse_train_data:/data/train
+    restart: "no"
+
+
+  # C01 hold — optional ffmpeg HLS from sample MP4 (not a live camera).
+  pulse-hls-hold:
+    profiles: [media-hls]
+    image: linuxserver/ffmpeg:version-7.1-cli
+    container_name: vp-pulse-hls-hold
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ ! -f /media/sample.mp4 ]; then
+          echo "mount sample at /media/sample.mp4 (PULSE_HLS_SAMPLE_HOST)"; sleep infinity;
+        else
+          mkdir -p /hls && ffmpeg -hide_banner -loglevel warning -re -stream_loop -1 -i /media/sample.mp4             -c:v libx264 -pix_fmt yuv420p -c:a aac -f hls -hls_time 2 -hls_list_size 5 -hls_flags delete_segments             /hls/index.m3u8
+        fi
+    volumes:
+      - ${PULSE_HLS_SAMPLE_HOST:-/dev/null}:/media/sample.mp4:ro
+      - pulse_hls_hold:/hls
+    restart: "no"
+
+  pulse-prometheus:
+    profiles: [obs]
+    image: prom/prometheus:v2.54.1
+    container_name: vp-pulse-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ../obs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "${PULSE_PROM_PORT:-9090}:9090"
+    restart: "no"
+
+  pulse-grafana:
+    profiles: [obs]
+    image: grafana/grafana:11.2.0
+    container_name: vp-pulse-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${PULSE_GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${PULSE_GRAFANA_ADMIN_PASSWORD:-voltpulse}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ../obs/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "${PULSE_GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - pulse-prometheus
+    restart: "no"
+
+  # MinIO object store (architecture: pulse-store). App client: apps/pulse-store.
+  pulse-store:
+    profiles: [store]
+    # Upstream minio/minio + quay.io/minio/minio tags are no longer pullable (T371).
+    # bitnamilegacy mirror = same MinIO release 2025-04-22, pinned by tag + index digest.
+    image: bitnamilegacy/minio:2025.4.22@sha256:50cec18ac4184af4671a78aedd5554942c8ae105d51a465fa82037949046da01
+    container_name: vp-pulse-store
+    ports:
+      - "${PULSE_STORE_API_PORT:-9000}:9000"
+      - "${PULSE_STORE_CONSOLE_PORT:-9001}:9001"
+    environment:
+      # Credentials from env only — never commit real .env
+      MINIO_ROOT_USER: ${PULSE_STORE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${PULSE_STORE_SECRET_KEY}
+      MINIO_API_PORT_NUMBER: "9000"
+      MINIO_CONSOLE_PORT_NUMBER: "9001"
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT}
+      PULSE_STORE_BUCKET: ${PULSE_STORE_BUCKET}
+      PULSE_STORE_BUCKETS: ${PULSE_STORE_BUCKETS}
+      PULSE_STORE_REGION: ${PULSE_STORE_REGION}
+    volumes:
+      - pulse_store_data:/bitnami/minio/data
+    # No image healthcheck: image has no curl; mc lives in the client image; buckets init retries instead.
+    restart: "no"
+
+  # One-shot bucket create from PULSE_STORE_BUCKETS (comma-separated).
+  pulse-store-buckets:
+    profiles: [store]
+    image: bitnamilegacy/minio-client:2025.4.16@sha256:8a86e441decf053093c5977d49290298295f850c7843652f93e970ab15871dd1
+    container_name: vp-pulse-store-buckets
+    depends_on:
+      pulse-store:
+        condition: service_started
+    environment:
+      MC_CONFIG_DIR: /tmp/.mc # non-root image user, HOME=/ not writable
+      PULSE_STORE_ACCESS_KEY: ${PULSE_STORE_ACCESS_KEY}
+      PULSE_STORE_SECRET_KEY: ${PULSE_STORE_SECRET_KEY}
+      PULSE_STORE_BUCKETS: ${PULSE_STORE_BUCKETS}
+      PULSE_STORE_REGION: ${PULSE_STORE_REGION:-us-east-1}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        echo "waiting for pulse-store MinIO…"
+        i=0
+        until mc alias set vp http://pulse-store:9000 "$$PULSE_STORE_ACCESS_KEY" "$$PULSE_STORE_SECRET_KEY" 2>/dev/null; do
+          i=$$((i+1))
+          if [ "$$i" -gt 30 ]; then
+            echo "MinIO not ready after retries" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        old_ifs=$$IFS
+        IFS=,
+        for b in $$PULSE_STORE_BUCKETS; do
+          IFS=$$old_ifs
+          b=$$(echo "$$b" | tr -d '[:space:]')
+          [ -n "$$b" ] || continue
+          mc mb --ignore-existing "vp/$$b"
+          echo "bucket ready: $$b (region=$$PULSE_STORE_REGION)"
+          IFS=,
+        done
+        IFS=$$old_ifs
+        echo "pulse-store-buckets done"
+    restart: "no"
+
+  # HTTP app over MinIO (T397): evidence put/get, retention status, legal hold. Source: apps/pulse-store.
+  pulse-store-api:
+    profiles: [store]
+    build:
+      context: ../..
+      dockerfile: apps/pulse-store/Dockerfile
+    image: voltpulse/pulse-store:dev
+    container_name: vp-pulse-store-api
+    depends_on:
+      pulse-store:
+        condition: service_started
+      pulse-store-buckets:
+        condition: service_completed_successfully
+    ports:
+      - "${PULSE_STORE_HTTP_PORT:-3030}:${PULSE_STORE_HTTP_PORT:-3030}"
+    environment:
+      PULSE_STORE_HTTP_HOST: ${PULSE_STORE_HTTP_HOST:-0.0.0.0}
+      PULSE_STORE_HTTP_PORT: ${PULSE_STORE_HTTP_PORT:-3030}
+      PULSE_STORE_HTTP_MAX_BYTES: ${PULSE_STORE_HTTP_MAX_BYTES:-26214400}
+      # Always MinIO inside compose (root PULSE_STORE_BACKEND stays fs for host smokes).
+      PULSE_STORE_BACKEND: ${PULSE_STORE_API_BACKEND:-minio}
+      PULSE_STORE_ENDPOINT: ${PULSE_STORE_ENDPOINT:-http://pulse-store:9000}
+      PULSE_STORE_BUCKET: ${PULSE_STORE_BUCKET:-voltpulse-evidence}
+      PULSE_STORE_ACCESS_KEY: ${PULSE_STORE_ACCESS_KEY}
+      PULSE_STORE_SECRET_KEY: ${PULSE_STORE_SECRET_KEY}
+      PULSE_STORE_REGION: ${PULSE_STORE_REGION:-us-east-1}
+      PULSE_STORE_FS_ROOT: ${PULSE_STORE_API_FS_ROOT_CONTAINER:-/data/store}
+      PULSE_STORE_HOT_DAYS: ${PULSE_STORE_HOT_DAYS:-30}
+      PULSE_STORE_WARM_DAYS: ${PULSE_STORE_WARM_DAYS:-365}
+    volumes:
+      - pulse_store_api_data:/data/store
+    restart: "no"
+
+volumes:
+  pulse_pg_data:
+  pulse_store_data:
+  pulse_store_api_data:
+  pulse_kafka_data:
+  # File bus shared by grid-perception, pulse-gateway, grid-rules (T384/T385; images chown /data/bus to node).
+  pulse_bus_files:
+  pulse_perception_inbox:
+  pulse_train_data:

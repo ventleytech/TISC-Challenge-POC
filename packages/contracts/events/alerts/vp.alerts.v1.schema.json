@@ -1,0 +1,33 @@
+{
+  "$id": "https://voltpulse.local/contracts/events/alerts/vp.alerts.v1.schema.json",
+  "title": "VpAlertsV1",
+  "description": "Stub: alert emit from grid-rules on topic vp.alerts.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "occurred_at", "alert"],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "alert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alert_id", "severity", "finding_id", "sla_due_at"],
+      "properties": {
+        "alert_id": { "type": "string", "format": "uuid" },
+        "finding_id": { "type": "string", "format": "uuid" },
+        "inspection_id": { "type": "string", "format": "uuid" },
+        "utility_id": { "type": "string", "format": "uuid" },
+        "severity": { "$ref": "../../enums/severity.json" },
+        "sla_due_at": { "type": "string", "format": "date-time" },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["push", "sms", "email"]
+          },
+          "description": "Desired notify channels; pulse-notify delivers"
+        }
+      }
+    }
+  }
+}

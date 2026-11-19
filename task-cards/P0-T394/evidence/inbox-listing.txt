@@ -1,0 +1,7 @@
+/data/inbox:
+total 4
+drwxr-xr-x    2 vp       vp            4096 Nov 18 00:52 processed
+
+/data/inbox/processed:
+total 4
+-rw-r--r--    1 vp       vp              99 Nov 18 00:52 sample-t394.png

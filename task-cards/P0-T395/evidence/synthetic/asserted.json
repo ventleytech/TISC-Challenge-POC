@@ -1,0 +1,14 @@
+{
+  "inspection_id": "7a60ba60-bc1b-49c7-b94e-097fef373b16",
+  "finding_ids": [
+    "9f7d0715-49c3-49ca-afd9-ce80a139ef00"
+  ],
+  "alert_ids": [
+    "63cac90a-abc0-4650-9c5f-53b88ac15979"
+  ],
+  "notify_lines": 2,
+  "notify_channels": [
+    "push",
+    "sms"
+  ]
+}

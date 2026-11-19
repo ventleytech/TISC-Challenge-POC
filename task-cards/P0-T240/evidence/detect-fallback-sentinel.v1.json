@@ -1,0 +1,22 @@
+{
+  "event_id": "c219835b-1564-4d7b-86b6-c714a204e9c8",
+  "occurred_at": "2026-11-17T23:10:18Z",
+  "inspection_id": "2f1bd094-b2ac-4e86-be1a-6fbd7c992805",
+  "asset_id": null,
+  "source": "upload",
+  "detections": [
+    {
+      "detection_id": "54386a02-52d8-495a-bdf9-57f4918dd80f",
+      "class_id": "sag",
+      "confidence": 0.01,
+      "reason": "No smoke-proven open conductor-sag detector on this host. Public sag boxes are sparse; geometric/catenary baseline not yet wired. Demo Day: emit empty detections rather than fake confidence."
+    }
+  ],
+  "fallback_reasons": [
+    {
+      "class_id": "sag",
+      "reason": "No smoke-proven open conductor-sag detector on this host. Public sag boxes are sparse; geometric/catenary baseline not yet wired. Demo Day: emit empty detections rather than fake confidence.",
+      "status": "fallback"
+    }
+  ]
+}
