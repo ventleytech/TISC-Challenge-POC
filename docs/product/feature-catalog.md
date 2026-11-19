@@ -7,8 +7,8 @@ Phase: **P0** Demo Day · **P1** build window · **P2** pilot.
 | ID | Feature | Phase |
 |----|---------|-------|
 | C01 | Live RTSP/RTMP | P0/P1 |
-| C02 | Record-then-upload | P0 |
-| C03 | Shared inference contract | P0 |
+| C02 | Record-then-upload (MP4) | P0 |
+| C03 | Shared inference contract (live = upload) | P0 |
 | C04 | Five detectors | P0/P1 |
 | C05 | Evidence crop/clip | P0 |
 | C06 | Severity + recommendations | P0 |
@@ -17,16 +17,22 @@ Phase: **P0** Demo Day · **P1** build window · **P2** pilot.
 | C09 | Prioritisation board | P0/P1 |
 | C10 | Auth + Energy roles | P0 |
 
-## Beyond detection (selected)
+## Beyond detection
 
 | ID | Feature | Phase |
 |----|---------|-------|
 | A01–A03 | Asset registry + criticality/geo | P0 schema / P1 |
 | A04 | Responsible-party hint | P1 |
-| S01–S05 | Schedule + lifecycle statuses | P0/P1 |
+| S01–S05 | Schedule + lifecycle (Scheduled → In progress → Review → Closed) | P0/P1 |
 | M01–M02 | Utility onboarding + RBAC | P0/P1 |
-| O01–O03 | Observability | P1 |
-| O04–O07 | Labels → retrain → reload | P1/P2 |
+| O01 | Infra obs (Prom/Grafana health strip) | P0/P1 |
+| O02 | Model/data obs (FiftyOne/Evidently) | P1/P2 |
+| O03 | AI reasoning obs (Phoenix) + OTel join | P1/P2 |
+| O04 | Human labels → FiftyOne/CVAT | P1 |
+| O05 | Auto retrain triggers (volume/drift/cron) | P1/P2 |
+| O06 | ClearML eval gate + registry | P1/P2 |
+| O07 | Canary activate + Sense/edge reload | P2 |
 | E01–E04 | Object store + retention + hold | P0/P1 |
+| H01 | Hybrid Sense (edge \| central) — Demo central | P0 story / P2 field |
 
-Extended WOW list stays in `local-notes/02-requirements-ui/11-feature-catalog.md` / `local-notes/01-product-strategy/14-wow-differentiators.md`.
+Full FRD: [`frd.md`](frd.md).

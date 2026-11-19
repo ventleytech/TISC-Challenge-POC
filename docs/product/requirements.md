@@ -1,18 +1,20 @@
-# Requirements (slim)
+# Requirements (slim index)
+
+**Full FRD:** [`frd.md`](frd.md) — binding functional matrix.
 
 ## Goal
 
-Operators schedule/run drone or media inspections; five defect classes; rank by severity × asset criticality; push/SMS + SLA; vendor/responsibility hints; governed evidence; multi-utility RBAC; observability; retrain feedback.
+Operators schedule/run drone or media inspections; five defect classes; rank by severity × asset criticality; push/SMS + SLA; vendor/responsibility hints; governed evidence; multi-utility RBAC; three-pillar observability; **automatic** retrain triggers.
 
-Phases: **P0** Demo Day spine · **P1** Nov 21–30 · **P2** post-demo/pilot.
+Phases: **P0** Demo Day spine · **P1** build window · **P2** pilot/scale.
 
 ## Roles
 
 | Role | Scope |
 |------|--------|
-| `platform_admin` | Utilities/orgs; ceilings |
+| `platform_admin` | Utilities/orgs; ceilings; Sense profiles |
 | `utility_admin` | Org onboarding |
-| `energy_supervisor` | Schedule, policy, SLA, vendors |
+| `energy_supervisor` | Schedule, policy, SLA, vendors; canary veto |
 | `energy_operator` | Sessions, findings, ack, labels |
 | `viewer` | Read-only |
 
@@ -29,6 +31,13 @@ Risk: `f(severity, confidence, asset.criticality, voltage_class)`.
 
 ## Must-have spine (P0)
 
-Live or upload ingest · shared inference contract · detectors + evidence · ranked findings · push/SMS + SLA + ack · history · auth/roles · object store evidence IDs
+Live **or** MP4 upload ingest · shared inference contract · detectors + evidence · ranked findings · vendor hint · push/SMS + SLA + ack · history · auth/roles · object store evidence IDs · pipeline health strip
 
-Full matrix + WOW narrative: `local-notes/02-requirements-ui/02-requirements.md`, `local-notes/02-requirements-ui/11-feature-catalog.md` — promote only when needed.
+## How / ops
+
+| Doc | Content |
+|-----|---------|
+| [`../tdd.md`](../tdd.md) | Technical design + diagrams |
+| [`../architecture.md`](../architecture.md) | Planes / ownership |
+| [`../observability.md`](../observability.md) | Obs pillars |
+| [`../retraining.md`](../retraining.md) | Auto CT |

@@ -1,6 +1,6 @@
-# VoltPulse — Agent entrypoint
+# TPulse — Agent entrypoint
 
-Public TISC Challenge 09 (Energy) face. Fresh stack. **Anti-leak first.**
+Public TISC Challenge 09 (Energy) face. Packages may still say `@voltpulse/*` / `pulse-*`. Fresh stack. **Anti-leak first.**
 
 ## Where things live
 
@@ -8,10 +8,10 @@ Public TISC Challenge 09 (Energy) face. Fresh stack. **Anti-leak first.**
 |------|------|-----|
 | `task-plans/` | Design + ordered task list **before** cards | Tracked |
 | `task-cards/` | Executable cards (+ `evidence/` per card) | Tracked (text); big blobs ignored |
-| `docs/` | Finalized formal docs only | Tracked |
-| `local-notes/` | Discussion, Q&A, drafts | **Ignored** |
+| `docs/` | Finalized formal docs only (FRD/TDD/obs/retrain) | Tracked |
+| `local-notes/` | Discussion, **decks**, PDFs, Q&A | **Ignored** |
 | `.cursor/rules/` | Always-on + scoped project rules | Tracked |
-| `.cursor/skills/` | VoltPulse workflow skills | Tracked |
+| `.cursor/skills/` | Project workflow skills | Tracked |
 | `scripts/` | Lightweight helpers (graphify, card status) | Tracked |
 
 ## Spec-driven loop
@@ -36,7 +36,7 @@ plan → task-plan → task-cards → implement → evidence → review → test
 
 ## Anti-leak (non-negotiable)
 
-- Brand **VoltPulse** only. No internal product names in code, README, UI, decks, submission.
+- Public brand **TPulse** only. No foreign product names in code, README, UI. Decks stay in `local-notes/` (not committed).
 - No proprietary source/contracts/topics/UI chrome paste.
 - No secrets, customer lists, internal weight filenames.
 - See `docs/anti-leak.md` + rule `30-anti-leak.mdc`.
