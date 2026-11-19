@@ -1,43 +1,64 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { t } from "../i18n";
 import { listAlerts, liveApiEnabled } from "../mock/client";
 import type { Alert } from "../types/domain";
 
-function navItems(opts: { isPlatform: boolean; isAdmin: boolean }) {
-  const operate = [
-    { to: "/", label: "Home", end: true as boolean | undefined, hint: "Brand" },
-    { to: "/inspections", label: t("nav.inspections"), hint: "Runs · tasks" },
-    { to: "/priority", label: "Priority", hint: "Risk board" },
-    { to: "/alerts", label: t("nav.alerts"), hint: "SLA / ack" },
-    { to: "/map", label: t("nav.map"), hint: "Corridor" },
-    { to: "/evidence", label: t("nav.evidence"), hint: "Objects" },
-    { to: "/assets", label: t("nav.assets"), hint: "Registry" },
-  ];
-  const system = [
-    { to: "/admin/users", label: t("nav.admin"), hint: "Users · config" },
-    { to: "/labels", label: "Labels", hint: "TP / FP queue" },
-  ];
-  if (opts.isPlatform) {
-    system.push({
-      to: "/platform/utilities",
-      label: "Platform",
-      hint: "Utilities",
-    });
+type NavItem = {
+  to: string;
+  label: string;
+  icon: string;
+  end?: boolean;
+  badge?: boolean;
+};
+
+const PRIMARY_NAV: NavItem[] = [
+  { to: "/", label: "Home", icon: "⌂", end: true },
+  { to: "/inspections", label: "Inspections", icon: "♧" },
+  { to: "/priority", label: "Findings", icon: "▤" },
+  { to: "/alerts", label: "Alerts", icon: "♧", badge: true },
+  { to: "/map", label: "Corridors", icon: "⌁" },
+  { to: "/assets", label: "Assets", icon: "▱" },
+  { to: "/compliance", label: "Reports", icon: "▥" },
+  { to: "/admin/users", label: "Admin", icon: "⚙" },
+  { to: "/labels", label: "Settings", icon: "☷" },
+];
+
+function crumbLabel(pathname: string): string {
+  if (pathname === "/" || pathname === "") return "home";
+  if (pathname.startsWith("/priority") || pathname.startsWith("/findings")) {
+    return "findings";
   }
-  return { operate, system };
+  if (pathname.startsWith("/map")) return "corridors";
+  if (pathname.startsWith("/compliance") || pathname.startsWith("/reports")) {
+    return "reports";
+  }
+  if (pathname.startsWith("/labels")) return "settings";
+  if (pathname.startsWith("/admin")) return "admin";
+  const seg = pathname.replace(/^\//, "").split("/")[0];
+  return seg || "home";
 }
 
 export function AppShell() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { principal, live, degraded, logout, canWrite, isPlatform, isAdmin, refreshMe } =
+  const { principal, live, degraded, logout, canWrite, isPlatform, refreshMe } =
     useAuth();
-  const { operate, system } = navItems({ isPlatform, isAdmin });
   const [search, setSearch] = useState("");
   const [bellOpen, setBellOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [notifs, setNotifs] = useState<Alert[]>([]);
+
+  useEffect(() => {
+    setNavOpen(false);
+    setBellOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +74,18 @@ export function AppShell() {
     () => notifs.filter((a) => !a.ack_at).length,
     [notifs],
   );
+
+  const nav = useMemo(() => {
+    const items = [...PRIMARY_NAV];
+    if (isPlatform) {
+      items.push({
+        to: "/platform/utilities",
+        label: "Platform",
+        icon: "◈",
+      });
+    }
+    return items;
+  }, [isPlatform]);
 
   function onSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -70,58 +103,70 @@ export function AppShell() {
     setSearch("");
   }
 
+  const liveLabel = liveApiEnabled() && live ? "Live · pulse-api" : "Demo environment";
+
   return (
-    <div className="shell shell--ops">
-      <aside className="rail" aria-label="TPulse navigation">
-        <NavLink to="/" className="rail__brand" end>
-          <span className="rail__glyph" aria-hidden="true" />
-          <span className="rail__brand-text">
-            <strong>{t("app.name")}</strong>
-            <span>Transmission Pulse</span>
+    <div className={`app${navOpen ? " nav-open" : ""}`}>
+      <button
+        type="button"
+        className="sidebar-backdrop"
+        aria-label="Close navigation"
+        onClick={() => setNavOpen(false)}
+      />
+      <aside className="sidebar" aria-label="TPulse navigation">
+        <NavLink to="/" className="brand" end>
+          <span className="brand-symbol" aria-hidden="true">
+            ϟ
+          </span>
+          <span>
+            <span className="brand-name">TPulse</span>
+            <span className="brand-sub">TRANSMISSION PULSE</span>
           </span>
         </NavLink>
-        <nav className="rail__nav">
-          <p className="rail__sec">Operate</p>
-          {operate.map((link) => (
+
+        <p className="nav-label">OPERATE</p>
+        <nav className="nav">
+          {nav.map((item) => (
             <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
+              key={item.to}
+              to={item.to}
+              end={item.end}
               className={({ isActive }) =>
-                `rail__link${isActive ? " is-active" : ""}`
+                `nav-link${isActive ? " active" : ""}`
               }
             >
-              <span className="rail__link-label">{link.label}</span>
-              <span className="rail__link-hint">{link.hint}</span>
-            </NavLink>
-          ))}
-          <p className="rail__sec">System</p>
-          {system.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `rail__link${isActive ? " is-active" : ""}`
-              }
-            >
-              <span className="rail__link-label">{link.label}</span>
-              <span className="rail__link-hint">{link.hint}</span>
+              <span className="nav-icon" aria-hidden="true">
+                {item.icon}
+              </span>
+              <span>{item.label}</span>
+              {item.badge && unread > 0 ? (
+                <span className="badge-count">{unread}</span>
+              ) : null}
             </NavLink>
           ))}
         </nav>
-        <div className="rail__foot">
-          <span className="rail__plane">Sense · Media · Stream · Data</span>
-          <span className="rail__live">
-            <i className="rail__pulse" aria-hidden="true" />{" "}
-            {principal?.utility_id ?? "platform"}
-          </span>
+
+        <div className="nav-separator" aria-hidden="true" />
+        <div className="sidebar-bottom">
+          GRID OPERATIONS PLATFORM · DEMO ENVIRONMENT
+          <strong>{principal?.utility_id ?? "platform"}</strong>
         </div>
+        <div className="sidebar-art" aria-hidden="true" />
       </aside>
 
-      <div className="shell__stage">
+      <div className="main">
         {(degraded || !liveApiEnabled() || !live) && (
-          <div className="degrade-banner" role="status">
-            <span>
+          <div
+            className="filter-row"
+            role="status"
+            style={{
+              margin: 0,
+              padding: "10px 28px",
+              background: "#fff7dc",
+              borderBottom: "1px solid var(--line)",
+            }}
+          >
+            <span className="muted" style={{ flex: 1, fontSize: 12 }}>
               {degraded
                 ? "Live API / realtime degraded — showing mock or cached data."
                 : !liveApiEnabled()
@@ -130,62 +175,97 @@ export function AppShell() {
             </span>
             <button
               type="button"
-              className="btn btn--ghost btn--sm"
+              className="btn-outline"
               onClick={() => void refreshMe()}
             >
-              Refresh / reconcile
+              Refresh
             </button>
           </div>
         )}
 
-        <header className="opsbar opsbar--rich">
-          <p className="opsbar__crumb">
-            {t("app.name")} <span>/</span>{" "}
-            {pathname.replace(/^\//, "") || "home"}
-          </p>
-          <form className="opsbar__search" onSubmit={onSearch} role="search">
-            <input
-              type="search"
-              placeholder="Search inspections, assets, findings…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Global search"
-            />
-          </form>
-          <div className="opsbar__actions">
-            <div className="opsbar__bell-wrap">
+        <header className="topbar">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-label="Open navigation"
+              aria-expanded={navOpen}
+              onClick={() => setNavOpen((o) => !o)}
+            >
+              ☰
+            </button>
+            <p className="breadcrumb">
+              TPulse / <b>{crumbLabel(pathname)}</b>
+            </p>
+          </div>
+          <div className="top-actions">
+            <form onSubmit={onSearch} role="search">
+              <input
+                className="field"
+                type="search"
+                placeholder="Search…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Global search"
+                style={{ minWidth: 160, minHeight: 37, padding: "0 12px" }}
+              />
+            </form>
+            <span className="live-status">{liveLabel}</span>
+            <div style={{ position: "relative" }}>
               <button
                 type="button"
-                className="opsbar__bell"
+                className="top-icon"
                 aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
                 aria-expanded={bellOpen}
                 onClick={() => setBellOpen((o) => !o)}
               >
-                <span aria-hidden="true">◉</span>
-                {unread > 0 ? (
-                  <i className="opsbar__badge">{unread}</i>
-                ) : null}
+                ◉
+                {unread > 0 ? <sup>{unread}</sup> : null}
               </button>
               {bellOpen ? (
-                <div className="notif-drawer" role="dialog" aria-label="Notifications">
-                  <header>
-                    <strong>Open alerts</strong>
-                    <Link to="/alerts" onClick={() => setBellOpen(false)}>
+                <div
+                  className="panel"
+                  role="dialog"
+                  aria-label="Notifications"
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "110%",
+                    width: 280,
+                    zIndex: 20,
+                    padding: 12,
+                  }}
+                >
+                  <div className="panel-head">
+                    <strong className="panel-title">Open alerts</strong>
+                    <Link
+                      className="text-link"
+                      to="/alerts"
+                      onClick={() => setBellOpen(false)}
+                    >
                       All alerts
                     </Link>
-                  </header>
-                  <ul>
+                  </div>
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                     {notifs.length === 0 ? (
-                      <li className="catalog__empty">No open alerts</li>
+                      <li className="muted" style={{ fontSize: 12 }}>
+                        No open alerts
+                      </li>
                     ) : (
                       notifs.map((a) => (
-                        <li key={a.id}>
+                        <li key={a.id} style={{ marginBottom: 8 }}>
                           <Link
                             to="/alerts"
                             onClick={() => setBellOpen(false)}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: 8,
+                              fontSize: 12,
+                            }}
                           >
                             <span>{a.title}</span>
-                            <span className={`badge badge--${a.severity}`}>
+                            <span className={`severity-tag ${a.severity}`}>
                               {a.severity}
                             </span>
                           </Link>
@@ -196,25 +276,19 @@ export function AppShell() {
                 </div>
               ) : null}
             </div>
-            <div className="opsbar__profile">
-              <span className="opsbar__role">{principal?.role ?? "—"}</span>
-              {!canWrite ? (
-                <span className="opsbar__ro">read-only</span>
-              ) : null}
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                onClick={logout}
-              >
-                Sign out
-              </button>
-            </div>
+            <span className="operator">
+              {principal?.role ?? "—"}
+              {!canWrite ? " · RO" : ""}
+            </span>
+            <button type="button" className="btn-outline" onClick={logout}>
+              Sign out
+            </button>
           </div>
         </header>
 
-        <main className={`shell__main${pathname === "/" ? " shell__main--home" : ""}`}>
+        <div className="content">
           <Outlet />
-        </main>
+        </div>
       </div>
     </div>
   );

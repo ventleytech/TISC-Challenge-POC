@@ -132,7 +132,7 @@ export function EvidenceArt({ ev, className }: Props) {
             {Array.from({ length: 8 }, (_, i) => (
               <rect key={i} x={i * 40 + 4} y="10" width="32" height="220" rx="3" fill="#143342" stroke="#2a9aad" strokeOpacity="0.4" />
             ))}
-            <circle cx="160" cy="120" r="34" fill="#c8f24a" opacity="0.92" />
+            <circle cx="160" cy="120" r="34" fill="#5b43d9" opacity="0.92" />
             <path d="M150 102 L184 120 L150 138 Z" fill="#0a1f28" />
           </>
         );
@@ -144,7 +144,7 @@ export function EvidenceArt({ ev, className }: Props) {
             {Array.from({ length: 11 }, (_, i) => (
               <rect key={i} x="88" y={36 + i * 17} width={i % 4 === 0 ? 84 : 144 - (i % 3) * 22} height="5" rx="2" fill={i === 0 ? "#1a6b7a" : "#9db3be"} />
             ))}
-            <rect x="188" y="168" width="46" height="40" rx="3" fill="#c8f24a" opacity="0.8" />
+            <rect x="188" y="168" width="46" height="40" rx="3" fill="#5b43d9" opacity="0.8" />
           </>
         );
       default:

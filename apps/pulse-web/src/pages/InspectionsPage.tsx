@@ -350,61 +350,59 @@ export function InspectionsPage() {
   );
 
   return (
-    <section className="evx inx evx--compact">
-      <header className="page-chrome">
-        <div className="page-chrome__lead">
-          <p className="evx-eyebrow">TPulse · inspections</p>
-          <h1 className="page-chrome__title">Inspection runs</h1>
-          <p className="page-chrome__sub">
+    <section className="page-view">
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">TPULSE · INSPECTIONS</p>
+          <h1>Inspection runs</h1>
+          <p>
             Capture → perception → review. Filter the queue, open a run for
             detail.
           </p>
         </div>
-        <div className="page-chrome__metrics" aria-label="Inspection summary">
-          <div className="page-chrome__metric">
-            <b>{visible.length}</b>
-            <span>In view</span>
-          </div>
-          <div className="page-chrome__metric">
-            <b>{stats.active}</b>
-            <span>Live</span>
-          </div>
-          <div className="page-chrome__metric is-hot">
-            <b>{stats.hot}</b>
-            <span>SLA ≤ {SLA_HOT_H}h</span>
-          </div>
-          <div className="page-chrome__metric">
-            <b>{stats.linked}</b>
-            <span>Findings</span>
-          </div>
-        </div>
-        <div className="page-chrome__actions">
-          <span className={`evx-source evx-source--${live ? "live" : "mock"}`}>
-            <i aria-hidden="true" />
-            {live ? "Live" : "Mock · offline"}
-          </span>
-          <Link className="btn btn--primary btn--sm" to="/inspections/schedule">
-            Schedule
+        <div className="heading-actions">
+          <span className="live-pill">{live ? "Live · pulse-api" : "Mock · offline"}</span>
+          <Link className="btn-primary" to="/inspections/schedule">
+            Schedule inspection
           </Link>
           <button
             type="button"
-            className="btn btn--ghost btn--sm"
+            className="btn-outline"
             onClick={() => setTick((n) => n + 1)}
           >
             Refresh
           </button>
-          <Link className="btn btn--ghost btn--sm" to="/map">
-            Map
+          <Link className="btn-outline" to="/map">
+            Corridor map
           </Link>
         </div>
       </header>
 
-      <div className="pane-tabs" role="tablist" aria-label="Inspection panes">
+      <div className="stat-grid four" aria-label="Inspection summary">
+        <article className="stat-card">
+          <strong>{visible.length}</strong>
+          <span>In view</span>
+        </article>
+        <article className="stat-card">
+          <strong>{stats.active}</strong>
+          <span>Live</span>
+        </article>
+        <article className={`stat-card${stats.hot ? " warning" : ""}`}>
+          <strong>{stats.hot}</strong>
+          <span>SLA ≤ {SLA_HOT_H}h</span>
+        </article>
+        <article className="stat-card">
+          <strong>{stats.linked}</strong>
+          <span>Findings</span>
+        </article>
+      </div>
+
+      <div className="subnav" role="tablist" aria-label="Inspection panes">
         <button
           type="button"
           role="tab"
           aria-selected={pane === "runs"}
-          className={pane === "runs" ? "is-on" : undefined}
+          className={`subtab${pane === "runs" ? " active" : ""}`}
           onClick={() => setPane("runs")}
         >
           Runs
@@ -413,7 +411,7 @@ export function InspectionsPage() {
           type="button"
           role="tab"
           aria-selected={pane === "detail"}
-          className={pane === "detail" ? "is-on" : undefined}
+          className={`subtab${pane === "detail" ? " active" : ""}`}
           onClick={() => setPane("detail")}
           disabled={!selected}
         >
@@ -421,29 +419,28 @@ export function InspectionsPage() {
         </button>
       </div>
 
-      <div className="evx-toolbar" role="group" aria-label="Inspection filters">
-        <div className="evx-pills">
+      <div className="filter-row" role="group" aria-label="Inspection filters">
+        <div className="chip-group">
           <button
             type="button"
-            className={`evx-pill${status === "" ? " is-on" : ""}`}
+            className={`filter-chip${status === "" ? " selected" : ""}`}
             onClick={() => setStatus("")}
           >
-            All <b>{all.length}</b>
+            All {all.length}
           </button>
           {INSPECTION_STATUSES.filter((s) => statusCounts.has(s)).map((s) => (
             <button
               key={s}
               type="button"
               data-status={s}
-              className={`evx-pill${status === s ? " is-on" : ""}`}
+              className={`filter-chip${status === s ? " selected" : ""}`}
               onClick={() => setStatus(status === s ? "" : s)}
             >
-              <i aria-hidden="true" />
-              {pretty(s)} <b>{statusCounts.get(s)}</b>
+              {pretty(s)} {statusCounts.get(s)}
             </button>
           ))}
         </div>
-        <div className="evx-selects">
+        <div className="filter-row">
           <label>
             <span>Search</span>
             <input
@@ -617,7 +614,7 @@ export function InspectionsPage() {
                 <div className="inx-inspector__bar">
                   <button
                     type="button"
-                    className="btn btn--ghost btn--sm"
+                    className="btn-outline"
                     onClick={() => setPane("runs")}
                   >
                     ← Runs
@@ -766,7 +763,7 @@ export function InspectionsPage() {
                   {(selected.mode === "live_pull" ||
                     selected.status === "in_progress") && (
                       <Link
-                        className="btn btn--primary btn--sm"
+                        className="btn-primary"
                         to={`/inspections/${selected.id}/live`}
                       >
                         Live session
@@ -775,16 +772,16 @@ export function InspectionsPage() {
                   {(selected.mode === "record_upload" ||
                     selected.status === "planned") && (
                       <Link
-                        className="btn btn--primary btn--sm"
+                        className="btn-primary"
                         to={`/inspections/${selected.id}/upload`}
                       >
                         Upload session
                       </Link>
                     )}
-                  <Link className="btn btn--ghost btn--sm alx-ghost" to="/evidence">
+                  <Link className="btn-outline" to="/evidence">
                     Evidence
                   </Link>
-                  <Link className="btn btn--ghost btn--sm alx-ghost" to="/alerts">
+                  <Link className="btn-outline" to="/alerts">
                     Alerts
                   </Link>
                 </div>

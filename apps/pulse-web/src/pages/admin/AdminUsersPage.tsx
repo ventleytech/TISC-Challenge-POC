@@ -35,7 +35,7 @@ export function AdminUsersPage() {
   }
 
   return (
-    <section className="catalog catalog--wide">
+    <section className="page-view">
       <AdminTabs />
       <header className="catalog__header">
         <p className="catalog__eyebrow">Admin · users</p>
@@ -50,11 +50,11 @@ export function AdminUsersPage() {
         <div className="filters">
           <label className="filters__field">
             <span className="filters__label">Name</span>
-            <input className="filters__input" value={name} onChange={(e) => setName(e.target.value)} disabled={!canWrite} />
+            <input className="field" value={name} onChange={(e) => setName(e.target.value)} disabled={!canWrite} />
           </label>
           <label className="filters__field">
             <span className="filters__label">Role</span>
-            <select className="filters__select" value={role} onChange={(e) => setRole(e.target.value)} disabled={!canWrite}>
+            <select className="field" value={role} onChange={(e) => setRole(e.target.value)} disabled={!canWrite}>
               <option value="energy_operator">energy_operator</option>
               <option value="energy_supervisor">energy_supervisor</option>
               <option value="utility_admin">utility_admin</option>
@@ -63,10 +63,10 @@ export function AdminUsersPage() {
           </label>
           <label className="filters__field">
             <span className="filters__label">Dept</span>
-            <input className="filters__input" value={dept} onChange={(e) => setDept(e.target.value)} disabled={!canWrite} />
+            <input className="field" value={dept} onChange={(e) => setDept(e.target.value)} disabled={!canWrite} />
           </label>
         </div>
-        <button type="submit" className="btn btn--primary btn--sm" disabled={!canWrite}>
+        <button type="submit" className="btn-primary" disabled={!canWrite}>
           Add user
         </button>
       </form>

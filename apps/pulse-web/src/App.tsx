@@ -73,6 +73,10 @@ export default function App() {
           <Route path="evidence" element={<EvidencePage />} />
           <Route path="labels" element={<LabelsPage />} />
           <Route path="compliance" element={<CompliancePage />} />
+          <Route
+            path="reports"
+            element={<Navigate to="/compliance" replace />}
+          />
           <Route path="admin" element={<Navigate to="/admin/users" replace />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="admin/config" element={<AdminConfigPage />} />

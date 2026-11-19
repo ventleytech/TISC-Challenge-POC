@@ -41,7 +41,7 @@ export function AdminConfigPage() {
   }
 
   return (
-    <section className="catalog catalog--wide">
+    <section className="page-view">
       <AdminTabs />
       <header className="catalog__header">
         <p className="catalog__eyebrow">Admin · config</p>
@@ -57,7 +57,7 @@ export function AdminConfigPage() {
           <label className="filters__field">
             <span className="filters__label">Critical SLA (min)</span>
             <input
-              className="filters__input"
+              className="field"
               type="number"
               value={cfg.sla_critical_min}
               disabled={!canWrite}
@@ -69,7 +69,7 @@ export function AdminConfigPage() {
           <label className="filters__field">
             <span className="filters__label">High SLA (min)</span>
             <input
-              className="filters__input"
+              className="field"
               type="number"
               value={cfg.sla_high_min}
               disabled={!canWrite}
@@ -81,7 +81,7 @@ export function AdminConfigPage() {
           <label className="filters__field">
             <span className="filters__label">Channels</span>
             <input
-              className="filters__input"
+              className="field"
               value={cfg.channels}
               disabled={!canWrite}
               onChange={(e) => setCfg({ ...cfg, channels: e.target.value })}
@@ -90,7 +90,7 @@ export function AdminConfigPage() {
           <label className="filters__field">
             <span className="filters__label">Hot retention (days)</span>
             <input
-              className="filters__input"
+              className="field"
               type="number"
               value={cfg.retention_hot_days}
               disabled={!canWrite}
@@ -102,7 +102,7 @@ export function AdminConfigPage() {
           <label className="filters__field">
             <span className="filters__label">Locale</span>
             <select
-              className="filters__select"
+              className="field"
               value={locale}
               onChange={(e) => {
                 const next = e.target.value as Locale;
@@ -118,7 +118,7 @@ export function AdminConfigPage() {
             </select>
           </label>
         </div>
-        <button type="submit" className="btn btn--primary btn--sm" disabled={!canWrite}>
+        <button type="submit" className="btn-primary" disabled={!canWrite}>
           Save config
         </button>
         {saved ? <p className="catalog__summary">Saved locally.</p> : null}
@@ -127,17 +127,17 @@ export function AdminConfigPage() {
       <div className="wizard-panel wizard-panel--rich">
         <h2 className="catalog__subtitle">Assets CSV import</h2>
         <textarea
-          className="filters__input filters__textarea"
+          className="field filters__textarea"
           rows={5}
           value={csv}
           disabled={!canWrite}
           onChange={(e) => setCsv(e.target.value)}
         />
         <div className="wizard-actions">
-          <button type="button" className="btn btn--ghost btn--sm" disabled={!canWrite} onClick={() => void runCsv(true)}>
+          <button type="button" className="btn-outline" disabled={!canWrite} onClick={() => void runCsv(true)}>
             Dry-run
           </button>
-          <button type="button" className="btn btn--primary btn--sm" disabled={!canWrite} onClick={() => void runCsv(false)}>
+          <button type="button" className="btn-primary" disabled={!canWrite} onClick={() => void runCsv(false)}>
             Apply
           </button>
         </div>

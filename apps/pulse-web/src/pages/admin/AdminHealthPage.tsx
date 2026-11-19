@@ -24,7 +24,7 @@ export function AdminHealthPage() {
   }, []);
 
   return (
-    <section className="catalog catalog--wide">
+    <section className="page-view">
       <AdminTabs />
       <header className="catalog__header">
         <p className="catalog__eyebrow">Admin · health</p>

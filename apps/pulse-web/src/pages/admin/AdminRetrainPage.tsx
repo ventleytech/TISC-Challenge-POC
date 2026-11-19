@@ -3,7 +3,7 @@ import { AdminTabs } from "../../components/AdminTabs";
 
 export function AdminRetrainPage() {
   return (
-    <section className="catalog catalog--wide">
+    <section className="page-view">
       <AdminTabs />
       <header className="catalog__header">
         <p className="catalog__eyebrow">Admin · retrain</p>
@@ -33,10 +33,10 @@ export function AdminRetrainPage() {
       </ul>
 
       <div className="wizard-actions">
-        <button type="button" className="btn btn--primary" disabled>
+        <button type="button" className="btn-primary" disabled>
           Activate model (stub)
         </button>
-        <Link className="btn btn--ghost" to="/labels">
+        <Link className="btn-outline" to="/labels">
           Open label queue
         </Link>
       </div>

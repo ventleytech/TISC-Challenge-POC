@@ -98,34 +98,55 @@ export function AssetsPage() {
   }, [items]);
 
   return (
-    <section className="catalog catalog--wide">
-      <header className="catalog__header">
-        <p className="catalog__eyebrow">TPulse · A01</p>
-        <h1 className="catalog__title">Asset registry</h1>
-        <p className="catalog__summary">
-          Dense corridor registry — create writes through
-          {liveApiEnabled() ? " live pulse-api" : " mock client"}; filters apply
-          to the loaded set.
-        </p>
+    <section className="page-view">
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">TPULSE · A01</p>
+          <h1>Asset registry</h1>
+          <p>
+            Dense corridor registry — create writes through
+            {liveApiEnabled() ? " live pulse-api" : " mock client"}; filters
+            apply to the loaded set.
+          </p>
+        </div>
+        <div className="heading-actions">
+          <Link className="btn-outline" to="/map">
+            Open corridor map
+          </Link>
+        </div>
       </header>
 
-      <form className="wizard-panel wizard-panel--rich" onSubmit={onCreate}>
-        <h2 className="catalog__subtitle">Add asset</h2>
-        <div className="filters">
-          <label className="filters__field">
-            <span className="filters__label">Name</span>
+      <div className="stat-grid three">
+        <article className="stat-card">
+          <strong>{items.length}</strong>
+          <span>In view</span>
+        </article>
+        <article className="stat-card danger">
+          <strong>{stats.critical}</strong>
+          <span>Critical</span>
+        </article>
+        <article className="stat-card warning">
+          <strong>{stats.high}</strong>
+          <span>High</span>
+        </article>
+      </div>
+
+      <form className="panel form-panel" onSubmit={onCreate}>
+        <h2 className="panel-title">Add asset</h2>
+        <div className="form-grid six">
+          <label>
+            Name
             <input
-              className="filters__input"
+              className="field"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Tower T-12"
               required
             />
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Kind</span>
+          <label>
+            Kind
             <select
-              className="filters__select"
+              className="field"
               value={kind}
               onChange={(e) => setKind(e.target.value as AssetKind)}
             >
@@ -136,10 +157,10 @@ export function AssetsPage() {
               ))}
             </select>
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Criticality</span>
+          <label>
+            Criticality
             <select
-              className="filters__select"
+              className="field"
               value={criticality}
               onChange={(e) => setCriticality(e.target.value as Criticality)}
             >
@@ -150,103 +171,77 @@ export function AssetsPage() {
               ))}
             </select>
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Voltage</span>
+          <label>
+            Voltage
             <input
-              className="filters__input"
+              className="field"
               value={voltage}
               onChange={(e) => setVoltage(e.target.value)}
               placeholder="132kV"
             />
           </label>
-          <label className="filters__field">
-            <span className="filters__label">OEM</span>
+          <label>
+            OEM
             <input
-              className="filters__input"
+              className="field"
               value={oem}
               onChange={(e) => setOem(e.target.value)}
-              placeholder="LatticeForge"
             />
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Warranty until</span>
+          <label>
+            Warranty until
             <input
-              className="filters__input"
-              type="date"
+              className="field"
               value={warranty}
               onChange={(e) => setWarranty(e.target.value)}
+              placeholder="YYYY-MM-DD"
             />
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Circuit</span>
+          <label>
+            Circuit
             <input
-              className="filters__input"
+              className="field"
               value={circuit}
               onChange={(e) => setCircuit(e.target.value)}
             />
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Anti-corrosion SLA</span>
+          <label>
+            Anti-corrosion SLA
             <input
-              className="filters__input"
+              className="field"
               value={antiCorrosion}
               onChange={(e) => setAntiCorrosion(e.target.value)}
-              placeholder="annual"
             />
           </label>
-          <label className="filters__field">
-            <span className="filters__label">Install year</span>
+          <label>
+            Install year
             <input
-              className="filters__input"
+              className="field"
               value={installYear}
               onChange={(e) => setInstallYear(e.target.value)}
-              placeholder="2011"
+              inputMode="numeric"
             />
           </label>
-          <button type="submit" className="btn btn--primary" disabled={saving}>
-            {saving ? "Saving…" : "Create asset"}
-          </button>
         </div>
-        <p className="catalog__summary">
-          CSV import lives under{" "}
-          <Link to="/admin/config">Admin · Config</Link>. Map deep-link from
-          each row or the corridor sketch.
-        </p>
         {formError ? <p className="catalog__error">{formError}</p> : null}
         {createdId ? (
-          <p className="catalog__summary">
-            Created <strong className="mono">{createdId}</strong> ·{" "}
-            <Link to={`/map?asset=${createdId}`}>Open on map</Link>
+          <p className="muted">
+            Created{" "}
+            <Link to={`/assets/${createdId}`}>{createdId}</Link>
           </p>
         ) : null}
+        <button className="btn-primary" type="submit" disabled={saving}>
+          {saving ? "Creating…" : "Create asset"}
+        </button>
       </form>
-
-      <div className="stat-band">
-        <div className="stat-band__cell">
-          <span className="stat-band__n">{items.length}</span>
-          <span className="stat-band__l">In view</span>
-        </div>
-        <div className="stat-band__cell stat-band__cell--danger">
-          <span className="stat-band__n">{stats.critical}</span>
-          <span className="stat-band__l">Critical</span>
-        </div>
-        <div className="stat-band__cell stat-band__cell--warn">
-          <span className="stat-band__n">{stats.high}</span>
-          <span className="stat-band__l">High</span>
-        </div>
-        <div className="stat-band__cell">
-          <span className="stat-band__n">{stats.kinds}</span>
-          <span className="stat-band__l">Kinds</span>
-        </div>
-      </div>
 
       <AssetFilters value={filters} onChange={setFilters} />
 
       {error ? <p className="catalog__error">{error}</p> : null}
 
-      <div className="registry-split">
-        <div className="table-wrap">
-          <table className="dense-table" aria-label="Asset registry">
+      <div className="panel table-panel">
+        <div className="table-scroll">
+          <table className="dense-table" aria-label="Assets">
             <thead>
               <tr>
                 <th>Name</th>
@@ -254,72 +249,35 @@ export function AssetsPage() {
                 <th>Criticality</th>
                 <th>Voltage</th>
                 <th>Circuit</th>
-                <th>OEM</th>
-                <th>Year</th>
+                <th>Id</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((asset, index) => (
-                <tr
-                  key={asset.id}
-                  className="dense-table__row dense-table__row--link"
-                  style={{ animationDelay: `${index * 35}ms` }}
-                >
+              {items.map((a) => (
+                <tr key={a.id}>
                   <td>
-                    <Link to={`/assets/${asset.id}`}>{asset.name}</Link>
-                    <div className="mono muted-id">{asset.id}</div>
-                    <Link
-                      className="btn btn--ghost btn--sm"
-                      to={`/map?asset=${encodeURIComponent(asset.id)}`}
-                    >
-                      Map
-                    </Link>
+                    <Link to={`/assets/${a.id}`}>{a.name}</Link>
                   </td>
-                  <td>{asset.kind}</td>
+                  <td>{a.kind}</td>
                   <td>
-                    {asset.criticality ? (
-                      <span className={`badge badge--crit-${asset.criticality}`}>
-                        {asset.criticality}
-                      </span>
-                    ) : (
-                      "—"
-                    )}
+                    <span className={`severity-tag ${a.criticality === "critical" ? "critical" : a.criticality === "high" ? "high" : "low"}`}>
+                      {a.criticality}
+                    </span>
                   </td>
-                  <td className="mono">{asset.voltage_class ?? "—"}</td>
-                  <td>{asset.circuit ?? "—"}</td>
-                  <td>{asset.oem ?? "—"}</td>
-                  <td className="mono">{asset.install_year ?? "—"}</td>
+                  <td>{a.voltage_class ?? "—"}</td>
+                  <td>{a.circuit ?? "—"}</td>
+                  <td className="mono">{a.id}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        <aside className="map-stub" aria-label="Corridor map stub">
-          <header className="map-stub__head">
-            <h2>Corridor sketch</h2>
-            <Link className="chip" to="/map">
-              open full map
-            </Link>
-          </header>
-          <div className="map-stub__canvas" aria-hidden="true">
-            <span className="map-stub__line map-stub__line--a" />
-            <span className="map-stub__line map-stub__line--b" />
-            <span className="map-stub__node" style={{ top: "28%", left: "22%" }} />
-            <span className="map-stub__node map-stub__node--hot" style={{ top: "46%", left: "58%" }} />
-            <span className="map-stub__node" style={{ top: "68%", left: "40%" }} />
-            <span className="map-stub__node" style={{ top: "36%", left: "74%" }} />
-          </div>
-          <p className="map-stub__note">
-            {stats.critical + stats.high} elevated assets in filtered set —
-            open the full corridor map for risk heat and alerts.
+        {items.length === 0 ? (
+          <p className="muted" style={{ padding: 14 }}>
+            No assets match filters.
           </p>
-        </aside>
+        ) : null}
       </div>
-
-      {items.length === 0 && !error ? (
-        <p className="catalog__empty">No assets match filters.</p>
-      ) : null}
     </section>
   );
 }

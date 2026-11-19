@@ -10,7 +10,7 @@ export function LoginPage() {
   const location = useLocation();
   const from =
     (location.state as { from?: string } | null)?.from &&
-    (location.state as { from: string }).from !== "/login"
+      (location.state as { from: string }).from !== "/login"
       ? (location.state as { from: string }).from
       : "/";
 
@@ -38,27 +38,29 @@ export function LoginPage() {
   }
 
   return (
-    <div className="login">
-      <div className="login__panel">
-        <div className="login__brand">
-          <span className="rail__glyph" aria-hidden="true" />
+    <div className="login-page">
+      <div className="login-card">
+        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+          <span className="brand-symbol" aria-hidden="true">
+            ϟ
+          </span>
           <div>
             <h1>TPulse</h1>
             <p>Transmission Pulse · API-key lab login</p>
           </div>
         </div>
 
-        <p className="login__mode">
+        <p className="live-pill" style={{ display: "inline-flex", marginBottom: 16 }}>
           {liveApiEnabled()
             ? "Live-by-default · X-API-Key → GET /me"
             : "Mock mode · offline stub principals"}
         </p>
 
-        <form className="login__form" onSubmit={(e) => void onSubmit(e)}>
-          <label className="filters__field">
-            <span className="filters__label">Stub principal</span>
+        <form onSubmit={(e) => void onSubmit(e)}>
+          <label>
+            Stub principal
             <select
-              className="filters__select"
+              className="field"
               value={key}
               onChange={(e) => {
                 setKey(e.target.value);
@@ -73,10 +75,10 @@ export function LoginPage() {
             </select>
           </label>
 
-          <label className="filters__field">
-            <span className="filters__label">Or paste API key</span>
+          <label>
+            Or paste API key
             <input
-              className="filters__input"
+              className="field"
               value={custom}
               onChange={(e) => setCustom(e.target.value)}
               placeholder="dev-operator"
@@ -87,16 +89,12 @@ export function LoginPage() {
 
           {error ? <p className="catalog__error">{error}</p> : null}
 
-          <button
-            type="submit"
-            className="btn btn--primary"
-            disabled={busy}
-          >
+          <button type="submit" className="btn-primary" disabled={busy}>
             {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
-        <p className="login__hint">
+        <p className="muted" style={{ fontSize: 11, marginTop: 14 }}>
           Viewer cannot ack, schedule, or create. Platform admin unlocks
           /platform.
         </p>
