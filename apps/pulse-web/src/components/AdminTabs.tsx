@@ -11,14 +11,12 @@ const tabs = [
 
 export function AdminTabs() {
   return (
-    <nav className="section-tabs" aria-label="Admin">
+    <nav className="subnav admin-tabs" aria-label="Admin">
       {tabs.map((tab) => (
         <NavLink
           key={tab.to}
           to={tab.to}
-          className={({ isActive }) =>
-            `section-tabs__link${isActive ? " is-active" : ""}`
-          }
+          className={({ isActive }) => `subtab${isActive ? " active" : ""}`}
         >
           {tab.label}
         </NavLink>

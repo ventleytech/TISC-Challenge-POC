@@ -5,7 +5,12 @@ import {
   FindingFilters,
   type FindingFilterState,
 } from "../components/FindingFilters";
-import { assetName, createTask, listFindings, patchFinding } from "../mock/client";
+import {
+  assetName,
+  createTask,
+  listFindings,
+  patchFinding,
+} from "../mock/client";
 import type { Finding } from "../types/domain";
 
 const emptyFilters: FindingFilterState = {
@@ -14,22 +19,29 @@ const emptyFilters: FindingFilterState = {
   minRisk: "",
 };
 
-const columns: { key: string; title: string; match: (f: Finding) => boolean }[] =
-  [
+const columns: {
+  key: string;
+  title: string;
+  laneClass: string;
+  match: (f: Finding) => boolean;
+}[] = [
     {
       key: "critical",
       title: "Critical lane",
+      laneClass: "lane critical-lane",
       match: (f) => f.severity === "critical" || f.risk_score >= 85,
     },
     {
       key: "elevated",
       title: "Elevated",
+      laneClass: "lane",
       match: (f) =>
         f.risk_score >= 60 && f.risk_score < 85 && f.severity !== "critical",
     },
     {
       key: "watch",
       title: "Watch",
+      laneClass: "lane",
       match: (f) => f.risk_score < 60,
     },
   ];
@@ -46,9 +58,7 @@ export function PriorityBoardPage() {
     void (async () => {
       try {
         const minRisk =
-          filters.minRisk.trim() === ""
-            ? undefined
-            : Number(filters.minRisk);
+          filters.minRisk.trim() === "" ? undefined : Number(filters.minRisk);
         const res = await listFindings({
           classId: filters.classId,
           severity: filters.severity,
@@ -88,156 +98,145 @@ export function PriorityBoardPage() {
   }, [items]);
 
   return (
-    <section className="catalog catalog--wide">
-      <header className="catalog__header">
-        <p className="catalog__eyebrow">TPulse · C09 / W01</p>
-        <div className="catalog__title-row">
-          <h1 className="catalog__title">Prioritisation</h1>
-          <Link className="btn btn--ghost" to="/alerts">
+    <section className="page-view" aria-label="Findings prioritisation">
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">TPULSE · C09 / W01</p>
+          <h1>Prioritisation</h1>
+          <p>
+            Risk board — severity × asset criticality. Drag-free columns for
+            demo triage.
+          </p>
+        </div>
+        <div className="heading-actions">
+          <Link className="btn-outline" to="/alerts">
             Alerts SLA
           </Link>
         </div>
-        <p className="catalog__summary">
-          Risk board — severity × asset criticality. Drag-free columns for demo
-          triage; mock findings only.
-        </p>
       </header>
 
-      <div className="stat-band">
-        <div className="stat-band__cell">
-          <span className="stat-band__n">{items.length}</span>
-          <span className="stat-band__l">Ranked findings</span>
-        </div>
-        <div className="stat-band__cell">
-          <span className="stat-band__n">
-            {items[0] ? items[0].risk_score : "—"}
-          </span>
-          <span className="stat-band__l">Top risk score</span>
-        </div>
-        <div className="stat-band__cell">
-          <span className="stat-band__n">
+      <div className="stat-grid three">
+        <article className="stat-card">
+          <strong>{items.length}</strong>
+          <span>Ranked findings</span>
+        </article>
+        <article className="stat-card">
+          <strong>{items[0] ? items[0].risk_score : "—"}</strong>
+          <span>Top risk score</span>
+        </article>
+        <article className="stat-card danger">
+          <strong>
             {items.filter((f) => f.severity === "critical").length}
-          </span>
-          <span className="stat-band__l">Critical severity</span>
-        </div>
+          </strong>
+          <span>Critical severity</span>
+        </article>
       </div>
 
       <FindingFilters value={filters} onChange={setFilters} />
 
       {error ? <p className="catalog__error">{error}</p> : null}
-      {msg ? <p className="catalog__summary">{msg}</p> : null}
+      {msg ? <p className="muted">{msg}</p> : null}
 
-      <div className="board" aria-label="Prioritisation columns">
+      <div className="kanban" aria-label="Prioritisation columns">
         {grouped.map((col) => (
-          <section key={col.key} className={`board__col board__col--${col.key}`}>
-            <header className="board__head">
-              <h2>{col.title}</h2>
-              <span className="board__count">{col.rows.length}</span>
+          <section key={col.key} className={col.laneClass}>
+            <header className="lane-head">
+              <h3>{col.title}</h3>
+              <span>{col.rows.length}</span>
             </header>
-            <ol className="board__list">
-              {col.rows.map((f, index) => (
-                <li
-                  key={f.id}
-                  className="board-card"
-                  style={{ animationDelay: `${index * 60}ms` }}
-                >
-                  <div className="board-card__top">
-                    <span className="board-card__class">{f.class_id}</span>
-                    <span className={`badge badge--${f.severity}`}>
-                      {f.severity}
-                    </span>
-                  </div>
-                  <p className="board-card__asset">
-                    <Link to={`/assets/${f.asset_id}`}>
-                      {assetName(f.asset_id)}
-                    </Link>
-                  </p>
-                  <div className="board-card__risk">
-                    <span
-                      className="risk-bar"
-                      style={{ ["--risk" as string]: `${f.risk_score}%` }}
-                      aria-hidden="true"
-                    />
-                    <span className="board-card__score">risk {f.risk_score}</span>
-                  </div>
-                  <p className="board-card__meta">
-                    {f.criticality} ·{" "}
-                    {new Date(f.occurred_at).toLocaleString()}
-                  </p>
-                  <p className="board-card__rec">{f.recommendation}</p>
-                  <div className="board-card__actions">
-                    <Link className="btn btn--ghost btn--sm" to={`/findings/${f.id}`}>
-                      Open finding
-                    </Link>
-                    <Link className="btn btn--ghost btn--sm" to="/alerts">
-                      Open alert
-                    </Link>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      disabled={!canWrite}
-                      onClick={() =>
-                        void createTask({
-                          title: `Assign · ${f.class_id} · ${assetName(f.asset_id)}`,
-                          assignee: "Crew North",
-                          finding_id: f.id,
-                          due_at: new Date(Date.now() + 86400000).toISOString(),
-                        }).then(() => setMsg(`Task created for ${f.id}`))
-                      }
-                    >
-                      Assign
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      disabled={!canWrite}
-                      onClick={() =>
-                        void createTask({
-                          title: `Scheduled follow-up · ${f.id}`,
-                          assignee: "Scheduler",
-                          finding_id: f.id,
-                        }).then(() => setMsg(`Marked scheduled · ${f.id}`))
-                      }
-                    >
-                      Mark scheduled
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      disabled={!canWrite}
-                      onClick={() =>
-                        void patchFinding(f.id, { label: "tp" }).then(() =>
-                          setMsg(`TP · ${f.id}`),
-                        )
-                      }
-                    >
-                      TP
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      disabled={!canWrite}
-                      onClick={() =>
-                        void patchFinding(f.id, { label: "fp" }).then(() =>
-                          setMsg(`FP · ${f.id}`),
-                        )
-                      }
-                    >
-                      FP
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            {col.rows.map((f) => (
+              <article key={f.id} className="finding-card">
+                <div className="card-top">
+                  <span className="mono">{f.class_id}</span>
+                  <span className={`severity-tag ${f.severity}`}>
+                    {f.severity}
+                  </span>
+                </div>
+                <h3>
+                  <Link to={`/assets/${f.asset_id}`}>
+                    {assetName(f.asset_id)}
+                  </Link>
+                </h3>
+                <div className="risk-meter" aria-hidden="true">
+                  <i style={{ width: `${Math.min(100, f.risk_score)}%` }} />
+                </div>
+                <p className="card-meta">
+                  risk {f.risk_score} · {f.criticality} ·{" "}
+                  {new Date(f.occurred_at).toLocaleString()}
+                </p>
+                <p>{f.recommendation}</p>
+                <div className="button-row">
+                  <Link className="small-action" to={`/findings/${f.id}`}>
+                    Open finding
+                  </Link>
+                  <Link className="small-action" to="/alerts">
+                    Open alert
+                  </Link>
+                  <button
+                    type="button"
+                    className="small-action"
+                    disabled={!canWrite}
+                    onClick={() =>
+                      void createTask({
+                        title: `Assign · ${f.class_id} · ${assetName(f.asset_id)}`,
+                        assignee: "Crew North",
+                        finding_id: f.id,
+                        due_at: new Date(Date.now() + 86400000).toISOString(),
+                      }).then(() => setMsg(`Task created for ${f.id}`))
+                    }
+                  >
+                    Assign
+                  </button>
+                  <button
+                    type="button"
+                    className="small-action"
+                    disabled={!canWrite}
+                    onClick={() =>
+                      void createTask({
+                        title: `Scheduled follow-up · ${f.id}`,
+                        assignee: "Scheduler",
+                        finding_id: f.id,
+                      }).then(() => setMsg(`Marked scheduled · ${f.id}`))
+                    }
+                  >
+                    Mark scheduled
+                  </button>
+                  <button
+                    type="button"
+                    className="small-action"
+                    disabled={!canWrite}
+                    onClick={() =>
+                      void patchFinding(f.id, { label: "tp" }).then(() =>
+                        setMsg(`TP · ${f.id}`),
+                      )
+                    }
+                  >
+                    TP
+                  </button>
+                  <button
+                    type="button"
+                    className="small-action"
+                    disabled={!canWrite}
+                    onClick={() =>
+                      void patchFinding(f.id, { label: "fp" }).then(() =>
+                        setMsg(`FP · ${f.id}`),
+                      )
+                    }
+                  >
+                    FP
+                  </button>
+                </div>
+              </article>
+            ))}
             {col.rows.length === 0 ? (
-              <p className="board__empty">Empty lane</p>
+              <p className="muted">Empty lane</p>
             ) : null}
           </section>
         ))}
       </div>
 
       {items.length === 0 && !error ? (
-        <p className="catalog__empty">No findings match filters.</p>
+        <p className="muted">No findings match filters.</p>
       ) : null}
     </section>
   );

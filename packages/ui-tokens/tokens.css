@@ -1,66 +1,80 @@
 /**
- * TPulse (Transmission Pulse) theme tokens — industrial steel / volt accent.
- * Import from apps (e.g. pulse-web). No proprietary chrome.
+ * TPulse theme — lavender / purple (mockup fidelity).
+ * Legacy --vp-* aliases map onto mockup tokens for gradual class migration.
  */
 :root {
-  /* Surfaces */
-  --vp-bg: #dfe8ee;
-  --vp-bg-elevated: #f2f6f8;
-  --vp-bg-panel: #eef3f6;
-  --vp-bg-deep: #0a1f28;
-  --vp-bg-rail: #0c2430;
-  --vp-bg-mist: #b7c9d4;
-  --vp-bg-mesh: rgba(15, 42, 51, 0.045);
+  /* Mockup tokens */
+  --ink: #11133f;
+  --muted: #777b9d;
+  --purple: #5942d8;
+  --violet: #8b78ff;
+  --line: #e4e3f5;
+  --surface: #fff;
+  --canvas: #f7f6ff;
+  --green: #22ae63;
+  --orange: #f29a2e;
+  --red: #e74c55;
+
+  /* Surfaces (aliases) */
+  --vp-bg: var(--canvas);
+  --vp-bg-elevated: var(--surface);
+  --vp-bg-panel: #ffffffed;
+  --vp-bg-deep: #171632;
+  --vp-bg-rail: #f0efff;
+  --vp-bg-mist: #dfddff;
+  --vp-bg-mesh: rgba(89, 66, 216, 0.06);
 
   /* Ink */
-  --vp-ink: #07151b;
-  --vp-ink-muted: #3a5360;
-  --vp-ink-faint: #6a8490;
-  --vp-ink-on-deep: #e4eef2;
-  --vp-ink-on-deep-muted: #8eabb8;
+  --vp-ink: var(--ink);
+  --vp-ink-muted: var(--muted);
+  --vp-ink-faint: #9290ad;
+  --vp-ink-on-deep: #e8e4ff;
+  --vp-ink-on-deep-muted: #aaa5ce;
 
-  /* Brand accent — volt + steel (not purple) */
-  --vp-volt: #c8f24a;
-  --vp-volt-deep: #8fb820;
-  --vp-volt-glow: rgba(200, 242, 74, 0.35);
-  --vp-steel: #1a6b7a;
-  --vp-steel-bright: #2a9aad;
-  --vp-steel-mid: #245d6a;
-  --vp-copper: #c47a3a;
+  /* Brand — purple (replaces volt yellow) */
+  --vp-volt: var(--purple);
+  --vp-volt-deep: #4d38cc;
+  --vp-volt-glow: rgba(91, 67, 217, 0.28);
+  --vp-steel: var(--purple);
+  --vp-steel-bright: var(--violet);
+  --vp-steel-mid: #5b43d9;
+  --vp-copper: var(--orange);
 
   /* Severity / SLA */
-  --vp-sev-critical: #c0392b;
-  --vp-sev-high: #d35400;
-  --vp-sev-medium: #b8860b;
-  --vp-sev-low: #2d7a4f;
-  --vp-sev-info: #3d5560;
-  --vp-sla-ok: #2d7a4f;
-  --vp-sla-warn: #b8860b;
-  --vp-sla-breach: #c0392b;
+  --vp-sev-critical: #d83f4a;
+  --vp-sev-high: #d87824;
+  --vp-sev-medium: #b98513;
+  --vp-sev-low: #18885a;
+  --vp-sev-info: var(--muted);
+  --vp-sla-ok: #168b55;
+  --vp-sla-warn: #e78b28;
+  --vp-sla-breach: #df4d59;
 
-  /* Borders / lines */
-  --vp-line: rgba(15, 42, 51, 0.12);
-  --vp-line-strong: rgba(15, 42, 51, 0.26);
-  --vp-line-on-deep: rgba(228, 238, 242, 0.12);
+  /* Borders */
+  --vp-line: var(--line);
+  --vp-line-strong: #d7d4ef;
+  --vp-line-on-deep: rgba(255, 255, 255, 0.12);
 
   /* Type */
-  --vp-font-display: "Syne", "Avenir Next", "Segoe UI", sans-serif;
-  --vp-font-body: "Figtree", "Avenir Next", "Segoe UI", sans-serif;
-  --vp-font-mono: "IBM Plex Mono", "ui-monospace", "Cascadia Code", monospace;
+  --vp-font-display: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --vp-font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --vp-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Space / motion / elevation */
+  /* Space / motion */
   --vp-space-1: 0.25rem;
   --vp-space-2: 0.5rem;
   --vp-space-3: 1rem;
   --vp-space-4: 1.5rem;
   --vp-space-5: 2.5rem;
   --vp-space-6: 4rem;
-  --vp-radius: 3px;
-  --vp-radius-lg: 8px;
-  --vp-shadow-soft: 0 12px 40px rgba(7, 21, 27, 0.08);
-  --vp-shadow-rail: 8px 0 32px rgba(7, 21, 27, 0.28);
-  --vp-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --vp-dur: 480ms;
+  --vp-radius: 11px;
+  --vp-radius-lg: 16px;
+  --vp-shadow-soft: 0 5px 18px #302a700b;
+  --vp-shadow-rail: none;
+  --vp-ease: ease;
+  --vp-dur: 180ms;
   --vp-dur-fast: 180ms;
-  --vp-rail-w: 15.5rem;
+  --vp-rail-w: 250px;
 }

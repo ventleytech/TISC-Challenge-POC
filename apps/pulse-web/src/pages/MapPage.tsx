@@ -470,8 +470,8 @@ export function MapPage() {
   const classTotal = [...classCounts.values()].reduce((x, y) => x + y, 0);
 
   return (
-    <section className="evx mpx">
-      <header className="evx-hero mpx-hero">
+    <section className="page-view mpx">
+      <header className="corridor-hero">
         <div className="evx-hero__mesh" aria-hidden="true" />
         <div className="evx-hero__copy">
           <p className="evx-eyebrow">TPulse · corridor map</p>
@@ -490,15 +490,15 @@ export function MapPage() {
             </span>
             <button
               type="button"
-              className="btn btn--ghost btn--sm"
+              className="btn-outline"
               onClick={() => setTick((n) => n + 1)}
             >
               Refresh
             </button>
-            <Link className="btn btn--ghost btn--sm" to="/alerts">
+            <Link className="btn-outline" to="/alerts">
               Alerts
             </Link>
-            <Link className="btn btn--ghost btn--sm" to="/assets">
+            <Link className="btn-outline" to="/assets">
               Registry
             </Link>
           </div>
@@ -528,7 +528,7 @@ export function MapPage() {
                   type="button"
                   data-class={c}
                   title={`${CLASS_LABEL[c]} · ${classCounts.get(c)}`}
-                  className={`evx-mix__seg${classId === c ? " is-on" : ""}`}
+                  className={`evx-mix__seg${classId === c ? " selected" : ""}`}
                   style={{ flexGrow: classCounts.get(c) }}
                   onClick={() => setClassId(classId === c ? "" : c)}
                 />
@@ -551,7 +551,7 @@ export function MapPage() {
               key={k}
               type="button"
               data-kind={k}
-              className={`evx-pill mpx-layer${layers.has(k) ? " is-on" : ""}`}
+              className={`evx-pill mpx-layer${layers.has(k) ? " selected" : ""}`}
               onClick={() => toggleLayer(k)}
               aria-pressed={layers.has(k)}
             >
@@ -618,7 +618,7 @@ export function MapPage() {
       {error ? <p className="catalog__error">{error}</p> : null}
 
       <div className="evx-stage mpx-stage">
-        <div className="mpx-canvas">
+        <div className="map-canvas">
           <svg
             ref={svgRef}
             className="mpx-svg"
@@ -637,8 +637,8 @@ export function MapPage() {
                 <stop offset="100%" stopColor="#2a9aad" stopOpacity="0" />
               </radialGradient>
               <radialGradient id="mpx-glow-b" cx="85%" cy="30%" r="40%">
-                <stop offset="0%" stopColor="#c8f24a" stopOpacity="0.16" />
-                <stop offset="100%" stopColor="#c8f24a" stopOpacity="0" />
+                <stop offset="0%" stopColor="#5b43d9" stopOpacity="0.16" />
+                <stop offset="100%" stopColor="#5b43d9" stopOpacity="0" />
               </radialGradient>
             </defs>
 
@@ -973,7 +973,7 @@ export function MapPage() {
               ) : null}
 
               <div className="alx-actions">
-                <Link className="btn btn--primary btn--sm" to={`/assets/${selected.id}`}>
+                <Link className="btn-primary" to={`/assets/${selected.id}`}>
                   Asset record
                 </Link>
                 <Link className="btn btn--ghost btn--sm alx-ghost" to="/priority">

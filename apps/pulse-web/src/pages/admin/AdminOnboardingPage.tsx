@@ -19,7 +19,7 @@ export function AdminOnboardingPage() {
   const done = steps.filter(Boolean).length;
 
   return (
-    <section className="catalog catalog--wide">
+    <section className="page-view">
       <AdminTabs />
       <header className="catalog__header">
         <p className="catalog__eyebrow">Admin · onboarding</p>

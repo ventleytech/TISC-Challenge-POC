@@ -264,8 +264,8 @@ export function AlertsPage() {
   }, [evidence, selected]);
 
   return (
-    <section className="evx alx">
-      <header className="evx-hero">
+    <section className="page-view">
+      <header className="alert-hero">
         <div className="evx-hero__mesh" aria-hidden="true" />
         <div className="alx-hero__sweep" aria-hidden="true" />
         <div className="evx-hero__copy">
@@ -285,15 +285,15 @@ export function AlertsPage() {
             </span>
             <button
               type="button"
-              className="btn btn--ghost btn--sm"
+              className="btn-outline"
               onClick={() => setTick((n) => n + 1)}
             >
               Refresh
             </button>
-            <Link className="btn btn--ghost btn--sm" to="/priority">
+            <Link className="btn-outline" to="/priority">
               Priority board
             </Link>
-            <Link className="btn btn--ghost btn--sm" to="/map">
+            <Link className="btn-outline" to="/map">
               Corridor map
             </Link>
           </div>
@@ -333,7 +333,7 @@ export function AlertsPage() {
                     type="button"
                     data-sev={s}
                     title={`${s} · ${sevCounts.get(s)}`}
-                    className={`evx-mix__seg${severity === s ? " is-on" : ""}`}
+                    className={`evx-mix__seg${severity === s ? " selected" : ""}`}
                     style={{ flexGrow: sevCounts.get(s) }}
                     onClick={() => setSeverity(severity === s ? "" : s)}
                   />
@@ -350,11 +350,11 @@ export function AlertsPage() {
         </div>
       </header>
 
-      <div className="evx-toolbar" role="group" aria-label="Alert filters">
-        <div className="evx-pills">
+      <div className="filter-row" role="group" aria-label="Alert filters">
+        <div className="chip-group">
           <button
             type="button"
-            className={`evx-pill${severity === "" ? " is-on" : ""}`}
+            className={`filter-chip${severity === "" ? " selected" : ""}`}
             onClick={() => setSeverity("")}
           >
             All <b>{items.length}</b>
@@ -364,7 +364,7 @@ export function AlertsPage() {
               key={s}
               type="button"
               data-sev={s}
-              className={`evx-pill${severity === s ? " is-on" : ""}`}
+              className={`filter-chip${severity === s ? " selected" : ""}`}
               onClick={() => setSeverity(severity === s ? "" : s)}
             >
               <i aria-hidden="true" />
@@ -494,7 +494,7 @@ export function AlertsPage() {
                           </span>
                           <button
                             type="button"
-                            className="btn btn--primary btn--sm"
+                            className="btn-primary"
                             disabled={Boolean(alert.ack_at) || acking === alert.id}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -675,7 +675,7 @@ export function AlertsPage() {
               <div className="alx-actions">
                 <button
                   type="button"
-                  className="btn btn--primary"
+                  className="btn-primary"
                   disabled={
                     !canWrite ||
                     Boolean(selected.ack_at) ||
@@ -687,7 +687,7 @@ export function AlertsPage() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn--ghost btn--sm"
+                  className="btn-outline"
                   disabled={!canWrite || Boolean(selected.escalated_at)}
                   onClick={() => void onEscalate(selected.id)}
                 >
